@@ -30,7 +30,7 @@ class ChronosLNX:
 		self.window.connect("delete-event", self.delete_event)
 		self.window.set_border_width(15)
 		self.window.set_icon_from_file(os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],"chronoslnx")))
-		
+		self.window.set_resizable(False)
 		self.make_menu()
 
 		# Create a horizontal packing box to hold the three clock
@@ -147,9 +147,6 @@ class ChronosLNX:
 			#print state[0]
 			print type(cycling)
 			model.append([None, cycling, state[0], percent[1]])
-			print model[i][0]
-			print model[i][1]
-			print model[i][2]
 
 		#size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
 
@@ -422,6 +419,7 @@ Please note that it doesn't show the exact\
 		name.add_attribute(cell,"text", 2)
 
 		self.hours_display.append_column(name)
+		self.hours_display.set_size_request(100, 150)
 		
 		scrolled.add(self.hours_display)
 		self.clock_details.add(gtk.Label("Pick a planet to view specific hours for."))
