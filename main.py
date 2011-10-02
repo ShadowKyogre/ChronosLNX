@@ -13,17 +13,17 @@ from xdg import BaseDirectory
 class ChronosLNX:
 	def __init__(self):
 		self.now = datetime.now()
-		self.config = ConfigParser.ConfigParser()
-		self.config.read(open(BaseDirectory.load_first_config('chronoslnx/config.ini')))
-		if not self.config.has_option('DEFAULT', 'latitude'):
-		      self.config.set('DEFAULT', 'latitude', '0.0')
-		if not self.config.has_option('DEFAULT', 'longitude'):
-		      self.config.set('DEFAULT', 'longitude', '0.0')
-		if not self.config.has_option('DEFAULT', 'elevation'):
-		      self.config.set('DEFAULT', 'elevation', '0.0')
-		self.latitude=self.config.getfloat('DEFAULT', 'latitude')
-		self.longitude=self.config.getfloat('DEFAULT', 'longitude')
-		self.elevation=self.config.getfloat('DEFAULT', 'elevation')
+		self.config = ConfigParser.SafeConfigParser()
+		self.config.read(BaseDirectory.load_first_config('chronoslnx/config.ini'))
+		if not self.config.has_option('Location', 'latitude'):
+		      self.config.set('Location', 'latitude', '0.0')
+		if not self.config.has_option('Location', 'longitude'):
+		      self.config.set('Location', 'longitude', '0.0')
+		if not self.config.has_option('Location', 'elevation'):
+		      self.config.set('Location', 'elevation', '0.0')
+		self.latitude=self.config.getfloat('Location', 'latitude')
+		self.longitude=self.config.getfloat('Location', 'longitude')
+		self.elevation=self.config.getfloat('Location', 'elevation')
 
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.set_title("Chronos Linux")
@@ -502,14 +502,14 @@ Please note that it doesn't show the exact\
 	
 	def settings_change(self, widget, response_id):
 		if response_id == gtk.RESPONSE_ACCEPT:
-			self.config.set('DEFAULT', 'latitude', str(widget.lat_box.get_value()))
-			self.config.set('DEFAULT', 'longitude', str(widget.lon_box.get_value()))
-			self.config.set('DEFAULT', 'elevation', str(widget.lat_box.get_value()))
+			self.config.set('Location', 'latitude', str(widget.lat_box.get_value()))
+			self.config.set('Location', 'longitude', str(widget.lon_box.get_value()))
+			self.config.set('Location', 'elevation', str(widget.lat_box.get_value()))
 			self.config.write(open(BaseDirectory.load_first_config('chronoslnx/config.ini'), 'w'))
-			self.latitude=self.config.getfloat('DEFAULT', 'latitude')
-			self.longitude=self.config.getfloat('DEFAULT', 'longitude')
-			self.elevation=self.config.getfloat('DEFAULT', 'elevation')
-			self.prepare_hours()
+			self.latitude=self.config.getfloat('Location', 'latitude')
+			self.longitude=self.config.getfloat('Location', 'longitude')
+			self.elevation=self.config.getfloat('Location', 'elevation')
+			self.update_hours()
 		if response_id == gtk.RESPONSE_REJECT:
 			widget.destroy()
 	
@@ -520,11 +520,9 @@ Please note that it doesn't show the exact\
 		self.now = datetime.now()
 		if self.now > self.next_sunrise:
 			self.update_hours()
-
 		index=self.grab_nearest_hour()
 		self.hours_display.get_selection().select_path(index)
 		self.phour = self.model[index][2]
-		
 		planets_string = "This is the day of %s, the hour of %s" %(self.pday, self.phour)
 		moon_phase=grab_moon_phase(self.now)
 		sign_string="The sign of the month is %s" %(calculate_sign(self.now))
