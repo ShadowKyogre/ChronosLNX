@@ -504,7 +504,7 @@ Please note that it doesn't show the exact\
 		if response_id == gtk.RESPONSE_ACCEPT:
 			self.config.set('Location', 'latitude', str(widget.lat_box.get_value()))
 			self.config.set('Location', 'longitude', str(widget.lon_box.get_value()))
-			self.config.set('Location', 'elevation', str(widget.lat_box.get_value()))
+			self.config.set('Location', 'elevation', str(widget.elv_box.get_value()))
 			self.config.write(open(BaseDirectory.load_first_config('chronoslnx/config.ini'), 'w'))
 			self.latitude=self.config.getfloat('Location', 'latitude')
 			self.longitude=self.config.getfloat('Location', 'longitude')
