@@ -340,6 +340,11 @@ Please note that it doesn't show the exact\
 		hbox.add(settings_window.elv_box)
 		settings_window.vbox.add(hbox)
 		
+		tooltips = gtk.Tooltips()
+		tooltips.set_tip(settings_window.lat_box, "Negative indicates south.\nMust be between -90 and 90 inclusive.")
+		tooltips.set_tip(settings_window.lon_box,"Negative indicates west.\nMust be between -180 and 180 inclusive.")
+		tooltips.set_tip(settings_window.elv_box,"Negative indicates below sea level.\nMust be between -418 and 8850 inclusive, in meters.")
+		
 		settings_window.connect('response', self.settings_change)
 		settings_window.show_all()
 		settings_window.run()
