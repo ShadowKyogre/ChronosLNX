@@ -1,0 +1,23 @@
+You need these to run this:
+* PyGTK 
+* PyEphem
+* python-datetime
+* python-xdg
+
+Todo:
+* Make prettier icons
+* Find an alternate sunrise/sunset method to make this lighter
+* Find an alternate moon phase method to make this lighter
+* Clicking calendar dates to view hours for any date (iffy)
+* Clicking calendar dates to view phase for any date, or something that shows the moon phase cycle for a given date (iffy)
+* General code cleaning, as this literally just took a few hours to write up
+* Port to PyQt?
+
+Credits:
+*http://www.ittc.ku.edu/~niehaus/classes/448-s09/projects/examples/clock.py
+*https://gist.github.com/202755
+*http://www.jezra.net/blog/minimizeclose_to_system_tray_in_Python_GTK
+*http://chronosxp.sourceforget.net
+
+Notes:
+I probably still have much more to do until I decide to officially put this on SourceForge
