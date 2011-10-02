@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os
 import gtk
 import gobject
@@ -8,11 +7,12 @@ from datetime import datetime, timedelta, date
 import ephem
 import ConfigParser
 from astro import *
+from dateutil.tz import *
 from xdg import BaseDirectory
 
 class ChronosLNX:
 	def __init__(self):
-		self.now = datetime.now()
+		self.now = datetime.now().replace(tzinfo=tzfile('/etc/localtime'))
 		self.config = ConfigParser.SafeConfigParser()
 		self.config.read(BaseDirectory.load_first_config('chronoslnx/config.ini'))
 		if not self.config.has_option('Location', 'latitude'):
@@ -124,7 +124,7 @@ class ChronosLNX:
 
 	def make_date(self):
 		selection=self.calendar.get_date()
-		target_date=datetime.strptime("%s/%s/%s" %(selection[0], selection[1] + 1, selection[2]), "%Y/%m/%d")
+		target_date=datetime.strptime("%s/%s/%s" %(selection[0], selection[1] + 1, selection[2]), "%Y/%m/%d").replace(tzinfo=tzfile('/etc/localtime'))
 		return target_date
 
 	def get_moon_timeline(self, widget):
@@ -143,9 +143,6 @@ class ChronosLNX:
 			state_line=grab_moon_phase(cycling)
 			state=re.split(":",state_line)
 			percent=re.split(" ",state[1])
-			#print percent
-			#print state[0]
-			print type(cycling)
 			model.append([None, cycling, state[0], percent[1]])
 
 		#size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
@@ -520,7 +517,7 @@ Please note that it doesn't show the exact\
 	# find out the time and update the clock display
 
 	def update(self):
-		self.now = datetime.now()
+		self.now = datetime.now().replace(tzinfo=tzfile('/etc/localtime'))
 		if self.now > self.next_sunrise:
 			self.update_hours()
 		index=self.grab_nearest_hour()
