@@ -5,11 +5,8 @@ You need these to run this:
 * python-xdg (now completely optional, as it's only needed to look for the config file)
 
 Todo:
-* Make prettier icons
 * Find an alternate sunrise/sunset method to make this lighter
 * Find an alternate moon phase method to make this lighter
-* Clicking calendar dates to view hours for any date (iffy)
-* Clicking calendar dates to view phase for any date, or something that shows the moon phase cycle for a given date (iffy)
 * General code cleaning, as this literally just took a few hours to write up
 * Port to PyQt?
 
