@@ -118,7 +118,7 @@ class ChronosLNX:
 	def get_moon_timeline(self, widget):
 		target_date=self.make_date()
 		self.reset_calendar()
-		prev_new=ephem.localtime(ephem.previous_new_moon(target_date))
+		prev_new=ephem.localtime(ephem.previous_new_moon(target_date)).replace(tzinfo=LocalTimezone())
 		full=ephem.localtime(ephem.next_full_moon(target_date)).replace(tzinfo=LocalTimezone())
 		new_m=ephem.localtime(ephem.next_new_moon(target_date)).replace(tzinfo=LocalTimezone())
 		length = (new_m - prev_new) / 29
