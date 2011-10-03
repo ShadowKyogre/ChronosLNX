@@ -4,10 +4,10 @@ import gtk
 import gobject
 import re
 #from datetime import datetime, timedelta, date
-from datetimetz import *
 import ephem
 import ConfigParser
 from astro import *
+import datetimetz
 
 class ChronosLNX:
 	def __init__(self):
