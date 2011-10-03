@@ -1,12 +1,13 @@
 import ephem
 import math
-from datetime import datetime, timedelta, date
-from dateutil.tz import *
+#from datetime import datetime, timedelta, date
+#from dateutil.tz import *
+from datetimetz import *
 
 def grab_moon_phase(date):
 	moon=ephem.Moon(date)
-	next_full_moon=ephem.localtime(ephem.next_full_moon(date)).replace(tzinfo=tzfile('/etc/localtime'))
-	next_new_moon=ephem.localtime(ephem.next_new_moon(date)).replace(tzinfo=tzfile('/etc/localtime'))
+	next_full_moon=ephem.localtime(ephem.next_full_moon(date)).replace(tzinfo=LocalTimezone())
+	next_new_moon=ephem.localtime(ephem.next_new_moon(date)).replace(tzinfo=LocalTimezone())
 	illumination="%.3f%% illuminated" % moon.phase
 	if 97.0 <= moon.phase <= 100.0:
 		return "Full moon: " + illumination
@@ -35,9 +36,9 @@ def get_sunrise_and_sunset(date,latitude,longitude,elevation):
 	today="%i/%i/%i" %(date.year,date.month,date.day)
 	#print tomorrow
 	sun = ephem.Sun()
-	sunrise=ephem.localtime(home.next_rising(sun, start=today)).replace(tzinfo=tzfile('/etc/localtime'))
-	sunset=ephem.localtime(home.next_setting(sun, start=tomorrow)).replace(tzinfo=tzfile('/etc/localtime'))
-	next_sunrise=ephem.localtime(home.next_rising(sun, start=tomorrow)).replace(tzinfo=tzfile('/etc/localtime'))
+	sunrise=ephem.localtime(home.next_rising(sun, start=today)).replace(tzinfo=LocalTimezone())
+	sunset=ephem.localtime(home.next_setting(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
+	next_sunrise=ephem.localtime(home.next_rising(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
 	return sunrise,sunset,next_sunrise
 
 def hours_for_day(date,latitude,longitude,elevation):

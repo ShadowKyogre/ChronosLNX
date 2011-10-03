@@ -1,7 +1,7 @@
 You need these to run this:
 * PyGTK 
 * PyEphem
-* python-datetime (thinking removing this dependency now that I found a wrapper in Zim's source code around datetime to sync the computer's timezone with the program)
+* python-datetime (removed for now for cross-platformness)
 * python-xdg (now completely optional, as it's only needed to look for the config file)
 
 Todo:
@@ -15,6 +15,7 @@ Credits:
 *https://gist.github.com/202755
 *http://www.jezra.net/blog/minimizeclose_to_system_tray_in_Python_GTK
 *http://chronosxp.sourceforget.net
+*http://zim-wiki.org
 
 Notes:
 I probably still have much more to do until I decide to officially put this on SourceForge

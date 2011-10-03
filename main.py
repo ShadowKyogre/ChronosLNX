@@ -3,15 +3,15 @@ import os
 import gtk
 import gobject
 import re
-from datetime import datetime, timedelta, date
+#from datetime import datetime, timedelta, date
+from datetimetz import *
 import ephem
 import ConfigParser
 from astro import *
-from dateutil.tz import *
 
 class ChronosLNX:
 	def __init__(self):
-		self.now = datetime.now().replace(tzinfo=tzfile('/etc/localtime'))
+		self.now = datetimetz.now()
 		self.load_config()
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.set_title("Chronos Linux")
@@ -527,7 +527,7 @@ Please note that it doesn't show the exact\
 	# find out the time and update the clock display
 
 	def update(self):
-		self.now = datetime.now().replace(tzinfo=tzfile('/etc/localtime'))
+		self.now = datetimetz.now()
 		if self.now > self.next_sunrise:
 			self.update_hours()
 		index=self.grab_nearest_hour()
