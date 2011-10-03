@@ -1,7 +1,7 @@
 You need these to run this:
 * PyGTK 
 * PyEphem
-* python-datetime (removed for now for cross-platformness)
+* python-dateutil (removed for now for cross-platformness)
 * python-xdg (now completely optional, as it's only needed to look for the config file)
 
 Todo:

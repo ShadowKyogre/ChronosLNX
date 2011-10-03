@@ -7,4 +7,5 @@ Name[en_US]=Chronos Linux
 Name=Chronos Linux
 StartupNotify=true
 Terminal=false
+Category=Accessories
 Type=Application
