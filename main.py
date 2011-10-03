@@ -112,7 +112,7 @@ class ChronosLNX:
 
 	def make_date(self):
 		selection=self.calendar.get_date()
-		target_date=datetime.strptime("%s/%s/%s" %(selection[0], selection[1] + 1, selection[2]), "%Y/%m/%d").replace(tzinfo=tzfile('/etc/localtime'))
+		target_date=datetime.strptime("%s/%s/%s" %(selection[0], selection[1] + 1, selection[2]), "%Y/%m/%d").replace(tzinfo=LocalTimezone())
 		return target_date
 
 	def get_moon_timeline(self, widget):
