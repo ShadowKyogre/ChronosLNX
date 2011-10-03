@@ -119,8 +119,8 @@ class ChronosLNX:
 		target_date=self.make_date()
 		self.reset_calendar()
 		prev_new=ephem.localtime(ephem.previous_new_moon(target_date))
-		full=ephem.localtime(ephem.next_full_moon(target_date))
-		new_m=ephem.localtime(ephem.next_new_moon(target_date))
+		full=ephem.localtime(ephem.next_full_moon(target_date)).replace(tzinfo=LocalTimezone())
+		new_m=ephem.localtime(ephem.next_new_moon(target_date)).replace(tzinfo=LocalTimezone())
 		length = (new_m - prev_new) / 29
 		model = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING, gobject.TYPE_STRING)
 		select_this = -1
