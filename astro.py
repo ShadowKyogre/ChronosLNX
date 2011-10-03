@@ -44,8 +44,6 @@ def hours_for_day(date,latitude,longitude,elevation):
 	day_type=int(date.strftime('%w'))
 	needed_planet=get_planet_day(day_type)
 	sunrise,sunset,next_sunrise=get_sunrise_and_sunset(date,latitude,longitude,elevation)
-	print sunrise,sunset,next_sunrise
-	print sunrise.tzname()
 	day_length=sunset - sunrise
 	night_length=next_sunrise - sunset
 	dayhour_length=day_length/12

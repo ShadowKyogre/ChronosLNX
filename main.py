@@ -8,23 +8,11 @@ import ephem
 import ConfigParser
 from astro import *
 from dateutil.tz import *
-from xdg import BaseDirectory
 
 class ChronosLNX:
 	def __init__(self):
 		self.now = datetime.now().replace(tzinfo=tzfile('/etc/localtime'))
-		self.config = ConfigParser.SafeConfigParser()
-		self.config.read(BaseDirectory.load_first_config('chronoslnx/config.ini'))
-		if not self.config.has_option('Location', 'latitude'):
-		      self.config.set('Location', 'latitude', '0.0')
-		if not self.config.has_option('Location', 'longitude'):
-		      self.config.set('Location', 'longitude', '0.0')
-		if not self.config.has_option('Location', 'elevation'):
-		      self.config.set('Location', 'elevation', '0.0')
-		self.latitude=self.config.getfloat('Location', 'latitude')
-		self.longitude=self.config.getfloat('Location', 'longitude')
-		self.elevation=self.config.getfloat('Location', 'elevation')
-
+		self.load_config()
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.set_title("Chronos Linux")
 		self.window.connect("delete-event", self.delete_event)
@@ -184,6 +172,28 @@ Please note that it doesn't show the exact\
 		hours_window.show_all()
 		hours_window.run()
 		hours_window.destroy()
+
+	def load_config(self):
+		if os.name == 'nt':
+			config_file = os.path.expanduser("~/.chronoslnx/config.ini")
+		else:
+			try:
+				from xdg import BaseDirectory
+			except ImportError:
+				config_file = os.path.expanduser("~/.config/chronoslnx/config.ini")
+			else:
+				config_file=BaseDirectory.load_first_config('chronoslnx/config.ini')
+		self.config = ConfigParser.SafeConfigParser()
+		self.config.read(config_file)
+		if not self.config.has_option('Location', 'latitude'):
+		      self.config.set('Location', 'latitude', '0.0')
+		if not self.config.has_option('Location', 'longitude'):
+		      self.config.set('Location', 'longitude', '0.0')
+		if not self.config.has_option('Location', 'elevation'):
+		      self.config.set('Location', 'elevation', '0.0')
+		self.latitude=self.config.getfloat('Location', 'latitude')
+		self.longitude=self.config.getfloat('Location', 'longitude')
+		self.elevation=self.config.getfloat('Location', 'elevation')
 
 	def get_constellations(self, widget):
 		target_date=self.make_date()

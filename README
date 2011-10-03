@@ -1,8 +1,8 @@
 You need these to run this:
 * PyGTK 
 * PyEphem
-* python-datetime
-* python-xdg
+* python-datetime (thinking removing this dependency now that I found a wrapper in Zim's source code around datetime to sync the computer's timezone with the program)
+* python-xdg (now completely optional, as it's only needed to look for the config file)
 
 Todo:
 * Make prettier icons
