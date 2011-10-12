@@ -2,7 +2,7 @@
 Exec=/usr/share/chronoslnx/main.py
 GenericName[en_US]=A simple tool for checking planet hours and moon phases
 GenericName=A simple tool for checking planet hours and moon phases
-Icon=/usr/share/chronoslnx/planets/chronoslnx.png
+Icon=/usr/share/chronoslnx/DarkGlyphs/misc/chronoslnx.png
 Name[en_US]=Chronos Linux
 Name=Chronos Linux
 StartupNotify=true

@@ -1,5 +1,6 @@
 import ephem
 import math
+import re
 #from datetime import datetime, timedelta, date
 #from dateutil.tz import *
 from datetimetz import *
@@ -9,22 +10,36 @@ def grab_moon_phase(date):
 	next_full_moon=ephem.localtime(ephem.next_full_moon(date)).replace(tzinfo=LocalTimezone())
 	next_new_moon=ephem.localtime(ephem.next_new_moon(date)).replace(tzinfo=LocalTimezone())
 	illumination="%.3f%% illuminated" % moon.phase
-	if 97.0 <= moon.phase <= 100.0:
+	if 99.0 <= moon.phase <= 100.0:
 		return "Full moon: " + illumination
 	if 0 <= moon.phase <= 1.0:
 		return "New moon: " + illumination
 	status="Waning"
 	if next_new_moon - date > next_full_moon - date:
 		status = "Waxing"
-	if 1.0 <= moon.phase <= 50.0:
+	if 1.0 <= moon.phase <= 47.0:
 		return status + " crescent moon: " + illumination
-	elif 50.0 <= moon.phase <= 75.0:
+	elif 47.0 <= moon.phase <= 50.0:
 		if status == "Waxing":
 			return "First quarter moon: " + illumination
 		else:
 			return "Last quarter moon: " + illumination
-	elif 75.0 <= moon.phase <= 97.0:
+	elif 50.0 <= moon.phase <= 99.0:
 		return status + " gibbous moon: " + illumination
+
+def get_moon_cycle(date):
+	prev_new=ephem.localtime(ephem.previous_new_moon(date)).replace(tzinfo=LocalTimezone())
+	full=ephem.localtime(ephem.next_full_moon(date)).replace(tzinfo=LocalTimezone())
+	new_m=ephem.localtime(ephem.next_new_moon(date)).replace(tzinfo=LocalTimezone())
+	length = (new_m - prev_new) / 29
+	moon_phase=[]
+	for i in range (0,30):
+		cycling=prev_new + length * i
+		state_line=grab_moon_phase(cycling)
+		state=re.split(":",state_line)
+		percent=re.split(" ",state[1])
+		moon_phase.append([cycling, state[0], percent[1]])
+	return moon_phase
 
 def get_sunrise_and_sunset(date,latitude,longitude,elevation):
 	home = ephem.Observer()

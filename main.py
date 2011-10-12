@@ -1,558 +1,431 @@
 #!/usr/bin/env python
+
+# icon.py
+#http://www.saltycrane.com/blog/2007/12/pyqt-43-qtableview-qabstracttable-model/
+#http://www.commandprompt.com/community/pyqt/book1
+#http://doc.qt.nokia.com/latest/qstandarditemmodel.html
 import os
-import gtk
-import gobject
-import re
-#from datetime import datetime, timedelta, date
+import sys
 import ephem
-import ConfigParser
+from PyQt4 import QtGui,QtCore
+import geolocationwidget ## from example, but modified a little
+import datetimetz #from Zim source code
+
 from astro import *
-import datetimetz
+from astrowidgets import *
+from eventplanner import *
+from chronostext import *
+import chronosconfig
 
-class ChronosLNX:
-	def __init__(self):
+class ChronosLNX(QtGui.QWidget):
+	def __init__(self, parent=None):
+		QtGui.QWidget.__init__(self, parent)
+		self.timer = QtCore.QTimer(self)
 		self.now = datetimetz.now()
-		self.load_config()
-		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		self.window.set_title("Chronos Linux")
-		self.window.connect("delete-event", self.delete_event)
-		self.window.set_border_width(15)
-		self.window.set_icon_from_file(os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],"chronoslnx")))
-		self.window.set_resizable(False)
-		self.make_menu()
-
-		# Create a horizontal packing box to hold the three clock
-		# |-----|--------|
-		# | CAL | PLOCK  |
-		# |     |--------|
-		# | xx  |  HRS   |
-		# |-----|--------|
-		# value frames and add it to the window
-		hbox1 = gtk.HBox(False, 2)
-		vbox = gtk.VBox(False, 2)
-		hbox2 = gtk.HBox(False, 2)
-		clock_details = gtk.VBox(False, 2)
-		self.clock_details = gtk.VBox(False, 2)
-		settings_button = gtk.Button("Settings")
-		#print_button = gtk.Button("Print Planetary Hours")
-		#moon_button = gtk.Button("See Phases of the Moon")
-		about_button = gtk.Button("About")
-		about_button.connect('clicked', self.show_about)
-		settings_button.connect('clicked', self.show_settings)
-		
-		self.pday = get_planet_day(int(self.now.strftime('%w')))
-		self.prepare_hours()
-		self.make_tree()
-		
-		index=self.grab_nearest_hour()
-		self.hours_display.get_selection().select_path(index)
-		self.phour = self.model[index][2]
-		planets_string = "This is the day of %s, the hour of %s" %(self.pday, self.phour)
-		sign_string="The sign of the month is %s" %(calculate_sign(self.now))
-		moon_phase=grab_moon_phase(self.now)
-		self.label = gtk.Label("%s\n%s\n%s\n%s" %(self.now.strftime("%H:%M:%S"), 
-			sign_string, moon_phase, planets_string))
-		sysicon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],self.phour.lower()))
-		self.image = gtk.image_new_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(sysicon, 64, 64))
-		self.calendar = gtk.Calendar()
-		self.calendar.connect("button-release-event", self.display_calendar_menu)
-		self.window.add(hbox1)
-		hbox1.add(vbox)
-		hbox1.add(clock_details)
-		hbox2.add(self.image)
-		hbox2.add(self.label)
-		clock_details.add(hbox2)
-		clock_details.add(self.clock_details)
-		vbox.add(self.calendar)
-		vbox.add(settings_button)
-		#vbox.add(print_button)
-		#vbox.add(moon_button)
-		vbox.add(about_button)
-
-		# Make a single call to show everything we have assembled
-		self.window.show_all()
 		self.make_tray_icon()
+		self.setGeometry(400, 400, 840, 400)
+		self.setWindowTitle('ChronosLNX')
+		self.setWindowIcon(CLNXConfig.main_icons['logo'])
+		self.mainLayout=QtGui.QHBoxLayout(self)
+		self.leftLayout=QtGui.QVBoxLayout()
+		self.rightLayout=QtGui.QVBoxLayout()
+		self.add_widgets()
+		self.mainLayout.addLayout(self.leftLayout)
+		self.mainLayout.addLayout(self.rightLayout)
+		QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update)
+		self.timer.start(1000)
+
+	def add_widgets(self):
+		##left pane
+		self.calendar=AstroCalendar(self)
+		self.calendar.setIcons(CLNXConfig.moon_icons)
+		self.make_calendar_menu()
+		self.leftLayout.addWidget(self.calendar)
 		
+		settingsButton=QtGui.QPushButton("Settings",self)
+		settingsButton.clicked.connect(self.show_settings)
+		self.leftLayout.addWidget(settingsButton)
 
-		# Call the update function in one second (1000 milliseconds)
-		gobject.timeout_add(1000, self.update)
+		helpButton=QtGui.QPushButton("Help",self)
+		helpButton.clicked.connect(self.show_about)
+		self.leftLayout.addWidget(helpButton)
+
+		aboutButton=QtGui.QPushButton("About",self)
+		aboutButton.clicked.connect(self.show_about)
+		self.leftLayout.addWidget(aboutButton)
 		
-		#gtk.quit_add(level, save_settings)
-	def make_menu(self):
-		self.menu = gtk.Menu()
-		show_item = gtk.ImageMenuItem("_Show")
-		settings_item = gtk.ImageMenuItem("S_ettings")
-		quit_item = gtk.ImageMenuItem("_Quit")
-		#show_item.set_image(gtk.image_new_from_icon_name("gtk-ok", size[0]))
-		settings_item.set_image(gtk.image_new_from_icon_name("gnome-settings", gtk.ICON_SIZE_MENU))
-		quit_item.set_image(gtk.image_new_from_icon_name("application-exit", gtk.ICON_SIZE_MENU))
-		self.menu.append(show_item)
-		self.menu.append(settings_item)
-		self.menu.append(quit_item)
-		self.menu.show_all()
-		quit_item.connect("activate", self.quit_program)
-		show_item.connect("activate", self.display_dialog)
-		settings_item.connect("activate", self.show_settings)
-		
-		self.calendar_menu = gtk.Menu()
-		moon_item = gtk.ImageMenuItem("_Moon Cycle for this date")
-		hours_item = gtk.ImageMenuItem("_Planetary Hours for this date")
-		constellation_item = gtk.ImageMenuItem("_Constellations for this date")
-		moon_item.connect("activate", self.get_moon_timeline)
-		hours_item.connect("activate", self.get_date_hours)
-		constellation_item.connect("activate", self.get_constellations)
-		self.calendar_menu.append(moon_item)
-		self.calendar_menu.append(hours_item)
-		self.calendar_menu.append(constellation_item)
-		self.calendar_menu.show_all()
+		##right pane
+		dayinfo=QtGui.QHBoxLayout()
+		self.todayPicture=QtGui.QLabel()
+		self.todayOther=QtGui.QLabel()
+		dayinfo.addWidget(self.todayPicture)
+		dayinfo.addWidget(self.todayOther)
 
-	def reset_calendar(self):
-		self.calendar.select_month(self.now.month - 1, self.now.year)
-		self.calendar.select_day(self.now.day)
+		self.hoursToday=PlanetaryHoursList(self)
+		self.hoursToday.setIcons(CLNXConfig.main_icons)
 
-	def make_date(self):
-		selection=self.calendar.get_date()
-		target_date=datetime.strptime("%s/%s/%s" %(selection[0], selection[1] + 1, selection[2]), "%Y/%m/%d").replace(tzinfo=LocalTimezone())
-		return target_date
+		self.moonToday=MoonCycleList(self)
+		self.moonToday.setIcons(CLNXConfig.moon_icons)
 
-	def get_moon_timeline(self, widget):
-		target_date=self.make_date()
-		self.reset_calendar()
-		prev_new=ephem.localtime(ephem.previous_new_moon(target_date)).replace(tzinfo=LocalTimezone())
-		full=ephem.localtime(ephem.next_full_moon(target_date)).replace(tzinfo=LocalTimezone())
-		new_m=ephem.localtime(ephem.next_new_moon(target_date)).replace(tzinfo=LocalTimezone())
-		length = (new_m - prev_new) / 29
-		model = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING, gobject.TYPE_STRING)
-		select_this = -1
-		for i in range (0,30):
-			cycling=prev_new + length * i
-			if cycling.timetuple().tm_yday == target_date.timetuple().tm_yday:
-				select_this = i
-			state_line=grab_moon_phase(cycling)
-			state=re.split(":",state_line)
-			percent=re.split(" ",state[1])
-			model.append([None, cycling, state[0], percent[1]])
+		self.signsToday=SignsForDayList(self)
+		self.signsToday.setIcons(CLNXConfig.main_icons)
 
-		#size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
+		self.eventsToday=EventsList(self)
 
-		scrolled = gtk.ScrolledWindow()
-		scrolled.props.hscrollbar_policy = gtk.POLICY_AUTOMATIC
-		scrolled.props.vscrollbar_policy = gtk.POLICY_AUTOMATIC
+		dayData=QtGui.QTabWidget()
+		self.prepare_hours_for_today()
+		self.moonToday.get_moon_cycle(self.now)
+		self.moonToday.highlight_cycle_phase(self.now)
+		self.signsToday.get_constellations(self.now)
 
-		hours_window= gtk.Dialog("Moon phase cycle for %s" %(target_date.strftime("%Y/%m/%d")), None,
-		    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-		hours_display = gtk.TreeView(model)
-		times = gtk.TreeViewColumn('Time')
-		
-		cell = gtk.CellRendererText()
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_time)
-		
-		hours_display.append_column(times)
-		name = gtk.TreeViewColumn('Phase')
+		model=DayEventsModel()
+		model.setSourceModel(CLNXConfig.schedule)
+		model.setDate(self.now.date())
+		self.eventsToday.tree.setModel(model)
 
-		cell = gtk.CellRendererText()
-		name.pack_start(cell, False)
-		name.add_attribute(cell, "text", 2)
-		hours_display.append_column(name)
+		dayData.addTab(self.hoursToday,"Planetary Hours")
+		dayData.addTab(self.moonToday,"Moon Cycles")
+		dayData.addTab(self.signsToday,"Today's Signs")
+		dayData.addTab(self.eventsToday,"Today's Events")
 
-		detail = gtk.TreeViewColumn('Illumination')
-		cell = gtk.CellRendererText()
-		detail.pack_start(cell)
-		detail.add_attribute(cell,"text", 3)
-		hours_display.append_column(detail)
+		self.rightLayout.addLayout(dayinfo)
+		self.rightLayout.addWidget(dayData)
+		self.update()
 
-		hours_display.get_selection().select_path(select_this)
-
-		scrolled.add(hours_display)
-		hours_window.vbox.add(gtk.Label("Moon phase cycle for %s\n\
-Please note that it doesn't show the exact\
- illumination if you selected today, which is %s" %(target_date.strftime("%Y/%m/%d"), self.now.strftime("%Y/%m/%d"))))
-		hours_window.vbox.add(scrolled)
-		hours_window.show_all()
-		hours_window.run()
-		hours_window.destroy()
-
-	def load_config(self):
-		if os.name == 'nt':
-			config_file = os.path.expanduser("~/.chronoslnx/config.ini")
-		else:
-			try:
-				from xdg import BaseDirectory
-			except ImportError:
-				config_file = os.path.expanduser("~/.config/chronoslnx/config.ini")
-			else:
-				config_file=BaseDirectory.load_first_config('chronoslnx/config.ini')
-		self.config = ConfigParser.SafeConfigParser()
-		self.config.read(config_file)
-		if not self.config.has_option('Location', 'latitude'):
-		      self.config.set('Location', 'latitude', '0.0')
-		if not self.config.has_option('Location', 'longitude'):
-		      self.config.set('Location', 'longitude', '0.0')
-		if not self.config.has_option('Location', 'elevation'):
-		      self.config.set('Location', 'elevation', '0.0')
-		self.latitude=self.config.getfloat('Location', 'latitude')
-		self.longitude=self.config.getfloat('Location', 'longitude')
-		self.elevation=self.config.getfloat('Location', 'elevation')
-
-	def get_constellations(self, widget):
-		target_date=self.make_date()
-		self.reset_calendar()
-		constellations=get_ruling_constellations_for_date(target_date)
-		model = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_STRING, gobject.TYPE_STRING)
-		size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
-		for i in constellations:
-			icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],i.lower()))
-			pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(icon, size[0], size[0])
-			model.append([pixbuf, i, constellations[i][1]])
-		scrolled = gtk.ScrolledWindow()
-		scrolled.props.hscrollbar_policy = gtk.POLICY_AUTOMATIC
-		scrolled.props.vscrollbar_policy = gtk.POLICY_AUTOMATIC
-
-		hours_window= gtk.Dialog("Specific Constellations for %s" %(target_date.strftime("%Y/%m/%d")), None,
-		    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-		hours_display = gtk.TreeView(model)
-		
-		name = gtk.TreeViewColumn('Planet')
-
-		cell = gtk.CellRendererPixbuf() #planet icon
-		name.pack_start(cell, False)
-		name.add_attribute(cell, "pixbuf", 0)
-
-		cell = gtk.CellRendererText() #Planet Name
-		name.pack_start(cell)
-		name.add_attribute(cell,"text", 1)
-		hours_display.append_column(name)
-
-		times = gtk.TreeViewColumn('Constellation')
-		cell = gtk.CellRendererText() #daylight
-		times.pack_start(cell, False)
-		times.add_attribute(cell,"text",2)
-		hours_display.append_column(times)
-
-		scrolled.add(hours_display)
-		hours_window.vbox.add(gtk.Label("Ruling constellations for %s" %(target_date.strftime("%Y/%m/%d"))))
-		hours_window.vbox.add(scrolled)
-		hours_window.show_all()
-		hours_window.run()
-		hours_window.destroy()
-
-	def get_date_hours(self, widget):
-		target_date=self.make_date()
-		self.reset_calendar()
-		sunrise,sunset,next_sunrise=get_sunrise_and_sunset(target_date, self.latitude, self.longitude, self.elevation)
-		pday = get_planet_day(int(target_date.strftime('%w')))
-		planetary_hours = hours_for_day(target_date,self.latitude, self.longitude,self.elevation)
-		size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
-		model = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING, gobject.TYPE_BOOLEAN)
-		for i in range(0,24):
-			icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],planetary_hours[i][1].lower()))
-			pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(icon, size[0], size[0])
-			model.append([pixbuf, planetary_hours[i][0], planetary_hours[i][1], planetary_hours[i][2]])
-		scrolled = gtk.ScrolledWindow()
-		scrolled.props.hscrollbar_policy = gtk.POLICY_AUTOMATIC
-		scrolled.props.vscrollbar_policy = gtk.POLICY_AUTOMATIC
-
-		hours_window= gtk.Dialog("Specific Hours for %s" %(target_date.strftime("%Y/%m/%d")), None,
-		    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-		hours_display = gtk.TreeView(model)
-		times = gtk.TreeViewColumn('Time')
-		cell = gtk.CellRendererPixbuf() #daylight
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_daylight)
-		
-		cell = gtk.CellRendererText()
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_time)
-		
-		hours_display.append_column(times)
-		name = gtk.TreeViewColumn('Planet')
-
-		cell = gtk.CellRendererPixbuf() #planet icon
-		name.pack_start(cell, False)
-		name.add_attribute(cell, "pixbuf", 0)
-
-		cell = gtk.CellRendererText() #Planet Name
-		name.pack_start(cell)
-		name.add_attribute(cell,"text", 2)
-		hours_display.append_column(name)
-		
-		scrolled.add(hours_display)
-		hours_window.vbox.add(gtk.Label("Sunrise begins at %s\nSunset begins at %s\nNext day begins at %s" %(sunrise.ctime(), sunset.ctime(), next_sunrise.ctime())))
-		hours_window.vbox.add(scrolled)
-		hours_window.show_all()
-		hours_window.run()
-		hours_window.destroy()
-
-	def display_calendar_menu(self,widget,event):
-		if event.button == 3:
-			self.calendar_menu.popup(None, None, None, event.button, event.time)
-
-	def make_tray_icon(self):
-		self.status_icon = gtk.StatusIcon()
-		sysicon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],self.phour.lower()))
-		self.status_icon.set_from_file(sysicon)
-		self.status_icon.connect('activate', self.display_dialog)
-		self.status_icon.connect('popup-menu', self.display_menu)
-	
-	def show_about(self,widget):
-		about_window= gtk.AboutDialog()
-		about_window.set_program_name("ChronosLNX")
-		about_window.set_version("0.1")
-		about_window.set_copyright("(c) ShadowKyogre")
-		about_window.set_comments("A simple tool for checking planetary hours and the moon phase.")
-		about_window.set_website("https://github.com/ShadowKyogre/ChronosLNX")
-		icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],"chronoslnx"))
-		pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(icon, 64, 64)
-		about_window.set_logo(pixbuf)
-		about_window.run()
-		about_window.destroy()
-	
-	def show_settings(self,widget):
-		settings_window= gtk.Dialog("Settings", None,
-		    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-		    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-		      gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-		
-		hbox=gtk.HBox(True)
-		label=gtk.Label("Latitude")
-		settings_window.lat_box=gtk.SpinButton(None,1.0,7)
-		settings_window.lat_box.set_range(-90.00,90.00)
-		settings_window.lat_box.set_value(self.latitude)
-		settings_window.lat_box.set_increments(5.0,10.0)
-		settings_window.lat_box.set_update_policy(gtk.UPDATE_IF_VALID)
-		hbox.add(label)
-		hbox.add(settings_window.lat_box)
-		settings_window.vbox.add(hbox)
-		
-		hbox=gtk.HBox(True)
-		label=gtk.Label("Longitude")
-		settings_window.lon_box=gtk.SpinButton(None,1.0,7)
-		settings_window.lon_box.set_range(-180.00,180.00)
-		settings_window.lon_box.set_value(self.longitude)
-		settings_window.lon_box.set_increments(5.0,15.0)
-		settings_window.lon_box.set_update_policy(gtk.UPDATE_IF_VALID)
-		hbox.add(label)
-		hbox.add(settings_window.lon_box)
-		settings_window.vbox.add(hbox)
-		
-		hbox=gtk.HBox(True)
-		label=gtk.Label("Elevation")
-		settings_window.elv_box=gtk.SpinButton(None,1.0,7)
-		settings_window.elv_box.set_range(-418.0,8850.00)
-		settings_window.elv_box.set_value(self.elevation)
-		settings_window.elv_box.set_increments(10.0,20.0)
-		settings_window.elv_box.set_update_policy(gtk.UPDATE_IF_VALID)
-		hbox.add(label)
-		hbox.add(settings_window.elv_box)
-		settings_window.vbox.add(hbox)
-		
-		tooltips = gtk.Tooltips()
-		tooltips.set_tip(settings_window.lat_box, "Negative indicates south.\nMust be between -90 and 90 inclusive.")
-		tooltips.set_tip(settings_window.lon_box,"Negative indicates west.\nMust be between -180 and 180 inclusive.")
-		tooltips.set_tip(settings_window.elv_box,"Negative indicates below sea level.\nMust be between -418 and 8850 inclusive, in meters.")
-		
-		settings_window.connect('response', self.settings_change)
-		settings_window.show_all()
-		settings_window.run()
-
-	def prepare_hours(self):
-		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, self.latitude, self.longitude, self.elevation)
-		self.pday = get_planet_day(int(self.now.strftime('%w')))
-		if self.now < self.sunrise:
-			planetary_hours = hours_for_day(self.now-timedelta(days=1),self.latitude, self.longitude,self.elevation)
-		else:
-			planetary_hours = hours_for_day(self.now,self.latitude, self.longitude,self.elevation)
-		size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
-		if not hasattr(self, 'model'):
-			self.model = gtk.ListStore(gtk.gdk.Pixbuf, gobject.TYPE_PYOBJECT, gobject.TYPE_STRING, gobject.TYPE_BOOLEAN)
-		for i in range(0,24):
-			icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],planetary_hours[i][1].lower()))
-			pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(icon, size[0], size[0])
-			self.model.append([pixbuf, planetary_hours[i][0], planetary_hours[i][1], planetary_hours[i][2]])
-	
-	def get_daylight(self, column, cell_renderer,model, iter):
-		size = gtk.icon_size_lookup(gtk.ICON_SIZE_MENU)
-		if model.get_value(iter, 3) == True:
-			icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],"day"))
-			pyobj2=gtk.gdk.pixbuf_new_from_file_at_size(icon, size[0], size[0])
-			cell_renderer.set_property('pixbuf', pyobj2)
-		else:
-			icon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],"night"))
-			pyobj2=gtk.gdk.pixbuf_new_from_file_at_size(icon, size[0], size[0])
-			cell_renderer.set_property('pixbuf', pyobj2)
-		return
-	
-	def get_time (self, column, cell_renderer, model, iter):
-		pyobj = model.get_value(iter, 1)
-		cell_renderer.set_property('text', pyobj.strftime("%Y/%m/%d %H:%M:%S"))
-		return
-
-	def make_tree(self):
-		scrolled = gtk.ScrolledWindow()
-		scrolled.props.hscrollbar_policy = gtk.POLICY_AUTOMATIC
-		scrolled.props.vscrollbar_policy = gtk.POLICY_AUTOMATIC
-		
-		self.modelfilter = self.model.filter_new()
-		self.modelfilter.set_visible_func(self.search_hours)
-		
-		self.combo_filter = gtk.combo_box_new_text()
-		self.combo_filter.append_text("Sun")
-		self.combo_filter.append_text("Venus")
-		self.combo_filter.append_text("Mercury")
-		self.combo_filter.append_text("Moon")
-		self.combo_filter.append_text("Saturn")
-		self.combo_filter.append_text("Jupiter")
-		self.combo_filter.append_text("Mars")
-		self.combo_filter.connect('changed', self.force_search)
-		
-		self.hours_display = gtk.TreeView(self.model)
-
-		times = gtk.TreeViewColumn('Time')
-		cell = gtk.CellRendererPixbuf() #daylight
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_daylight)
-		
-		cell = gtk.CellRendererText()
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_time)
-		
-		self.hours_display.append_column(times)
-
-		name = gtk.TreeViewColumn('Planet')
-
-		cell = gtk.CellRendererPixbuf() #planet icon
-		name.pack_start(cell, False)
-		name.add_attribute(cell, "pixbuf", 0)
-		#name.set_cell_data_func(cell, self.get_daylight)
-
-		cell = gtk.CellRendererText() #Planet Name
-		name.pack_start(cell)
-		name.add_attribute(cell,"text", 2)
-
-		self.hours_display.append_column(name)
-		self.hours_display.set_size_request(100, 150)
-		
-		scrolled.add(self.hours_display)
-		self.clock_details.add(gtk.Label("Pick a planet to view specific hours for."))
-		self.clock_details.add(self.combo_filter)
-		self.clock_details.add(scrolled)
-
-		#note: the print hours function allows one to view hours for different dates
-		#another note: the button for the
-	
-	def force_search(self, widget):
-		scrolled = gtk.ScrolledWindow()
-		scrolled.props.hscrollbar_policy = gtk.POLICY_AUTOMATIC
-		scrolled.props.vscrollbar_policy = gtk.POLICY_AUTOMATIC
-		hours_window= gtk.Dialog("Specific Hours for %s" %(self.combo_filter.get_active_text()), None,
-		    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-		self.modelfilter.refilter()
-		hours_display = gtk.TreeView(self.modelfilter)
-		times = gtk.TreeViewColumn('Time')
-		cell = gtk.CellRendererPixbuf() #daylight
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_daylight)
-		
-		cell = gtk.CellRendererText()
-		times.pack_start(cell, False)
-		times.set_cell_data_func(cell, self.get_time)
-		
-		hours_display.append_column(times)
-		name = gtk.TreeViewColumn('Planet')
-
-		cell = gtk.CellRendererPixbuf() #planet icon
-		name.pack_start(cell, False)
-		name.add_attribute(cell, "pixbuf", 0)
-
-		cell = gtk.CellRendererText() #Planet Name
-		name.pack_start(cell)
-		name.add_attribute(cell,"text", 2)
-		hours_display.append_column(name)
-		
-		scrolled.add(hours_display)
-		hours_window.vbox.add(scrolled)
-		hours_window.show_all()
-		hours_window.run()
-		hours_window.destroy()
-
-	def search_hours(self, tree, iter):
-		search_term = self.combo_filter.get_active_text()
-		if search_term == None:
-			return False
-		if self.model.get_value(iter, 2) == search_term:
-			return True
-		else:
-			return False
+##time related
 
 	def update_hours(self):
-		self.model.clear()
-		self.prepare_hours()
+		self.hoursToday.clear()
+		self.signsToday.clear()
+		self.prepare_hours_for_today()
+		self.eventsToday.tree.model().setDate(self.now.date())
+		self.signsToday.get_constellations(self.now)
 
-	def quit_program (self, widget):
-	    gtk.main_quit()
+	def update_moon_cycle(self):
+		if ephem.localtime(ephem.next_new_moon(self.now)).timetuple().tm_yday == self.now.timetuple().tm_yday:
+			self.moonToday.clear()
+			self.moonToday.get_moon_cycle(self.now)
+		self.moonToday.highlight_cycle_phase(self.now)
 
-	def delete_event(self,window,event):
-		#http://www.jezra.net/blog/minimizeclose_to_system_tray_in_Python_GTK
-		self.window.hide_on_delete()
-		return True
-
-	def display_menu(self,status, button, activate_time):
-		#self.menu.popup(None, None, gtk.status_icon_position_menu, button, activate_time)
-		self.menu.popup(None, None, None, button, activate_time)
-
-	def display_dialog(self,status):
-		if status == self.status_icon:
-			if not self.window.get_property('visible'):
-				self.window.present()
-			else:
-				self.window.hide()
+	def prepare_hours_for_today(self):
+		self.pday = get_planet_day(int(self.now.strftime('%w')))
+		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		if self.now < self.sunrise:
+			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			self.hoursToday.prepareHours(self.now-timedelta(days=1), CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			self.pday = get_planet_day(int(self.now.strftime('%w'))-1)
 		else:
-			self.window.present()
-	
-	def settings_change(self, widget, response_id):
-		if response_id == gtk.RESPONSE_ACCEPT:
-			self.config.set('Location', 'latitude', str(widget.lat_box.get_value()))
-			self.config.set('Location', 'longitude', str(widget.lon_box.get_value()))
-			self.config.set('Location', 'elevation', str(widget.elv_box.get_value()))
-			self.config.write(open(BaseDirectory.load_first_config('chronoslnx/config.ini'), 'w'))
-			self.latitude=self.config.getfloat('Location', 'latitude')
-			self.longitude=self.config.getfloat('Location', 'longitude')
-			self.elevation=self.config.getfloat('Location', 'elevation')
-			self.update_hours()
-		if response_id == gtk.RESPONSE_REJECT:
-			widget.destroy()
-	
-	# This routine is called when the timer goes off. We use it to
-	# find out the time and update the clock display
+			self.hoursToday.prepareHours(self.now, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
+			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
+
+
+	#def check_alarm(self):
+		#look through proxy model
+		#if checkState == unchecked:
+		#	skip
+
+		#if self.now.date() == entry.toPyDate():
+			#set date trigger satisfied
+
+		#elif day == "Everyday":
+			#set date trigger satisfied
+
+		#elif day == "Weekends" and check weekend:
+			#set date trigger satisfied
+
+		#elif day == "Weekday" and check weekday:
+			#set date trigger satisfied
+
+		#elif self.pday == entry's pday:
+			#set date trigger satisfied
+
+		#if self.phour == entry's phour:
+			#set date trigger satisfied
+		
+		#if all conditions met:
+			#trigger function
+			#disable until conditions met for hour
+
+##datepicking related
+#http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
+
+	def get_info_for_date(self, date):
+		info_dialog=QtGui.QDialog()
+		info_dialog.setFixedSize(400,400)
+		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
+		hbox=QtGui.QHBoxLayout(info_dialog)
+
+		hoursToday=PlanetaryHoursList(info_dialog)
+		hoursToday.setIcons(CLNXConfig.main_icons)
+		
+		moonToday=MoonCycleList(info_dialog)
+		moonToday.setIcons(CLNXConfig.moon_icons)
+
+		signsToday=SignsForDayList(info_dialog)
+		signsToday.setIcons(CLNXConfig.main_icons)
+
+		eventsToday=EventsList(info_dialog)
+		model=DayEventsModel()
+		model.setSourceModel(CLNXConfig.schedule)
+		model.setDate(date)
+		eventsToday.tree.setModel(model)
+
+		dayData=QtGui.QTabWidget(info_dialog)
+
+		hoursToday.prepareHours(date,CLNXConfig.current_latitude,CLNXConfig.current_longitude,CLNXConfig.current_elevation)
+		moonToday.get_moon_cycle(date)
+		moonToday.highlight_cycle_phase(date)
+		signsToday.get_constellations(date)
+
+		dayData.addTab(hoursToday,"Planetary Hours")
+		dayData.addTab(moonToday,"Moon Cycles")
+		dayData.addTab(signsToday,"Signs For This Day")
+		dayData.addTab(eventsToday,"Events for This Day")
+		hbox.addWidget(dayData)
+		info_dialog.exec_()
+
+	def make_calendar_menu(self):
+		self.calendar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+		self.connect(self.calendar,QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.get_cal_menu)
+		#self.calendar.setContextMenu(self.menu)
+
+	def copy_to_clipboard(self, option,date):
+		if option == "All":
+			text=prepare_all(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		elif option == "Moon":
+			text=prepare_moon_cycle(date)
+		elif option == "Signs":
+			text=prepare_sign_info(date)
+		elif option == "Hours":
+			text=prepare_planetary_info(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		elif option == "Events":
+			text=prepare_events(date, CLNXConfig.schedule)
+		app.clipboard().setText(text)
+
+#KGlobal::locale::Warning your global KLocale is being recreated with a valid main component instead of a fake component, this usually means you tried to call i18n related functions before your main component was created. You should not do that since it most likely will not work
+#X Error: RenderBadPicture (invalid Picture parameter) 174
+#Extension:    153 (RENDER)
+#Minor opcode: 8 (RenderComposite)
+#Resource id:  0x3800836
+#weird bug related to opening file dialog on linux through this, but it's harmless
+
+	def print_to_file(self, option,date):
+		if option == "All":
+			text=prepare_all(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		elif option == "Moon Cycle":
+			text=prepare_moon_cycle(date)
+		elif option == "Planetary Signs":
+			text=prepare_sign_info(date)
+		elif option == "Planetary Hours":
+			text=prepare_planetary_info(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		elif option == "Events":
+			text=prepare_events(date, CLNXConfig.schedule)
+		filename=QtGui.QFileDialog.getSaveFileName(parent=self,caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),filter="*.txt")
+		if filename is not None and filename != "":
+			f=open(filename,"w")
+			f.write(text)
+			QtGui.QMessageBox.information(self,"Saved", "%s has the %s you saved." %(filename, option))
+
+	def get_cal_menu(self, qpoint):
+		table=self.calendar.findChild(QtGui.QTableView)
+		idx=table.indexAt(qpoint)
+		mdl=table.model()
+		if idx.column() > 0 and idx.row() > 0:
+			month=self.calendar.monthShown()
+			year=self.calendar.yearShown()
+			day=mdl.data(idx,0).toPyObject()
+			if idx.row() is 1 and day > 7:
+				date=datetime(year=year,month=month-1,day=day).replace(tzinfo=LocalTimezone())
+			elif idx.row() is 6 and day < 24:
+				date=datetime(year=year,month=month+1,day=day).replace(tzinfo=LocalTimezone())
+			else:
+				date=datetime(year=year,month=month,day=day).replace(tzinfo=LocalTimezone())
+			#self.calendar.setGridVisible(True)
+			menu=QtGui.QMenu()
+			infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
+			infoitem.triggered.connect(lambda: self.get_info_for_date(date))
+
+			copymenu=menu.addMenu("Copy")
+			copyall=copymenu.addAction("All")
+			copydate=copymenu.addAction("Date")
+			copyplanetdata=copymenu.addAction("Planetary Hours")
+			copymoonphasedata=copymenu.addAction("Moon Phases")
+			copysignsdata=copymenu.addAction("Signs for this date")
+			copyeventdata=copymenu.addAction("Events")
+
+			copyall.triggered.connect(lambda: self.copy_to_clipboard("All",date))
+			copydate.triggered.connect(lambda: app.clipboard().setText(date.strftime("%m/%d/%Y")))
+			copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours",date))
+			copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Cycle",date))
+			copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs",date))
+			copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
+
+			savemenu=menu.addMenu("Save to File")
+			saveall=savemenu.addAction("All")
+			saveplanetdata=savemenu.addAction("Planetary Hours")
+			savemoonphasedata=savemenu.addAction("Moon Phases")
+			savesignsdata=savemenu.addAction("Signs for this date")
+			saveeventdata=savemenu.addAction("Events")
+
+			saveall.triggered.connect(lambda: self.print_to_file("All",date))
+			saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours",date))
+			savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Cycle",date))
+			savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs",date))
+			saveeventdata.triggered.connect(lambda: self.print_to_file("Events",date))
+
+			menu.exec_(self.calendar.mapToGlobal(qpoint))
+		#http://www.qtcentre.org/archive/index.php/t-42524.html?s=ef30fdd9697c337a1d588ce9d26f47d8
+
+##config related
+
+	def settings_reset(self,dialog):
+		CLNXConfig.reset_settings()
+		dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
+		dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
+		dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		dialog.appearance_icons.setCurrentIndex(dialog.appearance_icons.findText(CLNXConfig.current_theme))
+
+	def settings_change(self,dialog):
+		lat=float(dialog.location_widget.latitude)
+		lng=float(dialog.location_widget.longitude)
+		elv=float(dialog.location_widget.elevation)
+		thm=str(dialog.appearance_icons.currentText())
+		CLNXConfig.current_latitude=lat
+		CLNXConfig.current_longitude=lng
+		CLNXConfig.current_elevation=elv
+		CLNXConfig.current_theme=thm
+		CLNXConfig.prepare_icons()
+		self.calendar.setIcons(CLNXConfig.moon_icons)
+		self.hoursToday.setIcons(CLNXConfig.main_icons)
+		self.moonToday.setIcons(CLNXConfig.moon_icons)
+		self.signsToday.setIcons(CLNXConfig.main_icons)
+		self.update_hours()
+		self.moonToday.clear()
+		self.moonToday.get_moon_cycle(self.now)
+		#eventually load DB of events
+
+	def settings_write(self,dialog):
+		self.settings_change(dialog)
+		CLNXConfig.save_settings()
+		CLNXConfig.save_schedule()
+		dialog.close()
+		#eventually save DB of events
+
+	def show_settings(self):
+		settings_dialog=QtGui.QDialog(self)
+		settings_dialog.setWindowTitle("Settings")
+		tabs=QtGui.QTabWidget(settings_dialog)
+		settings_dialog.setFixedSize(400,400)
+		
+		location_page=QtGui.QFrame()
+		appearance_page=QtGui.QFrame()
+		events_page=QtGui.QFrame()
+		tabs.addTab(location_page,"Location")
+		tabs.addTab(appearance_page,"Appearance")
+		tabs.addTab(events_page,"Events")
+		
+		settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
+		settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
+		settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
+		settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		
+		layout=QtGui.QVBoxLayout(settings_dialog)
+		layout.addWidget(tabs)
+		
+		grid=QtGui.QGridLayout(appearance_page)
+		appearance_label=QtGui.QLabel("Icon theme")
+		settings_dialog.appearance_icons=QtGui.QComboBox()
+		settings_dialog.appearance_icons.addItem("None")
+		for theme in CLNXConfig.get_available_themes():
+			icon=QtGui.QIcon(CLNXConfig.grab_icon_path(theme,"misc","chronoslnx"))
+			settings_dialog.appearance_icons.addItem(icon,theme)
+		settings_dialog.appearance_icons.setCurrentIndex(settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
+		grid.addWidget(appearance_label,0,0)
+		grid.addWidget(settings_dialog.appearance_icons,0,1)
+		
+		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
+		resetbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
+		okbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+		applybutton=buttonbox.addButton(QtGui.QDialogButtonBox.Apply)
+		cancelbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+		
+		resetbutton.clicked.connect(lambda: self.settings_reset(settings_dialog))
+		okbutton.clicked.connect(lambda: self.settings_write(settings_dialog))
+		applybutton.clicked.connect(lambda: self.settings_change(settings_dialog))
+		cancelbutton.clicked.connect(settings_dialog.close)
+		layout.addWidget(buttonbox)
+		
+		settings_dialog.eventplanner=EventsList(events_page)
+		a_vbox=QtGui.QVBoxLayout(events_page)
+		a_vbox.addWidget(settings_dialog.eventplanner)
+		settings_dialog.eventplanner.tree.setModel(CLNXConfig.schedule)
+		
+		#tooltips.set_tip(settings_window.lat_box, "Negative indicates south.\nMust be between -90 and 90 inclusive.")
+		#tooltips.set_tip(settings_window.lon_box,"Negative indicates west.\nMust be between -180 and 180 inclusive.")
+		#tooltips.set_tip(settings_window.elv_box,"Negative indicates below sea level.\nMust be between -418 and 8850 inclusive, in meters.")
+
+		settings_dialog.open()
+
+## systray
+#http://stackoverflow.com/questions/893984/pyqt-show-menu-in-a-system-tray-application
+#http://www.itfingers.com/Question/758256/pyqt4-minimize-to-tray
+
+	def make_tray_icon(self):
+		  self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(CLNXConfig.main_icons['logo']), app)
+		  #self.trayIcon = QtGui.QSystemTrayIcon(app)
+		  menu = QtGui.QMenu()
+		  quitAction = QtGui.QAction(self.tr("&Quit"), self)
+		  QtCore.QObject.connect(quitAction, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("quit()"))
+		  menu.addAction("&Show",self.show)
+		  menu.addAction("&Settings",self.show_settings)
+		  menu.addAction(quitAction)
+		  self.trayIcon.setContextMenu(menu)
+		  traySignal = "activated(QSystemTrayIcon::ActivationReason)"
+		  QtCore.QObject.connect(self.trayIcon, QtCore.SIGNAL(traySignal), self.__icon_activated)
+		  self.trayIcon.show()
+
+	def _ChronosLNX__icon_activated(self,reason):
+		if reason == QtGui.QSystemTrayIcon.DoubleClick:
+			if(self.isHidden()):
+				self.show()
+			else:
+				self.hide()
+
+	def closeEvent(self, event):
+		self.hide()
+		event.ignore()
+
+##misc
+#http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
+
+	def show_about(self):
+		QtGui.QMessageBox.about (self, "About ChronosLNX", "<center><big><b>ChronosLNX 0.2</b></big><br />\
+A simple tool for checking planetary hours and moon phases.<br />\
+(C) ShadowKyogre 2011<br /><a href=\"http://shadowkyogre.github.com/ChronosLNX/\">ChronosLNX Homepage</a></center>")
 
 	def update(self):
 		self.now = datetimetz.now()
 		if self.now > self.next_sunrise:
 			self.update_hours()
-		index=self.grab_nearest_hour()
-		self.hours_display.get_selection().select_path(index)
-		self.phour = self.model[index][2]
+			self.update_moon_cycle()
+		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		planets_string = "This is the day of %s, the hour of %s" %(self.pday, self.phour)
 		moon_phase=grab_moon_phase(self.now)
 		sign_string="The sign of the month is %s" %(calculate_sign(self.now))
-		self.label.set_text("%s\n%s\n%s\n%s" %(self.now.strftime("%H:%M:%S"), 
+		if CLNXConfig.current_theme == "None":
+			sysicon=QtGui.QIcon(CLNXConfig.grab_icon_path("DarkGlyphs","misc","chronoslnx"))
+		else:
+			sysicon=CLNXConfig.main_icons[str(self.phour)]
+		self.trayIcon.setToolTip("%s - %s\n%s\n%s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"), 
 			sign_string, moon_phase, planets_string))
-		self.status_icon.set_tooltip("%s - %s\n%s\n%s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"), 
+		self.trayIcon.setIcon(sysicon)
+		self.todayPicture.setPixmap(CLNXConfig.main_icons[str(self.phour)].pixmap(64,64))
+		self.todayOther.setText("%s\n%s\n%s\n%s" %(self.now.strftime("%H:%M:%S"), 
 			sign_string, moon_phase, planets_string))
-		sysicon=os.path.abspath("%s/planets/%s.png" %(os.sys.path[0],self.phour.lower()))
-		self.status_icon.set_from_file(sysicon)
-		self.image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(sysicon, 64, 64))
-		return True
 
-	def grab_nearest_hour(self):
-		for i in range(0,24):
-			if i+1 > 23:
-				break
-			if self.model[i][1] <= self.now and self.model[i+1][1] > self.now:
-				return i
-		return -1
-
-if __name__ == "__main__":
-	ChronosLNX()
-	gtk.main()
+app = QtGui.QApplication(sys.argv)
+CLNXConfig = chronosconfig.ChronosLNXConfig()
+chronoslnx = ChronosLNX()
+chronoslnx.show()
+sys.exit(app.exec_())

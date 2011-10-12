@@ -1,19 +1,16 @@
 You need these to run this:
-* PyGTK 
+* PyQt
 * PyEphem
 * python-dateutil (removed for now for cross-platformness)
-* python-xdg (now completely optional, as it's only needed to look for the config file)
 
 Todo:
 * Find an alternate sunrise/sunset method to make this lighter
 * Find an alternate moon phase method to make this lighter
-* General code cleaning, as this literally just took a few hours to write up
-* Port to PyQt?
+* Get sorting for the events in here done
+* Set up event triggers
 
 Credits:
-*http://www.ittc.ku.edu/~niehaus/classes/448-s09/projects/examples/clock.py
 *https://gist.github.com/202755
-*http://www.jezra.net/blog/minimizeclose_to_system_tray_in_Python_GTK
 *http://chronosxp.sourceforget.net
 *http://zim-wiki.org
 
