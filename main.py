@@ -143,9 +143,9 @@ class ChronosLNX(QtGui.QWidget):
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
-	def event_trigger(self, event_type, text, date):
+	def event_trigger(self, event_type, text):
 		if event_type == "Save to file":
-			print_to_file(self, text, date)
+			print_to_file(self, text, self.now)
 		elif event_type == "Command":
 			command=shlex.split(text)
 			subprocess.call([command])
@@ -184,7 +184,7 @@ class ChronosLNX(QtGui.QWidget):
 				text_item=str(CLNXConfig.schedule.item(real_row,4).data(QtCore.Qt.EditRole).toPyObject())
 				
 				if hour_trigger:
-					self.event_trigger(event_type_item,text_item,self.now)
+					self.event_trigger(event_type_item,text_item)
 
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
