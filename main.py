@@ -156,7 +156,7 @@ class ChronosLNX(QtGui.QWidget):
 				n.set_timeout(10000)
 				n.show()
 			else:
-				self.trayIcon.showMessage("Textual reminder", text, CLNXConfig.main_icons['logo'])
+				self.trayIcon.showMessage("Textual reminder", text, CLNXConfig.main_icons['logo'],msecs=10000)
 
 	def check_alarm(self):
 		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
