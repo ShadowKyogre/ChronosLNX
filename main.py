@@ -11,6 +11,12 @@ from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
 import datetimetz #from Zim source code
 
+#try:
+#	import pynotify
+#except ImportError:
+#	print "Warning, couldn't import pynotify! On Linux systems, the notifications might look ugly."
+
+
 from astro import *
 from astrowidgets import *
 from eventplanner import *
@@ -44,14 +50,17 @@ class ChronosLNX(QtGui.QWidget):
 		
 		settingsButton=QtGui.QPushButton("Settings",self)
 		settingsButton.clicked.connect(self.show_settings)
+		settingsButton.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
 		self.leftLayout.addWidget(settingsButton)
 
 		helpButton=QtGui.QPushButton("Help",self)
 		helpButton.clicked.connect(self.show_about)
+		helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
 		self.leftLayout.addWidget(helpButton)
 
 		aboutButton=QtGui.QPushButton("About",self)
 		aboutButton.clicked.connect(self.show_about)
+		aboutButton.setIcon(QtGui.QIcon.fromTheme("help-about"))
 		self.leftLayout.addWidget(aboutButton)
 		
 		##right pane
@@ -109,26 +118,53 @@ class ChronosLNX(QtGui.QWidget):
 
 	def prepare_hours_for_today(self):
 		self.pday = get_planet_day(int(self.now.strftime('%w')))
-		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, 
+										CLNXConfig.current_latitude, 
+										CLNXConfig.current_longitude, 
+										CLNXConfig.current_elevation)
 		if self.now < self.sunrise:
-			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
-			self.hoursToday.prepareHours(self.now-timedelta(days=1), CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), 
+											CLNXConfig.current_latitude, 
+											CLNXConfig.current_longitude, 
+											CLNXConfig.current_elevation)
+			self.hoursToday.prepareHours(self.now-timedelta(days=1), 
+						CLNXConfig.current_latitude, 
+						CLNXConfig.current_longitude, 
+						CLNXConfig.current_elevation)
 			self.pday = get_planet_day(int(self.now.strftime('%w'))-1)
 		else:
 			self.hoursToday.prepareHours(self.now, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
+	#def event_trigger(self, event_type, text, date):
+		#if event_type == "Save to file"
+		#	print_to_file(self, text, date)
+		#elif event_type == "Command"
+		#	#openup subprocess of "text"
+		#else: #event_type == "Textual reminder"
+			#path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
+			#n = pynotify.Notification("Textual reminder", "test", path)
+			#n.set_timeout(10000)
+			#n.show()
+
 
 	#def check_alarm(self):
 		#look through proxy model
+		#for i in xrange(len(CLNXConfig.todays_schedule))
+			#real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
+			#enabled_item=CLNXConfig.schedule.item(real_row,0)
+			#date_item=CLNXConfig.schedule.item(real_row,1)
+			#hour_item=CLNXConfig.schedule.item(real_row,2)
+			#event_type_item=CLNXConfig.schedule.item(real_row,3)
+			#text_item=CLNXConfig.schedule.item(real_row,4)
 		#if checkState == unchecked:
 		#	skip
 
-		#if self.now.date() == entry.toPyDate():
+		#if day == "Everyday":
 			#set date trigger satisfied
 
-		#elif day == "Everyday":
+		#elif self.now.date() == entry.toPyDate():
 			#set date trigger satisfied
 
 		#elif day == "Weekends" and check weekend:
@@ -173,7 +209,9 @@ class ChronosLNX(QtGui.QWidget):
 
 		dayData=QtGui.QTabWidget(info_dialog)
 
-		hoursToday.prepareHours(date,CLNXConfig.current_latitude,CLNXConfig.current_longitude,CLNXConfig.current_elevation)
+		hoursToday.prepareHours(date,CLNXConfig.current_latitude,
+					CLNXConfig.current_longitude,
+					CLNXConfig.current_elevation)
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
 		signsToday.get_constellations(date)
@@ -192,14 +230,18 @@ class ChronosLNX(QtGui.QWidget):
 
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			text=prepare_all(date, CLNXConfig.current_latitude, 
+					CLNXConfig.current_longitude, 
+					CLNXConfig.current_elevation)
 		elif option == "Moon":
 			text=prepare_moon_cycle(date)
 		elif option == "Signs":
 			text=prepare_sign_info(date)
 		elif option == "Hours":
-			text=prepare_planetary_info(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
-		elif option == "Events":
+			text=prepare_planetary_info(date, CLNXConfig.current_latitude, 
+						CLNXConfig.current_longitude, 
+						CLNXConfig.current_elevation)
+		else: #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
 		app.clipboard().setText(text)
 
@@ -212,20 +254,29 @@ class ChronosLNX(QtGui.QWidget):
 
 	def print_to_file(self, option,date):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			text=prepare_all(date, CLNXConfig.current_latitude, 
+					CLNXConfig.current_longitude, 
+					CLNXConfig.current_elevation)
 		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
 			text=prepare_sign_info(date)
 		elif option == "Planetary Hours":
-			text=prepare_planetary_info(date, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
-		elif option == "Events":
+			text=prepare_planetary_info(date, CLNXConfig.current_latitude, 
+						CLNXConfig.current_longitude, 
+						CLNXConfig.current_elevation)
+		else:  #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
-		filename=QtGui.QFileDialog.getSaveFileName(parent=self,caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),filter="*.txt")
+		filename=QtGui.QFileDialog.getSaveFileName(parent=self,
+							caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),
+							filter="*.txt")
 		if filename is not None and filename != "":
 			f=open(filename,"w")
 			f.write(text)
-			QtGui.QMessageBox.information(self,"Saved", "%s has the %s you saved." %(filename, option))
+			QtGui.QMessageBox.information(self,
+						"Saved", 
+						"%s has the %s you saved." %(filename, option))
+			#replace this with systray notification
 
 	def get_cal_menu(self, qpoint):
 		table=self.calendar.findChild(QtGui.QTableView)
@@ -245,8 +296,10 @@ class ChronosLNX(QtGui.QWidget):
 			menu=QtGui.QMenu()
 			infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
 			infoitem.triggered.connect(lambda: self.get_info_for_date(date))
+			infoitem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
 			copymenu=menu.addMenu("Copy")
+			copymenu.setIcon(QtGui.QIcon.fromTheme("edit-copy"))
 			copyall=copymenu.addAction("All")
 			copydate=copymenu.addAction("Date")
 			copyplanetdata=copymenu.addAction("Planetary Hours")
@@ -262,6 +315,7 @@ class ChronosLNX(QtGui.QWidget):
 			copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
 
 			savemenu=menu.addMenu("Save to File")
+			savemenu.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
 			saveall=savemenu.addAction("All")
 			saveplanetdata=savemenu.addAction("Planetary Hours")
 			savemoonphasedata=savemenu.addAction("Moon Phases")

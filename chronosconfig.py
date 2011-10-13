@@ -14,7 +14,10 @@ class ChronosLNXConfig:
  		self.APPNAME="ChronosLNX"
 		self.APPVERSION="0.2.0"
 		self.AUTHOR="ShadowKyogre"
-		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,QtCore.QSettings.UserScope,self.AUTHOR,self.APPNAME)
+		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,
+						QtCore.QSettings.UserScope,
+						self.AUTHOR,
+						self.APPNAME)
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
 		
 		self.settings.beginGroup("Location")
@@ -24,7 +27,8 @@ class ChronosLNXConfig:
 		self.settings.endGroup()
 		
 		self.settings.beginGroup("Appearance")
-		self.current_theme=str(self.settings.value("icontheme", QtCore.QString("DarkGlyphs")).toPyObject())
+		self.current_theme=str(self.settings.value("icontheme", 
+					QtCore.QString("DarkGlyphs")).toPyObject())
 		self.settings.endGroup()
 		
 		self.prepare_icons()

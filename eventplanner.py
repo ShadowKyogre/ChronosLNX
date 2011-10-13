@@ -265,6 +265,7 @@ class EventsList(QtGui.QWidget):
 		eventparameditor=EventParamEditorDelegate(self.tree)
 		#self.setRootIsDecorated(True)
 
+		self.tree.setSortingEnabled(True)
 		self.tree.setItemDelegateForColumn(1,dateeditor)
 		self.tree.setItemDelegateForColumn(2,timeeditor)
 		self.tree.setItemDelegateForColumn(3,eventtypeeditor)
