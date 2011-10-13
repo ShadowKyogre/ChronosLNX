@@ -6,15 +6,17 @@
 #http://doc.qt.nokia.com/latest/qstandarditemmodel.html
 import os
 import sys
+import shlex
 import ephem
+import subprocess
 from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
 import datetimetz #from Zim source code
 
-#try:
-#	import pynotify
-#except ImportError:
-#	print "Warning, couldn't import pynotify! On Linux systems, the notifications might look ugly."
+try:
+	import pynotify
+except ImportError:
+	print "Warning, couldn't import pynotify! On Linux systems, the notifications might look ugly."
 
 
 from astro import *
@@ -28,8 +30,9 @@ class ChronosLNX(QtGui.QWidget):
 		QtGui.QWidget.__init__(self, parent)
 		self.timer = QtCore.QTimer(self)
 		self.now = datetimetz.now()
+		self.make_settings_dialog()
 		self.make_tray_icon()
-		self.setGeometry(400, 400, 840, 400)
+		self.setFixedSize(840, 420)
 		self.setWindowTitle('ChronosLNX')
 		self.setWindowIcon(CLNXConfig.main_icons['logo'])
 		self.mainLayout=QtGui.QHBoxLayout(self)
@@ -48,8 +51,13 @@ class ChronosLNX(QtGui.QWidget):
 		self.make_calendar_menu()
 		self.leftLayout.addWidget(self.calendar)
 		
+		saveRangeButton=QtGui.QPushButton("Save data from dates",self)
+		#saveRangeButton.clicked.connect(self.show_saveRange)
+		saveRangeButton.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
+		self.leftLayout.addWidget(saveRangeButton)
+		
 		settingsButton=QtGui.QPushButton("Settings",self)
-		settingsButton.clicked.connect(self.show_settings)
+		settingsButton.clicked.connect(self.settings_dialog.open)
 		settingsButton.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
 		self.leftLayout.addWidget(settingsButton)
 
@@ -87,10 +95,8 @@ class ChronosLNX(QtGui.QWidget):
 		self.moonToday.highlight_cycle_phase(self.now)
 		self.signsToday.get_constellations(self.now)
 
-		model=DayEventsModel()
-		model.setSourceModel(CLNXConfig.schedule)
-		model.setDate(self.now.date())
-		self.eventsToday.tree.setModel(model)
+		CLNXConfig.todays_schedule.setDate(self.now.date())
+		self.eventsToday.tree.setModel(CLNXConfig.todays_schedule)
 
 		dayData.addTab(self.hoursToday,"Planetary Hours")
 		dayData.addTab(self.moonToday,"Moon Cycles")
@@ -137,51 +143,48 @@ class ChronosLNX(QtGui.QWidget):
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
-	#def event_trigger(self, event_type, text, date):
-		#if event_type == "Save to file"
-		#	print_to_file(self, text, date)
-		#elif event_type == "Command"
-		#	#openup subprocess of "text"
-		#else: #event_type == "Textual reminder"
-			#path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
-			#n = pynotify.Notification("Textual reminder", "test", path)
-			#n.set_timeout(10000)
-			#n.show()
+	def event_trigger(self, event_type, text, date):
+		if event_type == "Save to file":
+			print_to_file(self, text, date)
+		elif event_type == "Command":
+			command=shlex.split(text)
+			subprocess.call([command])
+		else: #event_type == "Textual reminder"
+			path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
+			if pynotify.init("ChronosLNX"):
+				n = pynotify.Notification("Textual reminder", text, path)
+				n.set_timeout(10000)
+				n.show()
+			else:
+				self.trayIcon.showMessage("Textual reminder", text, CLNXConfig.main_icons['logo'])
 
+	def check_alarm(self):
+		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
+			hour_trigger=False
+			real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
 
-	#def check_alarm(self):
-		#look through proxy model
-		#for i in xrange(len(CLNXConfig.todays_schedule))
-			#real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
-			#enabled_item=CLNXConfig.schedule.item(real_row,0)
-			#date_item=CLNXConfig.schedule.item(real_row,1)
-			#hour_item=CLNXConfig.schedule.item(real_row,2)
-			#event_type_item=CLNXConfig.schedule.item(real_row,3)
-			#text_item=CLNXConfig.schedule.item(real_row,4)
-		#if checkState == unchecked:
-		#	skip
+			enabled_item=CLNXConfig.schedule.item(real_row,0)
+			if enabled_item.checkState() == QtCore.Qt.Checked:
+				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole).toPyObject()
+				if isinstance(hour_item,QtCore.QTime):
+					if self.now.hour == hour_item.hour() and \
+						self.now.minute == hour_item.minute() and \
+						self.now.second == 0:
+						hour_trigger = True
+				else:
+					if self.phour == str(hour_item):
+						for dt in self.hoursToday.grabHoursOfType(self.phour):
+							if dt.hour == self.now.hour and \
+							dt.minute == self.now.minute and \
+							dt.second == self.now.second:
+								hour_trigger=True
+								break
 
-		#if day == "Everyday":
-			#set date trigger satisfied
-
-		#elif self.now.date() == entry.toPyDate():
-			#set date trigger satisfied
-
-		#elif day == "Weekends" and check weekend:
-			#set date trigger satisfied
-
-		#elif day == "Weekday" and check weekday:
-			#set date trigger satisfied
-
-		#elif self.pday == entry's pday:
-			#set date trigger satisfied
-
-		#if self.phour == entry's phour:
-			#set date trigger satisfied
-		
-		#if all conditions met:
-			#trigger function
-			#disable until conditions met for hour
+				event_type_item=str(CLNXConfig.schedule.item(real_row,3).data(QtCore.Qt.EditRole).toPyObject())
+				text_item=str(CLNXConfig.schedule.item(real_row,4).data(QtCore.Qt.EditRole).toPyObject())
+				
+				if hour_trigger:
+					self.event_trigger(event_type_item,text_item,self.now)
 
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
@@ -252,7 +255,7 @@ class ChronosLNX(QtGui.QWidget):
 #Resource id:  0x3800836
 #weird bug related to opening file dialog on linux through this, but it's harmless
 
-	def print_to_file(self, option,date):
+	def print_to_file(self, option,date,filename=None):
 		if option == "All":
 			text=prepare_all(date, CLNXConfig.current_latitude, 
 					CLNXConfig.current_longitude, 
@@ -267,9 +270,10 @@ class ChronosLNX(QtGui.QWidget):
 						CLNXConfig.current_elevation)
 		else:  #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
-		filename=QtGui.QFileDialog.getSaveFileName(parent=self,
-							caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),
-							filter="*.txt")
+		if filename == None:
+			filename=QtGui.QFileDialog.getSaveFileName(parent=self,
+					caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),
+					filter="*.txt")
 		if filename is not None and filename != "":
 			f=open(filename,"w")
 			f.write(text)
@@ -333,18 +337,18 @@ class ChronosLNX(QtGui.QWidget):
 
 ##config related
 
-	def settings_reset(self,dialog):
+	def settings_reset(self):
 		CLNXConfig.reset_settings()
-		dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
-		dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
-		dialog.location_widget.setElevation(CLNXConfig.current_elevation)
-		dialog.appearance_icons.setCurrentIndex(dialog.appearance_icons.findText(CLNXConfig.current_theme))
+		self.settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
+		self.settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
+		self.settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
 
-	def settings_change(self,dialog):
-		lat=float(dialog.location_widget.latitude)
-		lng=float(dialog.location_widget.longitude)
-		elv=float(dialog.location_widget.elevation)
-		thm=str(dialog.appearance_icons.currentText())
+	def settings_change(self):
+		lat=float(self.settings_dialog.location_widget.latitude)
+		lng=float(self.settings_dialog.location_widget.longitude)
+		elv=float(self.settings_dialog.location_widget.elevation)
+		thm=str(self.settings_dialog.appearance_icons.currentText())
 		CLNXConfig.current_latitude=lat
 		CLNXConfig.current_longitude=lng
 		CLNXConfig.current_elevation=elv
@@ -359,18 +363,17 @@ class ChronosLNX(QtGui.QWidget):
 		self.moonToday.get_moon_cycle(self.now)
 		#eventually load DB of events
 
-	def settings_write(self,dialog):
-		self.settings_change(dialog)
+	def settings_write(self):
+		self.settings_change()
 		CLNXConfig.save_settings()
-		CLNXConfig.save_schedule()
-		dialog.close()
-		#eventually save DB of events
+		#CLNXConfig.save_schedule()
+		self.settings_dialog.hide()
 
-	def show_settings(self):
-		settings_dialog=QtGui.QDialog(self)
-		settings_dialog.setWindowTitle("Settings")
-		tabs=QtGui.QTabWidget(settings_dialog)
-		settings_dialog.setFixedSize(400,400)
+	def make_settings_dialog(self):
+		self.settings_dialog=QtGui.QDialog(self)
+		self.settings_dialog.setWindowTitle("Settings")
+		tabs=QtGui.QTabWidget(self.settings_dialog)
+		self.settings_dialog.setFixedSize(400,400)
 		
 		location_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
@@ -379,24 +382,24 @@ class ChronosLNX(QtGui.QWidget):
 		tabs.addTab(appearance_page,"Appearance")
 		tabs.addTab(events_page,"Events")
 		
-		settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
-		settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
-		settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
-		settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
+		self.settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
+		self.settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
+		self.settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
 		
-		layout=QtGui.QVBoxLayout(settings_dialog)
+		layout=QtGui.QVBoxLayout(self.settings_dialog)
 		layout.addWidget(tabs)
 		
 		grid=QtGui.QGridLayout(appearance_page)
 		appearance_label=QtGui.QLabel("Icon theme")
-		settings_dialog.appearance_icons=QtGui.QComboBox()
-		settings_dialog.appearance_icons.addItem("None")
+		self.settings_dialog.appearance_icons=QtGui.QComboBox()
+		self.settings_dialog.appearance_icons.addItem("None")
 		for theme in CLNXConfig.get_available_themes():
 			icon=QtGui.QIcon(CLNXConfig.grab_icon_path(theme,"misc","chronoslnx"))
-			settings_dialog.appearance_icons.addItem(icon,theme)
-		settings_dialog.appearance_icons.setCurrentIndex(settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
+			self.settings_dialog.appearance_icons.addItem(icon,theme)
+		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
 		grid.addWidget(appearance_label,0,0)
-		grid.addWidget(settings_dialog.appearance_icons,0,1)
+		grid.addWidget(self.settings_dialog.appearance_icons,0,1)
 		
 		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
 		resetbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
@@ -404,22 +407,16 @@ class ChronosLNX(QtGui.QWidget):
 		applybutton=buttonbox.addButton(QtGui.QDialogButtonBox.Apply)
 		cancelbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
 		
-		resetbutton.clicked.connect(lambda: self.settings_reset(settings_dialog))
-		okbutton.clicked.connect(lambda: self.settings_write(settings_dialog))
-		applybutton.clicked.connect(lambda: self.settings_change(settings_dialog))
-		cancelbutton.clicked.connect(settings_dialog.close)
+		resetbutton.clicked.connect(self.settings_reset)
+		okbutton.clicked.connect(self.settings_write)
+		applybutton.clicked.connect(self.settings_change)
+		cancelbutton.clicked.connect(self.settings_dialog.hide)
 		layout.addWidget(buttonbox)
 		
-		settings_dialog.eventplanner=EventsList(events_page)
+		self.settings_dialog.eventplanner=EventsList(events_page)
 		a_vbox=QtGui.QVBoxLayout(events_page)
-		a_vbox.addWidget(settings_dialog.eventplanner)
-		settings_dialog.eventplanner.tree.setModel(CLNXConfig.schedule)
-		
-		#tooltips.set_tip(settings_window.lat_box, "Negative indicates south.\nMust be between -90 and 90 inclusive.")
-		#tooltips.set_tip(settings_window.lon_box,"Negative indicates west.\nMust be between -180 and 180 inclusive.")
-		#tooltips.set_tip(settings_window.elv_box,"Negative indicates below sea level.\nMust be between -418 and 8850 inclusive, in meters.")
-
-		settings_dialog.open()
+		a_vbox.addWidget(self.settings_dialog.eventplanner)
+		self.settings_dialog.eventplanner.tree.setModel(CLNXConfig.schedule)
 
 ## systray
 #http://stackoverflow.com/questions/893984/pyqt-show-menu-in-a-system-tray-application
@@ -431,9 +428,12 @@ class ChronosLNX(QtGui.QWidget):
 		  menu = QtGui.QMenu()
 		  quitAction = QtGui.QAction(self.tr("&Quit"), self)
 		  QtCore.QObject.connect(quitAction, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("quit()"))
-		  menu.addAction("&Show",self.show)
-		  menu.addAction("&Settings",self.show_settings)
+		  showaction=menu.addAction("&Show",self.show)
+		  showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
+		  setaction=menu.addAction("&Settings",self.settings_dialog.open)
+		  setaction.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
 		  menu.addAction(quitAction)
+		  quitAction.setIcon(QtGui.QIcon.fromTheme("application-exit"))
 		  self.trayIcon.setContextMenu(menu)
 		  traySignal = "activated(QSystemTrayIcon::ActivationReason)"
 		  QtCore.QObject.connect(self.trayIcon, QtCore.SIGNAL(traySignal), self.__icon_activated)
@@ -477,6 +477,7 @@ A simple tool for checking planetary hours and moon phases.<br />\
 		self.todayPicture.setPixmap(CLNXConfig.main_icons[str(self.phour)].pixmap(64,64))
 		self.todayOther.setText("%s\n%s\n%s\n%s" %(self.now.strftime("%H:%M:%S"), 
 			sign_string, moon_phase, planets_string))
+		self.check_alarm()
 
 app = QtGui.QApplication(sys.argv)
 CLNXConfig = chronosconfig.ChronosLNXConfig()

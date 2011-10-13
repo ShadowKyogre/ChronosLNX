@@ -82,7 +82,8 @@ class ChronosLNXConfig:
 		self.schedule=QtGui.QStandardItemModel()
 		self.schedule.setColumnCount(5)
 		self.schedule.setHorizontalHeaderLabels(["Enabled","Date","Hour","Event Type","Text"])
-		self.todays_schedule=DayEventsModel(self.schedule)
+		self.todays_schedule=DayEventsModel()
+		self.todays_schedule.setSourceModel(self.schedule)
 		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
 			self.APPNAME,
 			'/schedule.csv'])
@@ -121,6 +122,11 @@ class ChronosLNXConfig:
 				fourth_column.setText(entry[3])
 				fifth_column.setText(entry[4])
 				self.schedule.appendRow([first_column,second_column,third_column,fourth_column,fifth_column])
+		self.schedule.rowsInserted.connect(self.add_delete_update)
+		self.schedule.rowsRemoved.connect(self.add_delete_update)
+
+	def add_delete_update(self, index, start, end):
+		self.save_schedule()
 
 	def save_schedule(self):
 		rows=self.schedule.rowCount()

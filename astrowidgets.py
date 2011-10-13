@@ -88,6 +88,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 		filter_model.setFilterKeyColumn(1)
 		self.tree.setModel(filter_model)
 		self.filter_hour.activated.connect(self.filter_hours)
+		self.last_index=0
 
 	def clear(self):
 		model=self.tree.model().sourceModel()
@@ -99,7 +100,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 	def prepareHours(self,date,latitude,longitude,elevation):
 		planetary_hours = hours_for_day(date,latitude, longitude, elevation)
 		model=self.tree.model().sourceModel()
-		for i in xrange(24):
+		for i in xrange(0,24):
 			icon=self.icons[planetary_hours[i][1]]
 			if planetary_hours[i][2] is True:
 				status_icon=self.icons['daylight']
@@ -110,6 +111,16 @@ class PlanetaryHoursList(QtGui.QWidget):
 			newplanetitem=QtGui.QStandardItem(icon,planetary_hours[i][1])
 			model.insertRow(i,[newhouritem,newplanetitem])
 
+	def grabHoursOfType(self,planet): 
+		#note: this is like the filter, except it's for 
+		#alarm purposes so the data isn't actually searched
+		datetimes=[]
+		for i in xrange(self.last_index,24):
+			dt = self.tree.model().sourceModel().item(i,0).data(32).toPyObject().toPyDateTime()
+			pt=str(self.tree.model().sourceModel().item(i, 1).data(0).toString())
+			if pt == planet:
+				datetimes.append(dt)
+		return datetimes	
 
 	def filter_hours(self,idx):
 		if 0 == idx:
@@ -119,7 +130,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 
 	def grab_nearest_hour(self,date):
 		target_date=date.replace(tzinfo=LocalTimezone())
-		for i in xrange(24):
+		for i in xrange(self.last_index,24):
 			self.tree.model().sourceModel().item(i, 0).setBackground(self.base)
 			self.tree.model().sourceModel().item(i, 1).setBackground(self.base)
 			if i+1 > 23:
@@ -127,6 +138,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 				if looking_behind <= date:
 					self.tree.model().sourceModel().item(i, 0).setBackground(self.color)
 					self.tree.model().sourceModel().item(i, 1).setBackground(self.color)
+					self.last_index=i
 					return self.tree.model().sourceModel().item(i, 1).data(0).toPyObject()
 			else:
 				looking_behind = self.tree.model().sourceModel().item(i,0).data(32).toPyObject()
@@ -134,6 +146,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 				if looking_behind <= date and looking_ahead > date:
 					self.tree.model().sourceModel().item(i, 0).setBackground(self.color)
 					self.tree.model().sourceModel().item(i, 1).setBackground(self.color)
+					self.last_index=i
 					return self.tree.model().sourceModel().item(i, 1).data(0).toPyObject()
 		return "-Error-"
 

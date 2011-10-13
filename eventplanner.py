@@ -121,7 +121,6 @@ class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
 		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
 
 	def createEditor(self, parent, option, index):
-		print index.column(),index.row()
 		didx=index.model().index(index.row(),index.column()-1)
 		event_type=index.model().data(didx, QtCore.Qt.EditRole)
 		if (event_type=="Save to file"):
@@ -212,14 +211,16 @@ class TimeEditorDelegate(QtGui.QStyledItemDelegate):
 class DayEventsModel(QtGui.QSortFilterProxyModel):
 	def __init__(self, *args):
 		QtGui.QSortFilterProxyModel.__init__(self, *args)
+		self.date=None
+		self.wday=None
+		self.exact_day_type=None
 
 	def filterAcceptsRow(self,sourceRow,sourceParent):
+		if self.date == None:
+			return True
 		index1=self.sourceModel().index(sourceRow,1)
 		data=self.sourceModel().data(index1, QtCore.Qt.UserRole)
 		if data.typeName() == "QDate":
-			#print self.date
-			#print data.toDate()
-			#print data.toPyObject()
 			return data.toPyObject() == self.date
 		else:
 			data=self.sourceModel().data(index1, QtCore.Qt.EditRole).toString()
