@@ -134,6 +134,10 @@ class ChronosLNXConfig:
 				self.schedule.appendRow([first_column,second_column,third_column,fourth_column,fifth_column])
 		self.schedule.rowsInserted.connect(self.add_delete_update)
 		self.schedule.rowsRemoved.connect(self.add_delete_update)
+		self.schedule.itemChanged.connect(self.changed_update)
+	
+	def changed_update(self, item):
+		self.save_schedule()
 
 	def add_delete_update(self, index, start, end):
 		self.save_schedule()
