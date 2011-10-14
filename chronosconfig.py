@@ -55,6 +55,16 @@ class ChronosLNXConfig:
 			'daylight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","day")),
 			'nightlight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","night")),
 		}
+		#only needed to update lables
+		self.main_pixmaps = {
+			'Sun' : self.main_icons['Sun'].pixmap(64,64),
+			'Moon' : self.main_icons['Moon'].pixmap(64,64),
+			'Mercury' : self.main_icons['Sun'].pixmap(64,64),
+			'Venus' : self.main_icons['Venus'].pixmap(64,64),
+			'Mars' : self.main_icons['Mars'].pixmap(64,64),
+			'Jupiter' : self.main_icons['Jupiter'].pixmap(64,64),
+			'Saturn' : self.main_icons['Saturn'].pixmap(64,64),
+		}
 		self.moon_icons = {
 			'New moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","new_moon")),
 			'Waxing crescent moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_crescent_moon")),

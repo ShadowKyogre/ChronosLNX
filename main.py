@@ -15,9 +15,10 @@ import datetimetz #from Zim source code
 
 try:
 	import pynotify
+	pynotify.init("ChronosLNX")
 except ImportError:
 	print "Warning, couldn't import pynotify! On Linux systems, the notifications might look ugly."
-
+	pynf=False
 
 from astro import *
 from astrowidgets import *
@@ -25,12 +26,21 @@ from eventplanner import *
 from chronostext import *
 import chronosconfig
 
+class ReusableDialog(QtGui.QDialog):
+	def __init__(self, *args):
+		QtGui.QDialog.__init__(self, *args)
+	
+	def closeEvent(self, event):
+		self.hide()
+		event.ignore()
+
 class ChronosLNX(QtGui.QWidget):
 	def __init__(self, parent=None):
 		QtGui.QWidget.__init__(self, parent)
 		self.timer = QtCore.QTimer(self)
 		self.now = datetimetz.now()
 		self.make_settings_dialog()
+		self.make_save_for_date_range()
 		self.make_tray_icon()
 		self.setFixedSize(840, 420)
 		self.setWindowTitle('ChronosLNX')
@@ -42,6 +52,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.mainLayout.addLayout(self.leftLayout)
 		self.mainLayout.addLayout(self.rightLayout)
 		QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update)
+		#self.setWindowFlags(QtGui.Qt.WA_Window)
 		self.timer.start(1000)
 
 	def add_widgets(self):
@@ -52,7 +63,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.leftLayout.addWidget(self.calendar)
 		
 		saveRangeButton=QtGui.QPushButton("Save data from dates",self)
-		#saveRangeButton.clicked.connect(self.show_saveRange)
+		saveRangeButton.clicked.connect(self.save_for_range_dialog.open)
 		saveRangeButton.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
 		self.leftLayout.addWidget(saveRangeButton)
 		
@@ -143,56 +154,27 @@ class ChronosLNX(QtGui.QWidget):
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
-	def event_trigger(self, event_type, text):
-		if event_type == "Save to file":
-			print_to_file(self, text, self.now)
-		elif event_type == "Command":
-			command=shlex.split(text)
-			subprocess.call([command])
-		else: #event_type == "Textual reminder"
-			path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
-			if pynotify.init("ChronosLNX"):
-				n = pynotify.Notification("Textual reminder", text, path)
+	def show_notification(title, text):
+			if pynf:
+				path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
+				n = pynotify.Notification(title, text, path)
 				n.set_timeout(10000)
 				n.show()
 			else:
-				self.trayIcon.showMessage("Textual reminder", text, CLNXConfig.main_icons['logo'],msecs=10000)
-
-	def check_alarm(self):
-		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
-			hour_trigger=False
-			real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
-
-			enabled_item=CLNXConfig.schedule.item(real_row,0)
-			if enabled_item.checkState() == QtCore.Qt.Checked:
-				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole).toPyObject()
-				if isinstance(hour_item,QtCore.QTime):
-					if self.now.hour == hour_item.hour() and \
-						self.now.minute == hour_item.minute() and \
-						self.now.second == 0:
-						hour_trigger = True
+				if self.trayIcon.supportsMessages():
+					self.trayIcon.showMessage(title, text, CLNXConfig.main_icons['logo'],msecs=10000)
 				else:
-					if self.phour == str(hour_item):
-						for dt in self.hoursToday.grabHoursOfType(self.phour):
-							if dt.hour == self.now.hour and \
-							dt.minute == self.now.minute and \
-							dt.second == self.now.second:
-								hour_trigger=True
-								break
-
-				event_type_item=str(CLNXConfig.schedule.item(real_row,3).data(QtCore.Qt.EditRole).toPyObject())
-				text_item=str(CLNXConfig.schedule.item(real_row,4).data(QtCore.Qt.EditRole).toPyObject())
-				
-				if hour_trigger:
-					self.event_trigger(event_type_item,text_item)
+					#last resort, as popup dialogs are annoying
+					QtGui.QMessageBox.information(self, title, text)
 
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
 	def get_info_for_date(self, date):
-		info_dialog=QtGui.QDialog()
+		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
+		info_dialog.setWindowFlags(QtGui.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
 
 		hoursToday=PlanetaryHoursList(info_dialog)
@@ -226,6 +208,91 @@ class ChronosLNX(QtGui.QWidget):
 		hbox.addWidget(dayData)
 		info_dialog.exec_()
 
+	def make_save_for_date_range(self):
+		#self.save_for_range_dialog=QtGui.QDialog(self)
+		self.save_for_range_dialog=ReusableDialog(self)
+		self.save_for_range_dialog.setFixedSize(380,280)
+		self.save_for_range_dialog.setWindowTitle("Save Data for Dates")
+		grid=QtGui.QGridLayout(self.save_for_range_dialog)
+		
+		self.save_for_range_dialog.date_start=QtGui.QDateEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_start.setDisplayFormat("MM/dd/yyyy")
+		self.save_for_range_dialog.date_end=QtGui.QDateEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_end.setDisplayFormat("MM/dd/yyyy")
+		
+		grid.addWidget(QtGui.QLabel("Save from"),0,0)
+		grid.addWidget(self.save_for_range_dialog.date_start,0,1)
+		grid.addWidget(QtGui.QLabel("To"),1,0)
+		grid.addWidget(self.save_for_range_dialog.date_end,1,1)
+		grid.addWidget(QtGui.QLabel("Data to Save"),2,0)
+		
+		self.save_for_range_dialog.checkboxes=QtGui.QButtonGroup()
+		self.save_for_range_dialog.checkboxes.setExclusive(False)
+		checkboxes_frame=QtGui.QFrame(self.save_for_range_dialog)
+		
+		vbox=QtGui.QVBoxLayout(checkboxes_frame)
+		
+		all_check=QtGui.QCheckBox("All",checkboxes_frame)
+		ph_check=QtGui.QCheckBox("Planetary Hours",checkboxes_frame)
+		s_check=QtGui.QCheckBox("Planetary Signs",checkboxes_frame)
+		m_check=QtGui.QCheckBox("Moon Cycle",checkboxes_frame)
+		e_check=QtGui.QCheckBox("Events",checkboxes_frame)
+		
+		self.save_for_range_dialog.checkboxes.addButton(all_check)
+		self.save_for_range_dialog.checkboxes.addButton(ph_check)
+		self.save_for_range_dialog.checkboxes.addButton(s_check)
+		self.save_for_range_dialog.checkboxes.addButton(m_check)
+		self.save_for_range_dialog.checkboxes.addButton(e_check)
+		
+		vbox.addWidget(all_check)
+		vbox.addWidget(ph_check)
+		vbox.addWidget(s_check)
+		vbox.addWidget(m_check)
+		vbox.addWidget(e_check)
+		
+		grid.addWidget(checkboxes_frame,2,1)
+
+		grid.addWidget(QtGui.QLabel("Folder to save in"),3,0)
+		hbox=QtGui.QHBoxLayout()
+		self.save_for_range_dialog.filename=QtGui.QLineEdit(self.save_for_range_dialog)
+		button=QtGui.QPushButton(self.save_for_range_dialog)
+		button.setIcon(QtGui.QIcon.fromTheme("document-open"))
+		button.clicked.connect(self.get_folder_name)
+		hbox.addWidget(self.save_for_range_dialog.filename)
+		hbox.addWidget(button)
+		grid.addLayout(hbox,3,1)
+		
+		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
+		okbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+		#okbutton.clicked.connect(self.print_to_file("All", date,filename="",suppress_notification=True))
+		okbutton.clicked.connect(self.mass_print)
+		cancelbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+		cancelbutton.clicked.connect(self.save_for_range_dialog.hide)
+		grid.addWidget(buttonbox,4,0,1,2)
+	
+	def get_folder_name(self):
+		text=QtGui.QFileDialog.getExistingDirectory(caption="Save in folder...")
+		self.save_for_range_dialog.filename.setText(text)
+	
+	def mass_print(self):
+		day_numbers=(self.save_for_range_dialog.date_end.date().toPyDate() - \
+			self.save_for_range_dialog.date_start.date().toPyDate()).days
+		if self.save_for_range_dialog.filename != "" or \
+		self.save_for_range_dialog.filename != None:
+			for j in self.save_for_range_dialog.checkboxes.buttons():
+					if j.checkState() == QtCore.Qt.Checked:
+						os.mkdir("%s/%s" %(self.save_for_range_dialog.filename.text(), \
+						str(j.text()).replace(" ", "_")))
+			for i in xrange(day_numbers+1):
+				date=self.save_for_range_dialog.date_start.date().toPyDate()+timedelta(days=i)
+				for j in self.save_for_range_dialog.checkboxes.buttons():
+					if j.checkState() == QtCore.Qt.Checked:
+						filename=str(self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
+							%(str(j.text()).replace(" ", "_"),date.strftime("%m-%d-%Y")))
+						self.print_to_file(j.text(), date,filename=filename,suppress_notification=False)
+						if j.text() == "All":
+							break
+
 	def make_calendar_menu(self):
 		self.calendar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 		self.connect(self.calendar,QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.get_cal_menu)
@@ -236,11 +303,11 @@ class ChronosLNX(QtGui.QWidget):
 			text=prepare_all(date, CLNXConfig.current_latitude, 
 					CLNXConfig.current_longitude, 
 					CLNXConfig.current_elevation)
-		elif option == "Moon":
+		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
-		elif option == "Signs":
+		elif option == "Planetary Signs":
 			text=prepare_sign_info(date)
-		elif option == "Hours":
+		elif option == "Planetary Hours":
 			text=prepare_planetary_info(date, CLNXConfig.current_latitude, 
 						CLNXConfig.current_longitude, 
 						CLNXConfig.current_elevation)
@@ -255,7 +322,7 @@ class ChronosLNX(QtGui.QWidget):
 #Resource id:  0x3800836
 #weird bug related to opening file dialog on linux through this, but it's harmless
 
-	def print_to_file(self, option,date,filename=None):
+	def print_to_file(self, option,date,filename=None,suppress_notification=False):
 		if option == "All":
 			text=prepare_all(date, CLNXConfig.current_latitude, 
 					CLNXConfig.current_longitude, 
@@ -277,10 +344,8 @@ class ChronosLNX(QtGui.QWidget):
 		if filename is not None and filename != "":
 			f=open(filename,"w")
 			f.write(text)
-			QtGui.QMessageBox.information(self,
-						"Saved", 
-						"%s has the %s you saved." %(filename, option))
-			#replace this with systray notification
+			if not suppress_notification:
+				self.show_notification("Saved", "%s has the %s you saved." %(filename, option))
 
 	def get_cal_menu(self, qpoint):
 		table=self.calendar.findChild(QtGui.QTableView)
@@ -370,10 +435,12 @@ class ChronosLNX(QtGui.QWidget):
 		self.settings_dialog.hide()
 
 	def make_settings_dialog(self):
-		self.settings_dialog=QtGui.QDialog(self)
+		#self.settings_dialog=QtGui.QDialog(self)
+		self.settings_dialog=ReusableDialog(self)
 		self.settings_dialog.setWindowTitle("Settings")
 		tabs=QtGui.QTabWidget(self.settings_dialog)
 		self.settings_dialog.setFixedSize(400,400)
+		#bug closign dialog closes app
 		
 		location_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
@@ -424,7 +491,6 @@ class ChronosLNX(QtGui.QWidget):
 
 	def make_tray_icon(self):
 		  self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(CLNXConfig.main_icons['logo']), app)
-		  #self.trayIcon = QtGui.QSystemTrayIcon(app)
 		  menu = QtGui.QMenu()
 		  quitAction = QtGui.QAction(self.tr("&Quit"), self)
 		  QtCore.QObject.connect(quitAction, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("quit()"))
@@ -474,10 +540,47 @@ A simple tool for checking planetary hours and moon phases.<br />\
 		self.trayIcon.setToolTip("%s - %s\n%s\n%s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"), 
 			sign_string, moon_phase, planets_string))
 		self.trayIcon.setIcon(sysicon)
-		self.todayPicture.setPixmap(CLNXConfig.main_icons[str(self.phour)].pixmap(64,64))
+		#self.todayPicture.setPixmap(CLNXConfig.main_icons[str(self.phour)].pixmap(64,64))
+		self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s\n%s\n%s\n%s" %(self.now.strftime("%H:%M:%S"), 
 			sign_string, moon_phase, planets_string))
 		self.check_alarm()
+
+	def event_trigger(self, event_type, text):
+		if event_type == "Save to file":
+			print_to_file(self, text, self.now)
+		elif event_type == "Command":
+			subprocess.call([shlex.split(text)])
+		else: #event_type == "Textual reminder"
+			self.show_notification("Reminder", text)
+
+	def check_alarm(self):
+		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
+			hour_trigger=False
+			real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
+
+			enabled_item=CLNXConfig.schedule.item(real_row,0)
+			if enabled_item.checkState() == QtCore.Qt.Checked:
+				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole).toPyObject()
+				if isinstance(hour_item,QtCore.QTime):
+					if self.now.hour == hour_item.hour() and \
+						self.now.minute == hour_item.minute() and \
+						self.now.second == 0:
+						hour_trigger = True
+				else:
+					if self.phour == str(hour_item):
+						for dt in self.hoursToday.grabHoursOfType(self.phour):
+							if dt.hour == self.now.hour and \
+							dt.minute == self.now.minute and \
+							dt.second == self.now.second:
+								hour_trigger=True
+								break
+
+				event_type_item=str(CLNXConfig.schedule.item(real_row,3).data(QtCore.Qt.EditRole).toPyObject())
+				text_item=str(CLNXConfig.schedule.item(real_row,4).data(QtCore.Qt.EditRole).toPyObject())
+				
+				if hour_trigger:
+					self.event_trigger(event_type_item,text_item)
 
 app = QtGui.QApplication(sys.argv)
 CLNXConfig = chronosconfig.ChronosLNXConfig()
