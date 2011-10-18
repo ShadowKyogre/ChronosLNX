@@ -174,7 +174,7 @@ class ChronosLNX(QtGui.QWidget):
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
-		info_dialog.setWindowFlags(QtGui.Qt.WA_DeleteOnClose)
+		#info_dialog.setWindowFlags(QtCore.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
 
 		hoursToday=PlanetaryHoursList(info_dialog)

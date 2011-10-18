@@ -96,14 +96,18 @@ class ChronosLNXConfig:
 		self.todays_schedule.setSourceModel(self.schedule)
 		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
 			self.APPNAME,
-			'/schedule.csv'])
+			'/schedule.csv']).replace('//','/')
 		firsttime=False
 		#need more elegant first time
 		try:
 			planner = csv.reader(open(path, "rb"))
 		except IOError:
+			try:
+				os.mkdir(path.replace("schedule.csv",""))
+			except OSError:
+				print "Already made data directory for schedule"
 			f=open(path,"w")
-			f.write("")
+			f.write("Enabled,Date,Hour,Event Type,Text")
 			f.close()
 			firsttime=True
 			planner = csv.reader(open(path, "rb"))
