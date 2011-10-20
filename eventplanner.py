@@ -20,7 +20,7 @@ class PlanetDateEditor(QtGui.QWidget):
 		self.day.addItem("Weekdays")
 		self.day.addItem("Custom")
 		inputstuff.addWidget(self.day,0,0)
-		
+
 		self.dateplanned=QtGui.QDateEdit(self)
 		#self.dateplanned.setCalendarPopup (True)
 		self.dateplanned.setDisplayFormat("MM/dd/yyyy")
@@ -62,7 +62,8 @@ class PlanetHourEditor(QtGui.QWidget):
 		self.time.addItem("Jupiter")
 		self.time.addItem("Venus")
 		self.time.addItem("Saturn")
-		#self.time.addItem("Every...") #not implemented
+		self.time.addItem("Every planetary hour")
+		self.time.addItem("Every normal hour")
 		self.time.addItem("When the the sun rises")
 		self.time.addItem("When the the sun sets")
 		self.time.addItem("Custom")
@@ -76,7 +77,7 @@ class PlanetHourEditor(QtGui.QWidget):
 		inputstuff.setHorizontalSpacing(0)
 
 	def checkSwitch(self,idx):
-		if idx==9:
+		if idx==11:
 			self.timeplanned.show()
 		else:
 			self.timeplanned.hide()
@@ -241,7 +242,7 @@ class DayEventsModel(QtGui.QSortFilterProxyModel):
 
 class EventsList(QtGui.QWidget):
 	def __init__(self, *args):
-	
+
 		QtGui.QWidget.__init__(self, *args)
 		#add some filters to view events for specific
 		#self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from PyQt4 import QtGui,QtCore
-import os, csv, ast
+import os, csv
+from ast import literal_eval
 from eventplanner import *
 from datetimetz import *
 import datetime
@@ -12,25 +13,47 @@ class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.2.0"
+		self.APPVERSION="0.3.0"
 		self.AUTHOR="ShadowKyogre"
+		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
+		self.YEAR="2011"
+		self.PAGE="http://shadowkyogre.github.com/ChronosLNX/"
+
 		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,
 						QtCore.QSettings.UserScope,
 						self.AUTHOR,
 						self.APPNAME)
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
-		
+
 		self.settings.beginGroup("Location")
 		self.current_latitude=float(self.settings.value("latitude", 0.0).toPyObject())
 		self.current_longitude=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.current_elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
-		
+
 		self.settings.beginGroup("Appearance")
-		self.current_theme=str(self.settings.value("icontheme", 
+		self.current_theme=str(self.settings.value("icontheme",
 					QtCore.QString("DarkGlyphs")).toPyObject())
 		self.settings.endGroup()
-		
+
+		self.settings.beginGroup("Tweaks")
+		try:
+			self.show_sign=literal_eval(self.settings.value("showSign",
+					QtCore.QString("True")).toPyObject())
+		except ValueError: #denotes that config was from previous version
+			self.show_sign=True
+		try:
+			self.show_moon=literal_eval(self.settings.value("showMoonPhase",
+					QtCore.QString("True")).toPyObject())
+		except ValueError:
+			self.show_moon=True
+		try:
+			self.show_house_of_moment=literal_eval(self.settings.value("showHouseOfMoment",
+					QtCore.QString("True")).toPyObject())
+		except ValueError:
+			self.show_house_of_moment=True
+		self.settings.endGroup()
+
 		self.prepare_icons()
 		self.load_schedule()
 
@@ -38,7 +61,7 @@ class ChronosLNXConfig:
 	def grab_icon_path(self,theme,icon_type,looking):
 		#icon type must be of following: planetss, moonphase, signs
 		return "%s/%s/%s/%s.png" %(os.sys.path[0],theme,icon_type,looking)
-	
+
 	def prepare_icons(self):
 		self.main_icons = {
 			'Sun' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","sun")),
@@ -120,7 +143,7 @@ class ChronosLNXConfig:
 				fourth_column=QtGui.QStandardItem()
 				fifth_column=QtGui.QStandardItem()
 				first_column.setCheckable(True)
-				if ast.literal_eval(entry[0]):
+				if literal_eval(entry[0]):
 					first_column.setCheckState(QtCore.Qt.Checked)
 				if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
 					#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
@@ -139,7 +162,7 @@ class ChronosLNXConfig:
 		self.schedule.rowsInserted.connect(self.add_delete_update)
 		self.schedule.rowsRemoved.connect(self.add_delete_update)
 		self.schedule.itemChanged.connect(self.changed_update)
-	
+
 	def changed_update(self, item):
 		self.save_schedule()
 
@@ -162,7 +185,7 @@ class ChronosLNXConfig:
 			else:
 				first_column="False"
 			second_column=self.schedule.item(i,1).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %m/%d/%Y
-			
+
 			if isinstance(second_column,QtCore.QDate):
 				#print second_column
 				second_column=str(second_column.toString("MM/dd/yyyy"))
@@ -198,4 +221,11 @@ class ChronosLNXConfig:
 		self.settings.beginGroup("Appearance")
 		self.settings.setValue("icontheme", self.current_theme)
 		self.settings.endGroup()
+
+		self.settings.beginGroup("Tweaks")
+		self.settings.setValue("showSign", str(self.show_sign))
+		self.settings.setValue("showMoonPhase",str(self.show_moon))
+		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
+		self.settings.endGroup()
+
 		self.settings.sync()
