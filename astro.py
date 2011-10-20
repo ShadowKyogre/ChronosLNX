@@ -19,12 +19,12 @@ def grab_moon_phase(date):
 		status = "Waxing"
 	if 1.0 <= moon.phase <= 47.0:
 		return status + " crescent moon: " + illumination
-	elif 47.0 <= moon.phase <= 50.0:
+	elif 47.0 <= moon.phase <= 52.0:
 		if status == "Waxing":
 			return "First quarter moon: " + illumination
 		else:
 			return "Last quarter moon: " + illumination
-	elif 50.0 <= moon.phase <= 99.0:
+	elif 52.0 <= moon.phase <= 99.0:
 		return status + " gibbous moon: " + illumination
 
 def get_moon_cycle(date):
@@ -166,5 +166,5 @@ def get_ruling_constellations_for_date(date):
 	'Neptune' : ephem.constellation(neptune),
 	'Pluto' : ephem.constellation(pluto),
 	}
-	
+
 	return data

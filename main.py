@@ -612,13 +612,13 @@ class ChronosLNX(QtGui.QWidget):
 		self.todayOther.setText("%s\n%s" %(self.now.strftime("%H:%M:%S"), total_string))
 		self.check_alarm()
 
-	def event_trigger(self, event_type, text, ptrigger=False):
+	def event_trigger(self, event_type, text, ptr=False):
 		if event_type == "Save to file":
 			print_to_file(self, text, self.now)
 		elif event_type == "Command":
 			callcall([split(text)])
 		else: #event_type == "Textual reminder"
-			self.show_notification("Reminder", text, ptrigger=ptrigger)
+			self.show_notification("Reminder", text, ptrigger=pt)
 
 	def compare_to_the_second(self, hour, minute, second):
 		return hour == self.now.hour and \
@@ -628,7 +628,7 @@ class ChronosLNX(QtGui.QWidget):
 	def check_alarm(self):
 		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
 			hour_trigger=False
-			ptrigger=False
+			pt=False
 			real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
 
 			enabled_item=CLNXConfig.schedule.item(real_row,0)
@@ -647,8 +647,9 @@ class ChronosLNX(QtGui.QWidget):
 								self.sunset.minute, self.minute.second)
 					elif hour_item == "Every planetary hour":
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
-						hour_trigger=self.compare_to_the_second(dt.hour, dt.minute, dt.second)
-						ptrigger=True
+						hour_trigger=self.compare_to_the_second(dt.time().hour(),
+								dt.time().minute(), dt.time().second())
+						pt=True
 						if args == 2:
 							if self.hoursToday.last_index > 0:
 								prev_hour=self.hoursToday.get_planet(self.hoursToday.last_index - 1)
@@ -660,8 +661,8 @@ class ChronosLNX(QtGui.QWidget):
 
 					elif self.phour == str(hour_item):
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
-						hour_trigger=self.compare_to_the_second(dt.hour, dt.minute, dt.second)
-						ptrigger=True
+						hour_trigger=self.compare_to_the_second(dt.hour(), dt.minute(), dt.second())
+						pt=True
 
 					elif hour_item == "Every normal hour":
 						hour_trigger=self.compare_to_the_second(self.now.hour,0,0)
@@ -685,7 +686,7 @@ class ChronosLNX(QtGui.QWidget):
 					else:
 						text_item=str(CLNXConfig.schedule.item(real_row, \
 						4).data(QtCore.Qt.EditRole).toPyObject())
-					self.event_trigger(event_type_item,text_item,ptrigger=ptrigger)
+					self.event_trigger(event_type_item,text_item,ptrigger=pt)
 
 app = QtGui.QApplication(sys.argv)
 CLNXConfig = chronosconfig.ChronosLNXConfig()
