@@ -296,7 +296,7 @@ class MoonCycleList(QtGui.QTreeWidget):
 
 	def highlight_cycle_phase(self,date):
 		target_date=date.replace(tzinfo=LocalTimezone())
-		for i in xrange(self.last_index,29):
+		for i in xrange(self.last_index,30):
 			self._unhighlight_row(i)
 			cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
 			if cycling.timetuple().tm_yday == target_date.timetuple().tm_yday:
