@@ -618,11 +618,6 @@ class ChronosLNX(QtGui.QWidget):
 		else: #event_type == "Textual reminder"
 			self.show_notification("Reminder", text, planet_trigger)
 
-	def compare_to_the_second(self, hour, minute, second):
-		return hour == self.now.hour and \
-			minute == self.now.minute and \
-			second == self.now.second
-
 	def check_alarm(self):
 		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
 			hour_trigger=False
@@ -635,13 +630,12 @@ class ChronosLNX(QtGui.QWidget):
 				txt=str(CLNXConfig.schedule.item(real_row, 4).data(QtCore.Qt.EditRole).toPyObject())
 				args=0
 				if isinstance(hour_item,QtCore.QTime):
-					hour_trigger = self.compare_to_the_second(hour_item.hour(), \
+					hour_trigger = compare_to_the_second(self.now ,hour_item.hour(), \
 								hour_item.minute(), 0)
 				else:
 					if hour_item == "Every planetary hour":
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
-						hour_trigger=self.compare_to_the_second(dt.time().hour(),
-								dt.time().minute(), dt.time().second())
+						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						pt=True
 						args=len(findall("%\(prev\)s|%\(next\)s", txt))
 						if args == 2:
@@ -655,16 +649,16 @@ class ChronosLNX(QtGui.QWidget):
 
 					elif self.phour == str(hour_item):
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
-						hour_trigger=self.compare_to_the_second(dt.hour(), dt.minute(), dt.second())
+						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						pt=True
 					elif hour_item == "When the sun rises":
-						hour_trigger=self.compare_to_the_second(self.sunrise, \
+						hour_trigger=compare_to_the_second(self.now, self.sunrise, \
 								self.sunrise.minute, self.sunrise.second)
 					elif hour_item == "When the sun sets":
-						hour_trigger=self.compare_to_the_second(self.sunset.hour, \
+						hour_trigger=compare_to_the_second(self.now, self.sunset.hour, \
 								self.sunset.minute, self.minute.second)
 					elif hour_item == "Every normal hour":
-						hour_trigger=self.compare_to_the_second(self.now.hour,0,0)
+						hour_trigger=compare_to_the_second(self.now, self.now.hour,0,0)
 						args=len(findall("%\(prev\)s|%\(next\)s", txt))
 						if args == 2:
 							if self.now.hour == 0:

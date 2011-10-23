@@ -5,6 +5,11 @@ import re
 #from dateutil.tz import *
 from datetimetz import *
 
+def compare_to_the_second(date, hour, minute, second):
+	return hour == date.hour and \
+		minute == date.minute and \
+		second == date.second
+
 def grab_moon_phase(date):
 	moon=ephem.Moon(date)
 	next_full_moon=ephem.localtime(ephem.next_full_moon(date)).replace(tzinfo=LocalTimezone())
@@ -88,56 +93,56 @@ def calculate_sign(date):
 	day_of_year = date.timetuple().tm_yday
 	leapyear = date.year % 4
 	if leapyear > 0:
-	  if day_of_year < 21 or 357 < day_of_year < 365:
+	  if day_of_year < 21 or 357 <= day_of_year < 365:
 		return "Capricorn"
-	  elif 21 < day_of_year < 51:
+	  elif 21 <= day_of_year < 51:
 		return "Aquarias"
-	  elif 51 < day_of_year < 80:
+	  elif 51 <= day_of_year < 80:
 		return "Pisces"
-	  elif 80 < day_of_year < 112:
+	  elif 80 <= day_of_year < 112:
 		return "Aries"
-	  elif 112 < day_of_year < 142:
+	  elif 112 <= day_of_year < 142:
 		return "Taurus"
-	  elif 142 < day_of_year < 173:
+	  elif 142 <= day_of_year < 173:
 		return "Gemini"
-	  elif 173 < day_of_year < 203:
+	  elif 173 <= day_of_year < 203:
 		return "Cancer"
-	  elif 203 < day_of_year < 235:
+	  elif 203 <= day_of_year < 235:
 		return "Leo"
-	  elif 235 < day_of_year < 266:
+	  elif 235 <= day_of_year < 266:
 		return "Virgo"
-	  elif 266 < day_of_year < 296:
+	  elif 266 <= day_of_year < 296:
 		return "Libra"
-	  elif 296 < day_of_year < 326:
+	  elif 296 <= day_of_year < 326:
 		return "Scorpio"
-	  elif 326 < day_of_year < 357:
+	  elif 326 <= day_of_year < 357:
 		return "Sagittarius"
 	  else:
 		return "- Error -"
 	else:
-	  if day_of_year < 21 or 358 < day_of_year < 367:
+	  if day_of_year < 21 or 358 <= day_of_year < 367:
 		return "Capricornus"
-	  elif 21 < day_of_year < 51:
+	  elif 21 <= day_of_year < 51:
 		return "Aquarias"
-	  elif 51 < day_of_year < 81:
+	  elif 51 <= day_of_year < 81:
 		return "Pisces"
-	  elif 81 < day_of_year < 113:
+	  elif 81 <= day_of_year < 113:
 		return "Aries"
-	  elif 113 < day_of_year < 143:
+	  elif 113 <= day_of_year < 143:
 		return "Taurus"
-	  elif 143 < day_of_year < 174:
+	  elif 143 <= day_of_year < 174:
 		return "Gemini"
-	  elif 174 < day_of_year < 204:
+	  elif 174 <= day_of_year < 204:
 		return "Cancer"
-	  elif 204 < day_of_year < 236:
+	  elif 204 <= day_of_year < 236:
 		return "Leo"
-	  elif 236 < day_of_year < 267:
+	  elif 236 <= day_of_year < 267:
 		return "Virgo"
-	  elif 267 < day_of_year < 297:
+	  elif 267 <= day_of_year < 297:
 		return "Libra"
-	  elif 297 < day_of_year < 327:
+	  elif 297 <= day_of_year < 327:
 		return "Scorpio"
-	  elif 327 < day_of_year < 358:
+	  elif 327 <= day_of_year < 358:
 		return "Sagittarius"
 	  else:
 		return "- Error -"

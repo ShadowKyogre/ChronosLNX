@@ -114,7 +114,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 			else:
 				status_icon=self.icons['nightlight']
 			newhouritem=QtGui.QStandardItem(status_icon,planetary_hours[i][0].strftime("%H:%M:%S - %m/%d/%Y"))
-			newhouritem.setData(QtCore.QVariant(QtCore.QDateTime(planetary_hours[i][0])),32)
+			newhouritem.setData(QtCore.QVariant(planetary_hours[i][0]),32)
 			newplanetitem=QtGui.QStandardItem(icon,planetary_hours[i][1])
 			model.insertRow(i,[newhouritem,newplanetitem])
 
@@ -123,7 +123,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 		#alarm purposes so the data isn't actually searched
 		datetimes=[]
 		for i in xrange(self.last_index,24):
-			dt = self.get_date(i).toPyDateTime()
+			dt = self.get_date(i)
 			pt=str(self.get_planet(i))
 			if pt == planet:
 				datetimes.append(dt)
@@ -155,7 +155,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 					return self.get_planet(i)
 			else:
 				looking_behind = self.get_date(i)
-				looking_ahead = self.tree.model().sourceModel().item(i+1,0).data(32).toPyObject()
+				looking_ahead = self.get_date(i+1)
 				if looking_behind <= date and looking_ahead > date:
 					self._highlight_row(i)
 					self.last_index=i
