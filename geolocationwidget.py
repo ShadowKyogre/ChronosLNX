@@ -47,30 +47,33 @@ from PyQt4.QtGui import QDoubleSpinBox, QGridLayout, QLabel, QWidget
 class GeoLocationWidget(QWidget):
 
     """GeoLocationWidget(QWidget)
-    
+
     Provides a custom geographical location widget.
     """
-    
+
     __pyqtSignals__ = ("latitudeChanged(double)", "longitudeChanged(double)")
-    
+
     def __init__(self, parent = None):
-    
+
         QWidget.__init__(self, parent)
-        
+
         latitudeLabel = QLabel(self.tr("Latitude:"))
         self.latitudeSpinBox = QDoubleSpinBox()
         self.latitudeSpinBox.setRange(-90.0, 90.0)
         self.latitudeSpinBox.setDecimals(5)
-        
+        self.latitudeSpinBox.setToolTip("How far north or sourth you are from the equator. Must be between -90 and 90.")
+
         longitudeLabel = QLabel(self.tr("Longitude:"))
         self.longitudeSpinBox = QDoubleSpinBox()
         self.longitudeSpinBox.setRange(-180.0, 180.0)
         self.longitudeSpinBox.setDecimals(5)
-        
+        self.longitudeSpinBox.setToolTip("How far west or east you are from the meridian. Must be between -180 and 180.")
+
         elevationLabel = QLabel(self.tr("Elevation"))
         self.elevationSpinBox = QDoubleSpinBox()
         self.elevationSpinBox.setRange(-418.0, 8850.0)
         self.elevationSpinBox.setDecimals(5)
+        self.elevationSpinBox.setToolTip("The distance from sea level in meters. Must be between -418 and 8850.")
 
         self.connect(self.latitudeSpinBox, SIGNAL("valueChanged(double)"),
                      self, SIGNAL("latitudeChanged(double)"))
@@ -86,35 +89,35 @@ class GeoLocationWidget(QWidget):
         layout.addWidget(self.longitudeSpinBox, 1, 1)
         layout.addWidget(elevationLabel, 2, 0)
         layout.addWidget(self.elevationSpinBox, 2, 1)
-    
+
     # The latitude property is implemented with the latitude() and setLatitude()
     # methods, and contains the latitude of the user.
-    
+
     def latitude(self):
         return self.latitudeSpinBox.value()
-    
+
     @pyqtSignature("setLatitude(double)")
     def setLatitude(self, latitude):
         if latitude != self.latitudeSpinBox.value():
             self.latitudeSpinBox.setValue(latitude)
             self.emit(SIGNAL("latitudeChanged(double)"), latitude)
-    
+
     latitude = pyqtProperty("double", latitude, setLatitude)
-    
+
     # The longitude property is implemented with the longitude() and setlongitude()
     # methods, and contains the longitude of the user.
-    
+
     def longitude(self):
         return self.longitudeSpinBox.value()
-    
+
     @pyqtSignature("setLongitude(double)")
     def setLongitude(self, longitude):
         if longitude != self.longitudeSpinBox.value():
             self.longitudeSpinBox.setValue(longitude)
             self.emit(SIGNAL("longitudeChanged(double)"), longitude)
-    
+
     longitude = pyqtProperty("double", longitude, setLongitude)
-    
+
     def elevation(self):
         return self.elevationSpinBox.value()
 
@@ -123,5 +126,5 @@ class GeoLocationWidget(QWidget):
         if elevation != self.elevationSpinBox.value():
             self.elevationSpinBox.setValue(elevation)
             self.emit(SIGNAL("elevationChanged(double)"), elevation)
-    
+
     elevation = pyqtProperty("double", elevation, setElevation)

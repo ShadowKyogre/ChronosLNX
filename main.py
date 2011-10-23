@@ -19,6 +19,7 @@ from astrowidgets import *
 from eventplanner import *
 from chronostext import *
 import chronosconfig
+pynf=True
 
 class ReusableDialog(QtGui.QDialog):
 	def __init__(self, *args):
@@ -45,7 +46,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.add_widgets()
 		self.mainLayout.addLayout(self.leftLayout)
 		self.mainLayout.addLayout(self.rightLayout)
-		QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update)
+		self.timer.timeout.connect(self.update)
 		#self.setWindowFlags(QtGui.Qt.WA_Window)
 		self.timer.start(1000)
 
@@ -149,10 +150,10 @@ class ChronosLNX(QtGui.QWidget):
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
-	def show_notification(title, text, ptrigger=False):
+	def show_notification(self, title, text, ptrigger):
 			if pynf:
 				if ptrigger:
-					path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"planets",self.phour)
+					path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"planets",str(self.phour.toLower()))
 				else:
 					path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
 				n = pynotify.Notification(title, text, path)
@@ -356,7 +357,7 @@ class ChronosLNX(QtGui.QWidget):
 			f=open(filename,"w")
 			f.write(text)
 			if not suppress_notification:
-				self.show_notification("Saved", "%s has the %s you saved." %(filename, option), ptrigger=False)
+				self.show_notification("Saved", "%s has the %s you saved." %(filename, option), False)
 
 	def get_cal_menu(self, qpoint):
 		table=self.calendar.findChild(QtGui.QTableView)
@@ -526,7 +527,7 @@ class ChronosLNX(QtGui.QWidget):
 		  self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(CLNXConfig.main_icons['logo']), app)
 		  menu = QtGui.QMenu()
 		  quitAction = QtGui.QAction(self.tr("&Quit"), self)
-		  QtCore.QObject.connect(quitAction, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("quit()"))
+		  quitAction.triggered.connect(QtGui.qApp.quit)
 		  showaction=menu.addAction("&Show",self.show)
 		  showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
 		  setaction=menu.addAction("&Settings",self.settings_dialog.open)
@@ -534,8 +535,7 @@ class ChronosLNX(QtGui.QWidget):
 		  menu.addAction(quitAction)
 		  quitAction.setIcon(QtGui.QIcon.fromTheme("application-exit"))
 		  self.trayIcon.setContextMenu(menu)
-		  traySignal = "activated(QSystemTrayIcon::ActivationReason)"
-		  QtCore.QObject.connect(self.trayIcon, QtCore.SIGNAL(traySignal), self.__icon_activated)
+		  self.trayIcon.activated.connect(self.__icon_activated)
 		  self.trayIcon.show()
 
 	def _ChronosLNX__icon_activated(self,reason):
@@ -572,11 +572,11 @@ class ChronosLNX(QtGui.QWidget):
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
+		self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
 			hom=(self.hoursToday.last_index%12)+1
 			if hom == 1:
 				suffix="st"
-				house_of_moment_string="<br />The sun is in the 1st house"
 			elif hom == 2:
 				suffix="nd"
 			elif hom == 3:
@@ -607,18 +607,16 @@ class ChronosLNX(QtGui.QWidget):
 		self.trayIcon.setToolTip("%s - %s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"),
 			total_string.replace("<br />","\n").replace("<sup>","").replace("</sup>","")))
 		self.trayIcon.setIcon(sysicon)
-		#self.todayPicture.setPixmap(CLNXConfig.main_icons[str(self.phour)].pixmap(64,64))
 		self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s\n%s" %(self.now.strftime("%H:%M:%S"), total_string))
-		self.check_alarm()
 
-	def event_trigger(self, event_type, text, ptr=False):
+	def event_trigger(self, event_type, text, planet_trigger):
 		if event_type == "Save to file":
 			print_to_file(self, text, self.now)
 		elif event_type == "Command":
 			callcall([split(text)])
 		else: #event_type == "Textual reminder"
-			self.show_notification("Reminder", text, ptrigger=pt)
+			self.show_notification("Reminder", text, planet_trigger)
 
 	def compare_to_the_second(self, hour, minute, second):
 		return hour == self.now.hour and \
@@ -634,22 +632,18 @@ class ChronosLNX(QtGui.QWidget):
 			enabled_item=CLNXConfig.schedule.item(real_row,0)
 			if enabled_item.checkState() == QtCore.Qt.Checked:
 				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole).toPyObject()
+				txt=str(CLNXConfig.schedule.item(real_row, 4).data(QtCore.Qt.EditRole).toPyObject())
 				args=0
 				if isinstance(hour_item,QtCore.QTime):
 					hour_trigger = self.compare_to_the_second(hour_item.hour(), \
 								hour_item.minute(), 0)
 				else:
-					if hour_item == "When the sun rises":
-						hour_trigger=self.compare_to_the_second(self.sunrise, \
-								self.sunrise.minute, self.sunrise.second)
-					elif hour_item == "When the sun sets":
-						hour_trigger=self.compare_to_the_second(self.sunset.hour, \
-								self.sunset.minute, self.minute.second)
-					elif hour_item == "Every planetary hour":
+					if hour_item == "Every planetary hour":
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
 						hour_trigger=self.compare_to_the_second(dt.time().hour(),
 								dt.time().minute(), dt.time().second())
 						pt=True
+						args=len(findall("%\(prev\)s|%\(next\)s", txt))
 						if args == 2:
 							if self.hoursToday.last_index > 0:
 								prev_hour=self.hoursToday.get_planet(self.hoursToday.last_index - 1)
@@ -663,10 +657,15 @@ class ChronosLNX(QtGui.QWidget):
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
 						hour_trigger=self.compare_to_the_second(dt.hour(), dt.minute(), dt.second())
 						pt=True
-
+					elif hour_item == "When the sun rises":
+						hour_trigger=self.compare_to_the_second(self.sunrise, \
+								self.sunrise.minute, self.sunrise.second)
+					elif hour_item == "When the sun sets":
+						hour_trigger=self.compare_to_the_second(self.sunset.hour, \
+								self.sunset.minute, self.minute.second)
 					elif hour_item == "Every normal hour":
 						hour_trigger=self.compare_to_the_second(self.now.hour,0,0)
-						args=len(findall("%(prev)"))+len(findall("%(next)"))
+						args=len(findall("%\(prev\)s|%\(next\)s", txt))
 						if args == 2:
 							if self.now.hour == 0:
 								prev_hour = 23
@@ -676,17 +675,13 @@ class ChronosLNX(QtGui.QWidget):
 						elif args == 1:
 							alist={"next": self.now.hour}
 
-
 				if hour_trigger:
 					event_type_item=str(CLNXConfig.schedule.item(real_row, \
 					3).data(QtCore.Qt.EditRole).toPyObject())
 					if args > 0:
-						text_item=str(CLNXConfig.schedule.item(real_row, \
-						4).data(QtCore.Qt.EditRole).toPyObject()) % alist
+						self.event_trigger(event_type_item,txt % alist,pt)
 					else:
-						text_item=str(CLNXConfig.schedule.item(real_row, \
-						4).data(QtCore.Qt.EditRole).toPyObject())
-					self.event_trigger(event_type_item,text_item,ptrigger=pt)
+						self.event_trigger(event_type_item,txt,pt)
 
 app = QtGui.QApplication(sys.argv)
 CLNXConfig = chronosconfig.ChronosLNXConfig()

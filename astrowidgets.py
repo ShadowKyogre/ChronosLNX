@@ -88,6 +88,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 		filter_model.setFilterKeyColumn(1)
 		self.tree.setModel(filter_model)
 		self.filter_hour.activated.connect(self.filter_hours)
+		self.filter_hour.setToolTip("Select the hour type you want to show.")
 		self.last_index=0
 
 	def clear(self):

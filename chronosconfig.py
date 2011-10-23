@@ -82,7 +82,7 @@ class ChronosLNXConfig:
 		self.main_pixmaps = {
 			'Sun' : self.main_icons['Sun'].pixmap(64,64),
 			'Moon' : self.main_icons['Moon'].pixmap(64,64),
-			'Mercury' : self.main_icons['Sun'].pixmap(64,64),
+			'Mercury' : self.main_icons['Mercury'].pixmap(64,64),
 			'Venus' : self.main_icons['Venus'].pixmap(64,64),
 			'Mars' : self.main_icons['Mars'].pixmap(64,64),
 			'Jupiter' : self.main_icons['Jupiter'].pixmap(64,64),
