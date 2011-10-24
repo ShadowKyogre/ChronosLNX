@@ -575,7 +575,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
 			hom=12
-			for i in xrange(self.hoursToday):
+			for i in xrange(self.hoursToday.last_index):
 				if i % 2 == 1:
 					hom=hom-1
 			if hom == 1:
