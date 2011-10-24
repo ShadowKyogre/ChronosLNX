@@ -574,10 +574,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
-			hom=12
-			for i in xrange(self.hoursToday.last_index):
-				if i % 2 == 1:
-					hom=hom-1
+			hom=12 - (((self.hoursToday.last_index + 2 // 2) // 2) % 12)
 			if hom == 1:
 				suffix="st"
 			elif hom == 2:
