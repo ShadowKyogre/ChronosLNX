@@ -96,7 +96,7 @@ def calculate_sign(date):
 	  if day_of_year < 21 or 357 <= day_of_year < 365:
 		return "Capricorn"
 	  elif 21 <= day_of_year < 51:
-		return "Aquarias"
+		return "Aquarius"
 	  elif 51 <= day_of_year < 80:
 		return "Pisces"
 	  elif 80 <= day_of_year < 112:
@@ -121,9 +121,9 @@ def calculate_sign(date):
 		return "- Error -"
 	else:
 	  if day_of_year < 21 or 358 <= day_of_year < 367:
-		return "Capricornus"
+		return "Capricorn"
 	  elif 21 <= day_of_year < 51:
-		return "Aquarias"
+		return "Aquarius"
 	  elif 51 <= day_of_year < 81:
 		return "Pisces"
 	  elif 81 <= day_of_year < 113:
