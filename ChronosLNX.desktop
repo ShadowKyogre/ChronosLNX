@@ -1,6 +1,6 @@
 [Desktop Entry]
 Exec=/usr/share/chronoslnx/main.py
-GenericName[en_US]=GenericName=Simple Planetary Hour Clock
+GenericName[en_US]=Simple Planetary Hour Clock
 GenericName=Simple Planetary Hour Clock
 Icon=/usr/share/chronoslnx/DarkGlyphs/misc/chronoslnx.png
 Name[en_US]=Chronos Linux
