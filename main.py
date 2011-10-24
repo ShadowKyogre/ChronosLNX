@@ -67,10 +67,10 @@ class ChronosLNX(QtGui.QWidget):
 		settingsButton.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
 		self.leftLayout.addWidget(settingsButton)
 
-		helpButton=QtGui.QPushButton("Help",self)
-		helpButton.clicked.connect(self.show_about)
-		helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
-		self.leftLayout.addWidget(helpButton)
+		#helpButton=QtGui.QPushButton("Help",self)
+		#helpButton.clicked.connect(self.show_about)
+		#helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
+		#self.leftLayout.addWidget(helpButton)
 
 		aboutButton=QtGui.QPushButton("About",self)
 		aboutButton.clicked.connect(self.show_about)
