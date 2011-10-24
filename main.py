@@ -577,7 +577,7 @@ class ChronosLNX(QtGui.QWidget):
 			hom=12
 			for i in xrange(self.hoursToday):
 				if i % 2 == 1:
-					hom--
+					hom=hom-1
 			if hom == 1:
 				suffix="st"
 			elif hom == 2:
