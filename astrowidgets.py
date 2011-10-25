@@ -267,7 +267,7 @@ class SignsForDayList(QtGui.QWidget):
 		marsitem.setText(1,constellations["Mars"][0])
 		marsitem.setText(2,constellations["Mars"][1])
 		marsitem.setText(3,constellations["Mars"][2])
-		marsitem.setToolTip(3,constellations["Mars"][2])
+		marsitem.setToolTip(3,constellations["Mars"][3])
 		self.tree.addTopLevelItem(marsitem)
 
 		jupiteritem=QtGui.QTreeWidgetItem()
