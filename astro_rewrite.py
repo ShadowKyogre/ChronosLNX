@@ -24,44 +24,32 @@ def format_zodiacal_longitude(l):
 
 def next_full_moon(date, planet):
 	day=datetime_to_julian(date)-1
-	#2455860.500000
-	#2455859.500000
 	while True:
 		if 97.0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 100.0:
 			return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			day=day-1
+		day=day-1
 
 def previous_new_moon(date, planet):
 	day=datetime_to_julian(date)-1
-	#2455860.500000
-	#2455859.500000
 	while True:
 		if 0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 2.0:
 			return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			day=day-1
-	
-	
+		day=day-1
+
+
 def next_full_moon(date, planet):
 	day=datetime_to_julian(date)
-	#2455860.500000
-	#2455859.500000
 	while True:
 		if 97.0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 100.0:
 			return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			day=day+1
-	
+		day=day+1
+
 def next_new_moon(date, planet):
 	day=datetime_to_julian(date)
-	#2455860.500000
-	#2455859.500000
 	while True:
 		if 0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 2.0:
 			return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			day=day+1
+		day=day+1
 
 def is_retrograde(planet, date):
 	day=datetime_to_julian(date)

@@ -5,7 +5,7 @@ from PyQt4 import QtGui,QtCore
 from astro_rewrite import *
 import swisseph
 import re
-from datetimetz import *
+from dateutil import tz
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 
@@ -42,7 +42,7 @@ class AstroCalendar(QtGui.QCalendarWidget):
 		if date == QtCore.QDate.currentDate():
 		#if first_date <= date <= last_date:
 			painter.fillRect(rect, self.color)
-		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=LocalTimezone())
+		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz())
 		phase=state_to_string(grab_phase(swisseph.MOON, datetime), swisseph.MOON)
 		icon=self.icons[phase]
 		icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
@@ -145,7 +145,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 			self.tree.model().setFilterFixedString(self.filter_hour.itemText(idx)) #set filter based on planet name
 
 	def grab_nearest_hour(self,date):
-		target_date=date.replace(tzinfo=LocalTimezone())
+		target_date=date.replace(tzinfo=tz.gettz())
 		for i in xrange(self.last_index,24):
 			self._unhighlight_row(i)
 			if i+1 > 23:
@@ -318,7 +318,7 @@ class SignsForDayList(QtGui.QWidget):
 
 	def get_constellations(self,date, observer):
 		self.observer=observer
-		self.target_date=date.replace(tzinfo=LocalTimezone())
+		self.target_date=date.replace(tzinfo=tz.gettz())
 		self.time.setTime(self.target_date.time())
 
 class MoonCycleList(QtGui.QTreeWidget):
@@ -352,7 +352,7 @@ class MoonCycleList(QtGui.QTreeWidget):
 		self.topLevelItem(idx).setBackground(2,self.base)
 
 	def highlight_cycle_phase(self,date):
-		target_date=date.replace(tzinfo=LocalTimezone())
+		target_date=date.replace(tzinfo=tz.gettz())
 		for i in xrange(self.last_index,29):
 			self._unhighlight_row(i)
 			cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
@@ -362,7 +362,7 @@ class MoonCycleList(QtGui.QTreeWidget):
 				break
 
 	def get_moon_cycle(self,date):
-		target_date=date.replace(tzinfo=LocalTimezone())
+		target_date=date.replace(tzinfo=tz.gettz())
 		moon_cycle=get_moon_cycle(target_date)
 		for i in xrange (29):
 			newmooncycleitem = QtGui.QTreeWidgetItem()

@@ -12,9 +12,8 @@ from shlex import split
 from subprocess import call
 from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
-import datetimetz #from Zim source code
 from re import findall
-
+import datetime
 from astro_rewrite import *
 from astrowidgets import *
 from eventplanner import *
@@ -34,7 +33,7 @@ class ChronosLNX(QtGui.QWidget):
 	def __init__(self, parent=None):
 		QtGui.QWidget.__init__(self, parent)
 		self.timer = QtCore.QTimer(self)
-		self.now = datetimetz.now()
+		self.now = datetime.now().replace(tzinfo=tz.gettz())
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
@@ -351,11 +350,19 @@ class ChronosLNX(QtGui.QWidget):
 			year=self.calendar.yearShown()
 			day=mdl.data(idx,0).toPyObject()
 			if idx.row() is 1 and day > 7:
-				date=datetime(year=year,month=month-1,day=day).replace(tzinfo=LocalTimezone())
-			elif idx.row() is 6 and day < 24:
-				date=datetime(year=year,month=month+1,day=day).replace(tzinfo=LocalTimezone())
+				replace_month=month-1
+				if replace_month == 0:
+					date=datetime(year=year-1,month=12,day=day).replace(tzinfo=tz.gettz())
+				else:
+					date=datetime(year=year,month=month-1,day=day).replace(tzinfo=tz.gettz())
+			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
+				replace_month=(month+1)%12
+				if replace_month == 1:
+					 date=datetime(year=year+1,month=replace_month,day=day).replace(tzinfo=tz.gettz())
+				else:
+					date=datetime(year=year,month=replace_month,day=day).replace(tzinfo=tz.gettz())
 			else:
-				date=datetime(year=year,month=month,day=day).replace(tzinfo=LocalTimezone())
+				date=datetime(year=year,month=month,day=day).replace(tzinfo=tz.gettz())
 			#self.calendar.setGridVisible(True)
 			menu=QtGui.QMenu()
 			infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
@@ -550,7 +557,7 @@ class ChronosLNX(QtGui.QWidget):
 # so basically
 
 	def update(self):
-		self.now = datetimetz.now()
+		self.now = datetime.now().replace(tzinfo=tz.gettz())
 		if self.now > self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()

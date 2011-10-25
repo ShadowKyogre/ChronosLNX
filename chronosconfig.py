@@ -3,10 +3,9 @@ from PyQt4 import QtGui,QtCore
 import os, csv
 from ast import literal_eval
 from eventplanner import *
-from datetimetz import *
 import datetime
 #import dateutil
-#from dateutil.tz import *
+from dateutil import tz
 #from dateutil.parser import *
 
 class Observer:
