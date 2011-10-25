@@ -1,10 +1,66 @@
 import ephem
 import math
 import re
-#from datetime import datetime, timedelta, date
+from datetime import timedelta
 #from dateutil.tz import *
 from datetimetz import *
 
+#zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
+zodiac = 'Aries Taurus Gemini Cancer Leo Virgo Libra Scorpio Sagittarius Capricorn Aquarius Pisces'.split()
+bodies=[ephem.Sun(), ephem.Moon(), ephem.Mercury(), ephem.Venus(), ephem.Mars(), ephem.Jupiter(), \
+	  ephem.Saturn(), ephem.Uranus(), ephem.Neptune(), ephem.Pluto()]
+#http://stackoverflow.com/questions/5881897/how-to-calculate-longitude-using-pyephem
+def format_zodiacal_longitude(longitude):
+	"Format longitude in zodiacal form (like '00AR00') and return as a string."
+	l = math.degrees(longitude.norm)
+	degrees = int(l % 30)
+	sign = zodiac[int(l / 30)]
+	minutes = int(round((l % 1) * 60))
+	return degrees, sign, minutes
+	#return '{0:02}{1}{2:02}'.format(degrees, sign, minutes)
+
+def format_angle_as_time(a):
+	"""Format angle as hours:minutes:seconds and return it as a string."""
+	a = math.degrees(a) / 15.0
+	hours = int(a)
+	minutes = int((a % 1) * 60)
+	seconds = int(((a * 60) % 1) * 60)
+	return '{0:02}:{1:02}:{2:02}'.format(hours, minutes, seconds)
+
+def clone_observer(observer):
+	copy=ephem.Observer()
+	copy.lat=observer.lat
+	copy.long=observer.long
+	copy.elevation=copy.elevation
+	return copy
+
+#check work:http://www.skyviewzone.com/astrology/retrogradeplanets.htm
+def get_signs(date, observer):
+	date_ephem = ephem.Date(date)
+	using=clone_observer(observer)
+	using2=clone_observer(observer)
+	using.date=date_ephem
+	using2.date=ephem.Date(date-timedelta(days=1))
+	entries={}
+
+	for b in bodies:
+		b.compute(using)
+		#last entry used for retrograde check
+		degrees,sign,minutes=format_zodiacal_longitude(ephem.Ecliptic(b).lon)
+		angle="%s*%s'" %(degrees, minutes)
+		lat=ephem.Ecliptic(b).lat
+		b.compute(using2)
+		lat2=ephem.Ecliptic(b).lat
+		latdelta=lat2-lat
+		print latdelta
+		if b.name == "Sun" or b.name == "Moon":
+			retrograde=str('Not Applicable')
+		else:
+			retrograde=str(latdelta<0)
+		entries[b.name]=[sign, angle, retrograde, "Change in latitude was %.3f over a day" %(latdelta)]
+	return entries
+
+#end copypaste#
 def compare_to_the_second(date, hour, minute, second):
 	return hour == date.hour and \
 		minute == date.minute and \
@@ -46,25 +102,22 @@ def get_moon_cycle(date):
 		moon_phase.append([cycling, state[0], percent[1]])
 	return moon_phase
 
-def get_sunrise_and_sunset(date,latitude,longitude,elevation):
-	home = ephem.Observer()
-	# replace lat, long, and elevation to yours
-	home.lat = str(latitude) #-is south
-	home.long = str(longitude) #-is west
-	home.elevation = elevation
+#adjust for polar circles (+-66)
+def get_sunrise_and_sunset(date,observer):
 	tomorrow="%i/%i/%i" %(date.year,date.month,date.day+1)
 	today="%i/%i/%i" %(date.year,date.month,date.day)
 	#print tomorrow
+	ob=clone_observer(observer)
 	sun = ephem.Sun()
-	sunrise=ephem.localtime(home.next_rising(sun, start=today)).replace(tzinfo=LocalTimezone())
-	sunset=ephem.localtime(home.next_setting(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
-	next_sunrise=ephem.localtime(home.next_rising(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
+	sunrise=ephem.localtime(observer.next_rising(sun, start=today)).replace(tzinfo=LocalTimezone())
+	sunset=ephem.localtime(observer.next_setting(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
+	next_sunrise=ephem.localtime(observer.next_rising(sun, start=tomorrow)).replace(tzinfo=LocalTimezone())
 	return sunrise,sunset,next_sunrise
 
-def hours_for_day(date,latitude,longitude,elevation):
+def hours_for_day(date,observer):
 	day_type=int(date.strftime('%w'))
 	needed_planet=get_planet_day(day_type)
-	sunrise,sunset,next_sunrise=get_sunrise_and_sunset(date,latitude,longitude,elevation)
+	sunrise,sunset,next_sunrise=get_sunrise_and_sunset(date,observer)
 	day_length=sunset - sunrise
 	night_length=next_sunrise - sunset
 	dayhour_length=day_length/12
@@ -146,30 +199,3 @@ def calculate_sign(date):
 		return "Sagittarius"
 	  else:
 		return "- Error -"
-
-def get_ruling_constellations_for_date(date):
-	sun=ephem.Sun(date)
-	moon=ephem.Moon(date)
-	mercury=ephem.Mercury(date)
-	venus=ephem.Venus(date)
-	mars=ephem.Mars(date)
-	jupiter=ephem.Jupiter(date)
-	saturn=ephem.Saturn(date)
-	uranus=ephem.Uranus(date)
-	neptune=ephem.Neptune(date)
-	pluto=ephem.Pluto(date)
-
-	data= {
-	 'Sun' : ephem.constellation(sun),
-	'Moon' : ephem.constellation(moon),
-	'Mercury' : ephem.constellation(mercury),
-	'Venus' : ephem.constellation(venus),
-	'Mars' : ephem.constellation(mars),
-	'Jupiter' : ephem.constellation(jupiter),
-	'Saturn' : ephem.constellation(saturn),
-	'Uranus' : ephem.constellation(uranus),
-	'Neptune' : ephem.constellation(neptune),
-	'Pluto' : ephem.constellation(pluto),
-	}
-
-	return data

@@ -4,6 +4,8 @@
 #http://www.saltycrane.com/blog/2007/12/pyqt-43-qtableview-qabstracttable-model/
 #http://www.commandprompt.com/community/pyqt/book1
 #http://doc.qt.nokia.com/latest/qstandarditemmodel.html
+#http://www.interactivestars.com/lost_zodiac/lost_zodiac_sign.html <- interesting
+#http://www.ips-planetarium.org/planetarian/articles/realconstellations_zodiac.html <- this too
 import os
 import sys
 from shlex import split
@@ -100,7 +102,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.prepare_hours_for_today()
 		self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
-		self.signsToday.get_constellations(self.now)
+		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 		CLNXConfig.todays_schedule.setDate(self.now.date())
 		self.eventsToday.tree.setModel(CLNXConfig.todays_schedule)
@@ -121,7 +123,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.signsToday.clear()
 		self.prepare_hours_for_today()
 		self.eventsToday.tree.model().setDate(self.now.date())
-		self.signsToday.get_constellations(self.now)
+		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 	def update_moon_cycle(self):
 		if ephem.localtime(ephem.next_new_moon(self.now)).timetuple().tm_yday == self.now.timetuple().tm_yday:
@@ -131,22 +133,13 @@ class ChronosLNX(QtGui.QWidget):
 
 	def prepare_hours_for_today(self):
 		self.pday = get_planet_day(int(self.now.strftime('%w')))
-		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now,
-										CLNXConfig.current_latitude,
-										CLNXConfig.current_longitude,
-										CLNXConfig.current_elevation)
+		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.observer)
 		if self.now < self.sunrise:
-			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1),
-											CLNXConfig.current_latitude,
-											CLNXConfig.current_longitude,
-											CLNXConfig.current_elevation)
-			self.hoursToday.prepareHours(self.now-timedelta(days=1),
-						CLNXConfig.current_latitude,
-						CLNXConfig.current_longitude,
-						CLNXConfig.current_elevation)
+			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.observer)
+			self.hoursToday.prepareHours(self.now-timedelta(days=1), CLNXConfig.observer)
 			self.pday = get_planet_day(int(self.now.strftime('%w'))-1)
 		else:
-			self.hoursToday.prepareHours(self.now, CLNXConfig.current_latitude, CLNXConfig.current_longitude, CLNXConfig.current_elevation)
+			self.hoursToday.prepareHours(self.now, CLNXConfig.observer)
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
@@ -206,19 +199,17 @@ class ChronosLNX(QtGui.QWidget):
 
 		dayData=QtGui.QTabWidget(info_dialog)
 
-		hoursToday.prepareHours(date,CLNXConfig.current_latitude,
-					CLNXConfig.current_longitude,
-					CLNXConfig.current_elevation)
+		hoursToday.prepareHours(date,CLNXConfig.observer)
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
-		signsToday.get_constellations(date)
+		signsToday.get_constellations(date, CLNXConfig.observer)
 
 		dayData.addTab(hoursToday,"Planetary Hours")
 		dayData.addTab(moonToday,"Moon Cycles")
 		dayData.addTab(signsToday,"Signs For This Day")
 		dayData.addTab(eventsToday,"Events for This Day")
 		hbox.addWidget(dayData)
-		info_dialog.exec_()
+		info_dialog.show()
 
 	def make_save_for_date_range(self):
 		#self.save_for_range_dialog=QtGui.QDialog(self)
@@ -312,17 +303,13 @@ class ChronosLNX(QtGui.QWidget):
 
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.current_latitude,
-					CLNXConfig.current_longitude,
-					CLNXConfig.current_elevation)
+			text=prepare_all(date, CLNXConfig.observer)
 		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
 			text=prepare_sign_info(date)
 		elif option == "Planetary Hours":
-			text=prepare_planetary_info(date, CLNXConfig.current_latitude,
-						CLNXConfig.current_longitude,
-						CLNXConfig.current_elevation)
+			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else: #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
 		app.clipboard().setText(text)
@@ -336,17 +323,13 @@ class ChronosLNX(QtGui.QWidget):
 
 	def print_to_file(self, option,date,filename=None,suppress_notification=False):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.current_latitude,
-					CLNXConfig.current_longitude,
-					CLNXConfig.current_elevation)
+			text=prepare_all(date, CLNXConfig.observer)
 		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
 			text=prepare_sign_info(date)
 		elif option == "Planetary Hours":
-			text=prepare_planetary_info(date, CLNXConfig.current_latitude,
-						CLNXConfig.current_longitude,
-						CLNXConfig.current_elevation)
+			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else:  #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
 		if filename == None:
@@ -416,21 +399,21 @@ class ChronosLNX(QtGui.QWidget):
 
 	def settings_reset(self):
 		CLNXConfig.reset_settings()
-		self.settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
-		self.settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
-		self.settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
+		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
+		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
 
 	def settings_change(self):
 
-		lat=float(self.settings_dialog.location_widget.latitude)
-		lng=float(self.settings_dialog.location_widget.longitude)
+		lat=str(self.settings_dialog.location_widget.latitude)
+		lng=str(self.settings_dialog.location_widget.longitude)
 		elv=float(self.settings_dialog.location_widget.elevation)
 		thm=str(self.settings_dialog.appearance_icons.currentText())
 
-		CLNXConfig.current_latitude=lat
-		CLNXConfig.current_longitude=lng
-		CLNXConfig.current_elevation=elv
+		CLNXConfig.observer.lat=lat
+		CLNXConfig.observer.long=lng
+		CLNXConfig.observer.elevation=elv
 		CLNXConfig.current_theme=thm
 		CLNXConfig.show_sign=self.settings_dialog.s_check.isChecked()
 		CLNXConfig.show_moon=self.settings_dialog.m_check.isChecked()
@@ -470,9 +453,9 @@ class ChronosLNX(QtGui.QWidget):
 		tabs.addTab(tweaks_page,"Tweaks")
 
 		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
-		self.settings_dialog.location_widget.setLatitude(CLNXConfig.current_latitude)
-		self.settings_dialog.location_widget.setLongitude(CLNXConfig.current_longitude)
-		self.settings_dialog.location_widget.setElevation(CLNXConfig.current_elevation)
+		self.settings_dialog.location_widget.setLatitude(float(CLNXConfig.observer.lat))
+		self.settings_dialog.location_widget.setLongitude(float(CLNXConfig.observer.long))
+		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 
 		layout=QtGui.QVBoxLayout(self.settings_dialog)
 		layout.addWidget(tabs)

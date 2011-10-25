@@ -5,6 +5,7 @@ from ast import literal_eval
 from eventplanner import *
 from datetimetz import *
 import datetime
+import ephem
 #import dateutil
 #from dateutil.tz import *
 #from dateutil.parser import *
@@ -26,9 +27,10 @@ class ChronosLNXConfig:
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
 
 		self.settings.beginGroup("Location")
-		self.current_latitude=float(self.settings.value("latitude", 0.0).toPyObject())
-		self.current_longitude=float(self.settings.value("longitude", 0.0).toPyObject())
-		self.current_elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.observer=ephem.Observer()
+		self.observer.lat=str(self.settings.value("latitude", 0.0).toPyObject())
+		self.observer.long=str(self.settings.value("longitude", 0.0).toPyObject())
+		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Appearance")
@@ -213,9 +215,9 @@ class ChronosLNXConfig:
 
 	def save_settings(self):
 		self.settings.beginGroup("Location")
-		self.settings.setValue("latitude", self.current_latitude)
-		self.settings.setValue("longitude", self.current_longitude)
-		self.settings.setValue("elevation", self.current_elevation)
+		self.settings.setValue("latitude", self.observer.lat)
+		self.settings.setValue("longitude", self.observer.long)
+		self.settings.setValue("elevation", self.observer.elevation)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Appearance")

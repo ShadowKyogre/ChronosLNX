@@ -3,10 +3,10 @@ from astro import *
 from eventplanner import DayEventsModel
 from PyQt4 import QtGui,QtCore
 
-def prepare_planetary_info(date,latitude,longitude,elevation):
-	phinfo=hours_for_day(date,latitude,longitude,elevation)
+def prepare_planetary_info(date,observer):
+	phinfo=hours_for_day(date,observer)
 	sphinfo=[]
-	header="Planetary hours for %s, %s, %s - %s" %(latitude,longitude,elevation,date.strftime("%m/%d/%Y"))
+	header="Planetary hours for %s, %s, %s - %s" %(observer.lat,observer.long,observer.elevation,date.strftime("%m/%d/%Y"))
 	for hour in phinfo:
 		data=hour[0].strftime("%m/%d/%Y - %H:%M:%S")
 		if hour[2] is True:
@@ -36,7 +36,7 @@ def prepare_events(date, source):
 		else:
 			first_column="False"
 		second_column=source.item(i,1).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %m/%d/%Y
-		
+
 		if isinstance(second_column,QtCore.QDate):
 			#print second_column
 			second_column=str(second_column.toString("MM/dd/yyyy"))
@@ -62,7 +62,7 @@ def prepare_moon_cycle(date):
 	      data=phase[0].strftime("%m/%d/%Y - %H:%M:%S")
 	      smooncycle.append(' - '.join([data, phase[1], phase[2]]))
 	return "Moon phases for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(smooncycle)
-	
-	
-def prepare_all(date,latitude,longitude,elevation):
-	return "All data for %s\n" %(date.strftime("%m/%d/%Y"))+prepare_planetary_info(date,latitude,longitude,elevation)+"\n"+prepare_moon_cycle(date)+"\n"+prepare_sign_info(date)
+
+
+def prepare_all(date,observer):
+	return "All data for %s\n" %(date.strftime("%m/%d/%Y"))+prepare_planetary_info(date,observer)+"\n"+prepare_moon_cycle(date)+"\n"+prepare_sign_info(date)

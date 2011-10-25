@@ -104,8 +104,8 @@ class PlanetaryHoursList(QtGui.QWidget):
 	def setIcons(self, icon_list):
 		self.icons=icon_list
 
-	def prepareHours(self,date,latitude,longitude,elevation):
-		planetary_hours = hours_for_day(date,latitude, longitude, elevation)
+	def prepareHours(self,date,observer):
+		planetary_hours = hours_for_day(date,observer)
 		model=self.tree.model().sourceModel()
 		for i in xrange(0,24):
 			icon=self.icons[planetary_hours[i][1]]
@@ -195,74 +195,106 @@ class SignsForDayList(QtGui.QTreeWidget):
 		header=QtCore.QStringList()
 		header.append("Planet")
 		header.append("Constellation")
+		header.append("Angle")
+		header.append("Retrograde?")
 		self.setHeaderLabels(header)
-		self.setColumnCount(2)
+		self.setColumnCount(4)
 
 	def setIcons(self, icon_list):
 		self.icons=icon_list
 
-	def get_constellations(self,date):
+	def get_constellations(self,date, observer):
 		target_date=date.replace(tzinfo=LocalTimezone())
-		constellations=get_ruling_constellations_for_date(target_date)
+		constellations=get_signs(target_date,observer)
 
 		sunitem=QtGui.QTreeWidgetItem()
 		sunitem.setIcon(0,self.icons["Sun"])
 		sunitem.setText(0,"Sun")
-		sunitem.setText(1,constellations["Sun"][1])
+		sunitem.setText(1,constellations["Sun"][0])
+		sunitem.setText(2,constellations["Sun"][1])
+		sunitem.setText(3,constellations["Sun"][2])
+		sunitem.setToolTip(3,constellations["Sun"][3])
 		self.addTopLevelItem(sunitem)
 
 		moonitem=QtGui.QTreeWidgetItem()
 		moonitem.setIcon(0,self.icons["Moon"])
 		moonitem.setText(0,"Moon")
-		moonitem.setText(1,constellations["Moon"][1])
+		moonitem.setText(1,constellations["Moon"][0])
+		moonitem.setText(2,constellations["Moon"][1])
+		moonitem.setText(3,constellations["Moon"][2])
+		moonitem.setToolTip(3,constellations["Moon"][3])
 		self.addTopLevelItem(moonitem)
 
 		venusitem=QtGui.QTreeWidgetItem()
 		venusitem.setIcon(0,self.icons["Venus"])
 		venusitem.setText(0,"Venus")
-		venusitem.setText(1,constellations["Venus"][1])
+		venusitem.setText(1,constellations["Venus"][0])
+		venusitem.setText(2,constellations["Venus"][1])
+		venusitem.setText(3,constellations["Venus"][2])
+		venusitem.setToolTip(3,constellations["Venus"][3])
 		self.addTopLevelItem(venusitem)
 
 		mercuryitem=QtGui.QTreeWidgetItem()
 		mercuryitem.setIcon(0,self.icons["Mercury"])
 		mercuryitem.setText(0,"Mercury")
-		mercuryitem.setText(1,constellations["Mercury"][1])
+		mercuryitem.setText(1,constellations["Mercury"][0])
+		mercuryitem.setText(2,constellations["Mercury"][1])
+		mercuryitem.setText(3,constellations["Mercury"][2])
+		mercuryitem.setToolTip(3,constellations["Mercury"][3])
 		self.addTopLevelItem(mercuryitem)
 
 		marsitem=QtGui.QTreeWidgetItem()
 		marsitem.setIcon(0,self.icons["Mars"])
 		marsitem.setText(0,"Mars")
-		marsitem.setText(1,constellations["Mars"][1])
+		marsitem.setText(1,constellations["Mars"][0])
+		marsitem.setText(2,constellations["Mars"][1])
+		marsitem.setText(3,constellations["Mars"][2])
+		marsitem.setToolTip(3,constellations["Mars"][2])
 		self.addTopLevelItem(marsitem)
 
 		jupiteritem=QtGui.QTreeWidgetItem()
 		jupiteritem.setIcon(0,self.icons["Jupiter"])
 		jupiteritem.setText(0,"Jupiter")
-		jupiteritem.setText(1,constellations["Jupiter"][1])
+		jupiteritem.setText(1,constellations["Jupiter"][0])
+		jupiteritem.setText(2,constellations["Jupiter"][1])
+		jupiteritem.setText(3,constellations["Jupiter"][2])
+		jupiteritem.setToolTip(3,constellations["Jupiter"][3])
 		self.addTopLevelItem(jupiteritem)
 
 		saturnitem=QtGui.QTreeWidgetItem()
 		saturnitem.setIcon(0,self.icons["Saturn"])
 		saturnitem.setText(0,"Saturn")
-		saturnitem.setText(1,constellations["Saturn"][1])
+		saturnitem.setText(1,constellations["Saturn"][0])
+		saturnitem.setText(2,constellations["Saturn"][1])
+		saturnitem.setText(3,constellations["Saturn"][2])
+		saturnitem.setToolTip(3,constellations["Saturn"][3])
 		self.addTopLevelItem(saturnitem)
 
 		uranusitem=QtGui.QTreeWidgetItem()
 		uranusitem.setIcon(0,self.icons["Uranus"])
 		uranusitem.setText(0,"Uranus")
-		uranusitem.setText(1,constellations["Uranus"][1])
+		uranusitem.setText(1,constellations["Uranus"][0])
+		uranusitem.setText(2,constellations["Uranus"][1])
+		uranusitem.setText(3,constellations["Uranus"][2])
+		uranusitem.setToolTip(3,constellations["Uranus"][3])
 		self.addTopLevelItem(uranusitem)
 
 		neptuneitem=QtGui.QTreeWidgetItem()
 		neptuneitem.setIcon(0,self.icons["Neptune"])
 		neptuneitem.setText(0,"Neptune")
-		neptuneitem.setText(1,constellations["Neptune"][1])
+		neptuneitem.setText(1,constellations["Neptune"][0])
+		neptuneitem.setText(2,constellations["Neptune"][1])
+		neptuneitem.setText(3,constellations["Neptune"][2])
+		uranusitem.setToolTip(3,constellations["Uranus"][3])
 		self.addTopLevelItem(neptuneitem)
 
 		plutoitem=QtGui.QTreeWidgetItem()
 		plutoitem.setIcon(0,self.icons["Pluto"])
 		plutoitem.setText(0,"Pluto")
-		plutoitem.setText(1,constellations["Pluto"][1])
+		plutoitem.setText(1,constellations["Pluto"][0])
+		plutoitem.setText(2,constellations["Pluto"][1])
+		plutoitem.setText(3,constellations["Pluto"][2])
+		plutoitem.setToolTip(3,constellations["Pluto"][3])
 		self.addTopLevelItem(plutoitem)
 
 class MoonCycleList(QtGui.QTreeWidget):
