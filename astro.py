@@ -11,7 +11,6 @@ bodies=[ephem.Sun(), ephem.Moon(), ephem.Mercury(), ephem.Venus(), ephem.Mars(),
 	  ephem.Saturn(), ephem.Uranus(), ephem.Neptune(), ephem.Pluto()]
 #http://stackoverflow.com/questions/5881897/how-to-calculate-longitude-using-pyephem
 def format_zodiacal_longitude(longitude):
-	"Format longitude in zodiacal form (like '00AR00') and return as a string."
 	l = math.degrees(longitude.norm)
 	degrees = int(l % 30)
 	sign = zodiac[int(l / 30)]
@@ -20,7 +19,6 @@ def format_zodiacal_longitude(longitude):
 	#return '{0:02}{1}{2:02}'.format(degrees, sign, minutes)
 
 def format_angle_as_time(a):
-	"""Format angle as hours:minutes:seconds and return it as a string."""
 	a = math.degrees(a) / 15.0
 	hours = int(a)
 	minutes = int((a % 1) * 60)
@@ -52,7 +50,7 @@ def get_signs(date, observer):
 		b.compute(using2)
 		lat2=ephem.Ecliptic(b).lat
 		latdelta=lat2-lat
-		print latdelta
+		print lat2,lat
 		if b.name == "Sun" or b.name == "Moon":
 			retrograde=str('Not Applicable')
 		else:

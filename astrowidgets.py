@@ -215,7 +215,6 @@ class SignsForDayList(QtGui.QWidget):
 		self.target_date=self.target_date.replace(hour=qtime.hour())\
 		.replace(minute=qtime.minute())\
 		.replace(second=qtime.second())
-		print self.target_date
 		self._grab()
 
 	def setIcons(self, icon_list):
