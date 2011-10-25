@@ -186,26 +186,44 @@ class PlanetaryHoursList(QtGui.QWidget):
 	#
 	# datetime = pyqtProperty("datetime", dateTime, setDateTime)
 
-class SignsForDayList(QtGui.QTreeWidget):
+class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args):
 
-		QtGui.QTreeWidget.__init__(self, *args)
-		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.setRootIsDecorated(True)
+		QtGui.QWidget.__init__(self, *args)
+		vbox=QtGui.QVBoxLayout(self)
+		grid=QtGui.QGridLayout()
+		vbox.addLayout(grid)
+		grid.addWidget(QtGui.QLabel("Pick a time to view for"),0,0)
+		self.time=QtGui.QTimeEdit()
+		grid.addWidget(self.time,0,1)
+		self.tree=QtGui.QTreeWidget(self)
+		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.tree.setRootIsDecorated(True)
 		header=QtCore.QStringList()
 		header.append("Planet")
 		header.append("Constellation")
 		header.append("Angle")
 		header.append("Retrograde?")
-		self.setHeaderLabels(header)
-		self.setColumnCount(4)
+		self.tree.setHeaderLabels(header)
+		self.tree.setColumnCount(4)
+		vbox.addWidget(self.tree)
+		self.time.setDisplayFormat("HH:mm")
+		self.time.timeChanged.connect(self.update_degrees)
+
+	def update_degrees(self, qtime):
+		self.tree.clear()
+		self.target_date=self.target_date.replace(hour=qtime.hour())\
+		.replace(minute=qtime.minute())\
+		.replace(second=qtime.second())
+		print self.target_date
+		self._grab()
 
 	def setIcons(self, icon_list):
 		self.icons=icon_list
 
-	def get_constellations(self,date, observer):
-		target_date=date.replace(tzinfo=LocalTimezone())
-		constellations=get_signs(target_date,observer)
+	def _grab(self):
+		self.tree.clear()
+		constellations=get_signs(self.target_date,self.observer)
 
 		sunitem=QtGui.QTreeWidgetItem()
 		sunitem.setIcon(0,self.icons["Sun"])
@@ -214,7 +232,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		sunitem.setText(2,constellations["Sun"][1])
 		sunitem.setText(3,constellations["Sun"][2])
 		sunitem.setToolTip(3,constellations["Sun"][3])
-		self.addTopLevelItem(sunitem)
+		self.tree.addTopLevelItem(sunitem)
 
 		moonitem=QtGui.QTreeWidgetItem()
 		moonitem.setIcon(0,self.icons["Moon"])
@@ -223,7 +241,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		moonitem.setText(2,constellations["Moon"][1])
 		moonitem.setText(3,constellations["Moon"][2])
 		moonitem.setToolTip(3,constellations["Moon"][3])
-		self.addTopLevelItem(moonitem)
+		self.tree.addTopLevelItem(moonitem)
 
 		venusitem=QtGui.QTreeWidgetItem()
 		venusitem.setIcon(0,self.icons["Venus"])
@@ -232,7 +250,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		venusitem.setText(2,constellations["Venus"][1])
 		venusitem.setText(3,constellations["Venus"][2])
 		venusitem.setToolTip(3,constellations["Venus"][3])
-		self.addTopLevelItem(venusitem)
+		self.tree.addTopLevelItem(venusitem)
 
 		mercuryitem=QtGui.QTreeWidgetItem()
 		mercuryitem.setIcon(0,self.icons["Mercury"])
@@ -241,7 +259,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		mercuryitem.setText(2,constellations["Mercury"][1])
 		mercuryitem.setText(3,constellations["Mercury"][2])
 		mercuryitem.setToolTip(3,constellations["Mercury"][3])
-		self.addTopLevelItem(mercuryitem)
+		self.tree.addTopLevelItem(mercuryitem)
 
 		marsitem=QtGui.QTreeWidgetItem()
 		marsitem.setIcon(0,self.icons["Mars"])
@@ -250,7 +268,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		marsitem.setText(2,constellations["Mars"][1])
 		marsitem.setText(3,constellations["Mars"][2])
 		marsitem.setToolTip(3,constellations["Mars"][2])
-		self.addTopLevelItem(marsitem)
+		self.tree.addTopLevelItem(marsitem)
 
 		jupiteritem=QtGui.QTreeWidgetItem()
 		jupiteritem.setIcon(0,self.icons["Jupiter"])
@@ -259,7 +277,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		jupiteritem.setText(2,constellations["Jupiter"][1])
 		jupiteritem.setText(3,constellations["Jupiter"][2])
 		jupiteritem.setToolTip(3,constellations["Jupiter"][3])
-		self.addTopLevelItem(jupiteritem)
+		self.tree.addTopLevelItem(jupiteritem)
 
 		saturnitem=QtGui.QTreeWidgetItem()
 		saturnitem.setIcon(0,self.icons["Saturn"])
@@ -268,7 +286,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		saturnitem.setText(2,constellations["Saturn"][1])
 		saturnitem.setText(3,constellations["Saturn"][2])
 		saturnitem.setToolTip(3,constellations["Saturn"][3])
-		self.addTopLevelItem(saturnitem)
+		self.tree.addTopLevelItem(saturnitem)
 
 		uranusitem=QtGui.QTreeWidgetItem()
 		uranusitem.setIcon(0,self.icons["Uranus"])
@@ -277,7 +295,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		uranusitem.setText(2,constellations["Uranus"][1])
 		uranusitem.setText(3,constellations["Uranus"][2])
 		uranusitem.setToolTip(3,constellations["Uranus"][3])
-		self.addTopLevelItem(uranusitem)
+		self.tree.addTopLevelItem(uranusitem)
 
 		neptuneitem=QtGui.QTreeWidgetItem()
 		neptuneitem.setIcon(0,self.icons["Neptune"])
@@ -286,7 +304,7 @@ class SignsForDayList(QtGui.QTreeWidget):
 		neptuneitem.setText(2,constellations["Neptune"][1])
 		neptuneitem.setText(3,constellations["Neptune"][2])
 		uranusitem.setToolTip(3,constellations["Uranus"][3])
-		self.addTopLevelItem(neptuneitem)
+		self.tree.addTopLevelItem(neptuneitem)
 
 		plutoitem=QtGui.QTreeWidgetItem()
 		plutoitem.setIcon(0,self.icons["Pluto"])
@@ -295,7 +313,12 @@ class SignsForDayList(QtGui.QTreeWidget):
 		plutoitem.setText(2,constellations["Pluto"][1])
 		plutoitem.setText(3,constellations["Pluto"][2])
 		plutoitem.setToolTip(3,constellations["Pluto"][3])
-		self.addTopLevelItem(plutoitem)
+		self.tree.addTopLevelItem(plutoitem)
+
+	def get_constellations(self,date, observer):
+		self.observer=observer
+		self.target_date=date.replace(tzinfo=LocalTimezone())
+		self.time.setTime(self.target_date.time())
 
 class MoonCycleList(QtGui.QTreeWidget):
 	def __init__(self, *args):

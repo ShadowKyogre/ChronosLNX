@@ -120,7 +120,7 @@ class ChronosLNX(QtGui.QWidget):
 
 	def update_hours(self):
 		self.hoursToday.clear()
-		self.signsToday.clear()
+		#self.signsToday.tree.clear()
 		self.prepare_hours_for_today()
 		self.eventsToday.tree.model().setDate(self.now.date())
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
