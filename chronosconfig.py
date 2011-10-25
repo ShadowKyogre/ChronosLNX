@@ -5,10 +5,15 @@ from ast import literal_eval
 from eventplanner import *
 from datetimetz import *
 import datetime
-import ephem
 #import dateutil
 #from dateutil.tz import *
 #from dateutil.parser import *
+
+class Observer:
+	def __init__(self):
+		self.lat=0
+		self.long=0
+		self.elevation=0
 
 class ChronosLNXConfig:
 
@@ -27,9 +32,9 @@ class ChronosLNXConfig:
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
 
 		self.settings.beginGroup("Location")
-		self.observer=ephem.Observer()
-		self.observer.lat=str(self.settings.value("latitude", 0.0).toPyObject())
-		self.observer.long=str(self.settings.value("longitude", 0.0).toPyObject())
+		self.observer=Observer()
+		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
+		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
 
@@ -91,14 +96,14 @@ class ChronosLNXConfig:
 			'Saturn' : self.main_icons['Saturn'].pixmap(64,64),
 		}
 		self.moon_icons = {
-			'New moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","new_moon")),
-			'Waxing crescent moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_crescent_moon")),
-			'First quarter moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","first_quarter_moon")),
-			'Waxing gibbous moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_gibbous_moon")),
-			'Full moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","full_moon")),
-			'Waning gibbous moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_gibbous_moon")),
-			'Last quarter moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","last_quarter_moon")),
-			'Waning crescent moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_crescent_moon")),
+			'New Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","new_moon")),
+			'Waxing Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_crescent_moon")),
+			'First Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","first_quarter_moon")),
+			'Waxing Gibbous Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_gibbous_moon")),
+			'Full Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","full_moon")),
+			'Waning Gibbous Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_gibbous_moon")),
+			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","last_quarter_moon")),
+			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_crescent_moon")),
 		}
 		#self.sign_icons = {}
 

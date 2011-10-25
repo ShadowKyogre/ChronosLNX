@@ -1,7 +1,8 @@
 #!/usr/bin/python
-from astro import *
+from astro_rewrite import *
 from eventplanner import DayEventsModel
 from PyQt4 import QtGui,QtCore
+import swisseph
 
 def prepare_planetary_info(date,observer):
 	phinfo=hours_for_day(date,observer)
@@ -13,13 +14,16 @@ def prepare_planetary_info(date,observer):
 			sphinfo.append(' - '.join([data, hour[1], "Day"]))
 		else:
 			sphinfo.append(' - '.join([data, hour[1], "Night"]))
-	return header +"\n"+"\n".join(sphinfo)
+	return "%s\n%s" %(header, "\n".join(sphinfo))
 
-def prepare_sign_info(date):
-	info=get_ruling_constellations_for_date(date)
+def prepare_sign_info(date,observer):
 	sinfo=[]
-	for phase in info:
-	      sinfo.append(' - '.join([info[phase][1], phase]))
+	for hour in xrange(0,24):
+		info=get_signs(date,observer)
+		sinfo.append("Info at %s:00" %(hour))
+		for i in info:
+		      sinfo.append(' - '.join([i, info[i][0], info[i][1], info[i][2]]))
+		sinfo.append("\n")
 	return "Sign info for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(sinfo)
 
 def prepare_events(date, source):
@@ -51,7 +55,7 @@ def prepare_events(date, source):
 		fourth_column=str(source.item(i,3).data(QtCore.Qt.EditRole).toPyObject())
 		fifth_column=str(source.item(i,4).data(QtCore.Qt.EditRole).toPyObject())
 		sevents.append(','.join([first_column,second_column,third_column,fourth_column,fifth_column]))
-	return "Events for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(sevents)
+	return "Events for %s\n%s"%(date.strftime("%m/%d/%Y"),"\n".join(sevents))
 
 #http://love-python.blogspot.com/2008/02/read-csv-file-in-python.html
 
@@ -61,8 +65,12 @@ def prepare_moon_cycle(date):
 	for phase in mooncycle:
 	      data=phase[0].strftime("%m/%d/%Y - %H:%M:%S")
 	      smooncycle.append(' - '.join([data, phase[1], phase[2]]))
-	return "Moon phases for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(smooncycle)
+	return "Moon phases for %s\n%s"%(date.strftime("%m/%d/%Y"),"\n".join(smooncycle))
 
 
-def prepare_all(date,observer):
-	return "All data for %s\n" %(date.strftime("%m/%d/%Y"))+prepare_planetary_info(date,observer)+"\n"+prepare_moon_cycle(date)+"\n"+prepare_sign_info(date)
+def prepare_all(date,observer,source):
+	return "All data for %s\n%s\n\n%s\n\n%s\n\n%s" %(date.strftime("%m/%d/%Y"), \
+	prepare_planetary_info(date,observer), \
+	prepare_moon_cycle(date), \
+	prepare_sign_info(date,observer), \
+	prepare_events(date, source))

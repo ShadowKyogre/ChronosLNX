@@ -39,6 +39,8 @@ def get_signs(date, observer):
 	using2=clone_observer(observer)
 	using.date=date_ephem
 	using2.date=ephem.Date(date-timedelta(days=1))
+	print now().dst()
+	#print
 	entries={}
 
 	for b in bodies:

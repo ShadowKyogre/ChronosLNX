@@ -9,14 +9,13 @@
 import os
 import sys
 from shlex import split
-import ephem
 from subprocess import call
 from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
 import datetimetz #from Zim source code
 from re import findall
 
-from astro import *
+from astro_rewrite import *
 from astrowidgets import *
 from eventplanner import *
 from chronostext import *
@@ -126,7 +125,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 	def update_moon_cycle(self):
-		if ephem.localtime(ephem.next_new_moon(self.now)).timetuple().tm_yday == self.now.timetuple().tm_yday:
+		if next_new_moon(self.now, swisseph.MOON).timetuple().tm_yday == self.now.timetuple().tm_yday:
 			self.moonToday.clear()
 			self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
@@ -179,6 +178,7 @@ class ChronosLNX(QtGui.QWidget):
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
+		date.replace(hour=12).replace(minute=0).replace(second=0) #use noon time for default
 		#info_dialog.setWindowFlags(QtCore.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
 
@@ -303,11 +303,11 @@ class ChronosLNX(QtGui.QWidget):
 
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.observer)
+			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
 		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date)
+			text=prepare_sign_info(date, CLNXConfig.observer)
 		elif option == "Planetary Hours":
 			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else: #option == "Events"
@@ -323,11 +323,11 @@ class ChronosLNX(QtGui.QWidget):
 
 	def print_to_file(self, option,date,filename=None,suppress_notification=False):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.observer)
+			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
 		elif option == "Moon Cycle":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date)
+			text=prepare_sign_info(date, CLNXConfig.observer)
 		elif option == "Planetary Hours":
 			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else:  #option == "Events"
@@ -406,8 +406,8 @@ class ChronosLNX(QtGui.QWidget):
 
 	def settings_change(self):
 
-		lat=str(self.settings_dialog.location_widget.latitude)
-		lng=str(self.settings_dialog.location_widget.longitude)
+		lat=float(self.settings_dialog.location_widget.latitude)
+		lng=float(self.settings_dialog.location_widget.longitude)
 		elv=float(self.settings_dialog.location_widget.elevation)
 		thm=str(self.settings_dialog.appearance_icons.currentText())
 
@@ -557,7 +557,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
-			hom=12 - (((self.hoursToday.last_index + 2 // 2) // 2) % 12)
+			hom=int(get_house(0, CLNXConfig.observer, self.now)[0])
 			if hom == 1:
 				suffix="st"
 			elif hom == 2:
@@ -570,11 +570,12 @@ class ChronosLNX(QtGui.QWidget):
 		else:
 			house_of_moment_string=""
 		if CLNXConfig.show_sign:
-			sign_string="<br />The sign of the month is %s" %(calculate_sign(self.now))
+			sign_string="<br />The sign of the month is %s" %(get_sun_sign(self.now, CLNXConfig.observer))
 		else:
 			sign_string=""
 		if CLNXConfig.show_moon:
-			moon_phase="<br />%s" % grab_moon_phase(self.now)
+			phase=grab_phase(swisseph.MOON,self.now)
+			moon_phase="<br />%s: %s illuminated" %(state_to_string(phase, swisseph.MOON), phase[2])
 		else:
 			moon_phase=""
 

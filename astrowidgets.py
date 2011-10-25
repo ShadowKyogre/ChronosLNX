@@ -2,9 +2,10 @@
 #http://www.kimgentes.com/worshiptech-web-tools-page/2008/10/14/regex-pattern-for-parsing-csv-files-with-embedded-commas-dou.html
 #http://doc.qt.nokia.com/qq/qq26-pyqtdesigner.html#creatingacustomwidget
 from PyQt4 import QtGui,QtCore
-from astro import *
+from astro_rewrite import *
+import swisseph
 import re
-import datetimetz
+from datetimetz import *
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 
@@ -42,7 +43,7 @@ class AstroCalendar(QtGui.QCalendarWidget):
 		#if first_date <= date <= last_date:
 			painter.fillRect(rect, self.color)
 		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=LocalTimezone())
-		phase=re.split(":",grab_moon_phase(datetime))[0]
+		phase=state_to_string(grab_phase(swisseph.MOON, datetime), swisseph.MOON)
 		icon=self.icons[phase]
 		icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
 
@@ -204,8 +205,9 @@ class SignsForDayList(QtGui.QWidget):
 		header.append("Constellation")
 		header.append("Angle")
 		header.append("Retrograde?")
+		header.append("House")
 		self.tree.setHeaderLabels(header)
-		self.tree.setColumnCount(4)
+		self.tree.setColumnCount(5)
 		vbox.addWidget(self.tree)
 		self.time.setDisplayFormat("HH:mm")
 		self.time.timeChanged.connect(self.update_degrees)
@@ -230,7 +232,7 @@ class SignsForDayList(QtGui.QWidget):
 		sunitem.setText(1,constellations["Sun"][0])
 		sunitem.setText(2,constellations["Sun"][1])
 		sunitem.setText(3,constellations["Sun"][2])
-		sunitem.setToolTip(3,constellations["Sun"][3])
+		sunitem.setText(4,constellations["Sun"][3])
 		self.tree.addTopLevelItem(sunitem)
 
 		moonitem=QtGui.QTreeWidgetItem()
@@ -239,7 +241,7 @@ class SignsForDayList(QtGui.QWidget):
 		moonitem.setText(1,constellations["Moon"][0])
 		moonitem.setText(2,constellations["Moon"][1])
 		moonitem.setText(3,constellations["Moon"][2])
-		moonitem.setToolTip(3,constellations["Moon"][3])
+		moonitem.setText(4,constellations["Moon"][3])
 		self.tree.addTopLevelItem(moonitem)
 
 		venusitem=QtGui.QTreeWidgetItem()
@@ -248,7 +250,7 @@ class SignsForDayList(QtGui.QWidget):
 		venusitem.setText(1,constellations["Venus"][0])
 		venusitem.setText(2,constellations["Venus"][1])
 		venusitem.setText(3,constellations["Venus"][2])
-		venusitem.setToolTip(3,constellations["Venus"][3])
+		venusitem.setText(4,constellations["Venus"][3])
 		self.tree.addTopLevelItem(venusitem)
 
 		mercuryitem=QtGui.QTreeWidgetItem()
@@ -257,7 +259,7 @@ class SignsForDayList(QtGui.QWidget):
 		mercuryitem.setText(1,constellations["Mercury"][0])
 		mercuryitem.setText(2,constellations["Mercury"][1])
 		mercuryitem.setText(3,constellations["Mercury"][2])
-		mercuryitem.setToolTip(3,constellations["Mercury"][3])
+		mercuryitem.setText(4,constellations["Mercury"][3])
 		self.tree.addTopLevelItem(mercuryitem)
 
 		marsitem=QtGui.QTreeWidgetItem()
@@ -266,7 +268,7 @@ class SignsForDayList(QtGui.QWidget):
 		marsitem.setText(1,constellations["Mars"][0])
 		marsitem.setText(2,constellations["Mars"][1])
 		marsitem.setText(3,constellations["Mars"][2])
-		marsitem.setToolTip(3,constellations["Mars"][3])
+		marsitem.setText(4,constellations["Mars"][3])
 		self.tree.addTopLevelItem(marsitem)
 
 		jupiteritem=QtGui.QTreeWidgetItem()
@@ -275,7 +277,7 @@ class SignsForDayList(QtGui.QWidget):
 		jupiteritem.setText(1,constellations["Jupiter"][0])
 		jupiteritem.setText(2,constellations["Jupiter"][1])
 		jupiteritem.setText(3,constellations["Jupiter"][2])
-		jupiteritem.setToolTip(3,constellations["Jupiter"][3])
+		jupiteritem.setText(4,constellations["Jupiter"][3])
 		self.tree.addTopLevelItem(jupiteritem)
 
 		saturnitem=QtGui.QTreeWidgetItem()
@@ -284,7 +286,7 @@ class SignsForDayList(QtGui.QWidget):
 		saturnitem.setText(1,constellations["Saturn"][0])
 		saturnitem.setText(2,constellations["Saturn"][1])
 		saturnitem.setText(3,constellations["Saturn"][2])
-		saturnitem.setToolTip(3,constellations["Saturn"][3])
+		saturnitem.setText(4,constellations["Saturn"][3])
 		self.tree.addTopLevelItem(saturnitem)
 
 		uranusitem=QtGui.QTreeWidgetItem()
@@ -293,7 +295,7 @@ class SignsForDayList(QtGui.QWidget):
 		uranusitem.setText(1,constellations["Uranus"][0])
 		uranusitem.setText(2,constellations["Uranus"][1])
 		uranusitem.setText(3,constellations["Uranus"][2])
-		uranusitem.setToolTip(3,constellations["Uranus"][3])
+		uranusitem.setText(4,constellations["Uranus"][3])
 		self.tree.addTopLevelItem(uranusitem)
 
 		neptuneitem=QtGui.QTreeWidgetItem()
@@ -302,7 +304,7 @@ class SignsForDayList(QtGui.QWidget):
 		neptuneitem.setText(1,constellations["Neptune"][0])
 		neptuneitem.setText(2,constellations["Neptune"][1])
 		neptuneitem.setText(3,constellations["Neptune"][2])
-		uranusitem.setToolTip(3,constellations["Uranus"][3])
+		neptuneitem.setText(4,constellations["Neptune"][3])
 		self.tree.addTopLevelItem(neptuneitem)
 
 		plutoitem=QtGui.QTreeWidgetItem()
@@ -311,7 +313,7 @@ class SignsForDayList(QtGui.QWidget):
 		plutoitem.setText(1,constellations["Pluto"][0])
 		plutoitem.setText(2,constellations["Pluto"][1])
 		plutoitem.setText(3,constellations["Pluto"][2])
-		plutoitem.setToolTip(3,constellations["Pluto"][3])
+		plutoitem.setText(4,constellations["Pluto"][3])
 		self.tree.addTopLevelItem(plutoitem)
 
 	def get_constellations(self,date, observer):
@@ -351,7 +353,7 @@ class MoonCycleList(QtGui.QTreeWidget):
 
 	def highlight_cycle_phase(self,date):
 		target_date=date.replace(tzinfo=LocalTimezone())
-		for i in xrange(self.last_index,30):
+		for i in xrange(self.last_index,29):
 			self._unhighlight_row(i)
 			cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
 			if cycling.timetuple().tm_yday == target_date.timetuple().tm_yday:
