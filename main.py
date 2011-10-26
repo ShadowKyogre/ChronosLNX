@@ -40,12 +40,12 @@ class ChronosLNX(QtGui.QWidget):
 		self.setFixedSize(840, 420)
 		self.setWindowTitle(CLNXConfig.APPNAME)
 		self.setWindowIcon(CLNXConfig.main_icons['logo'])
-		self.mainLayout=QtGui.QHBoxLayout(self)
+		self.mainLayout=QtGui.QGridLayout(self)
 		self.leftLayout=QtGui.QVBoxLayout()
 		self.rightLayout=QtGui.QVBoxLayout()
 		self.add_widgets()
-		self.mainLayout.addLayout(self.leftLayout)
-		self.mainLayout.addLayout(self.rightLayout)
+		self.mainLayout.addLayout(self.leftLayout,0,0)
+		self.mainLayout.addLayout(self.rightLayout,0,1)
 		self.timer.timeout.connect(self.update)
 		#self.setWindowFlags(QtGui.Qt.WA_Window)
 		self.timer.start(1000)
@@ -177,7 +177,7 @@ class ChronosLNX(QtGui.QWidget):
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
-		date.replace(hour=12).replace(minute=0).replace(second=0) #use noon time for default
+		date=date.replace(hour=12).replace(minute=0).replace(second=0) #use noon time for default
 		#info_dialog.setWindowFlags(QtCore.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
 
@@ -587,7 +587,7 @@ class ChronosLNX(QtGui.QWidget):
 			moon_phase=""
 
 		#probably get boolean of day/night out of model?
-		planets_string = "This is the day of %s, the hour of %s" %(self.pday, self.phour)
+		planets_string = "Day of %s, the hour of %s" %(self.pday, self.phour)
 
 		total_string="%s%s%s%s" %(planets_string, sign_string, moon_phase, house_of_moment_string)
 
@@ -599,7 +599,7 @@ class ChronosLNX(QtGui.QWidget):
 			total_string.replace("<br />","\n").replace("<sup>","").replace("</sup>","")))
 		self.trayIcon.setIcon(sysicon)
 		self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
-		self.todayOther.setText("%s\n%s" %(self.now.strftime("%H:%M:%S"), total_string))
+		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))
 
 	def event_trigger(self, event_type, text, planet_trigger):
 		if event_type == "Save to file":

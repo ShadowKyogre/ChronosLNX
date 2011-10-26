@@ -119,17 +119,6 @@ class PlanetaryHoursList(QtGui.QWidget):
 			newplanetitem=QtGui.QStandardItem(icon,planetary_hours[i][1])
 			model.insertRow(i,[newhouritem,newplanetitem])
 
-	def grabHoursOfType(self,planet):
-		#note: this is like the filter, except it's for
-		#alarm purposes so the data isn't actually searched
-		datetimes=[]
-		for i in xrange(self.last_index,24):
-			dt = self.get_date(i)
-			pt=str(self.get_planet(i))
-			if pt == planet:
-				datetimes.append(dt)
-		return datetimes
-
 	def _highlight_row(self, idx):
 		self.tree.model().sourceModel().item(idx, 0).setBackground(self.color)
 		self.tree.model().sourceModel().item(idx, 1).setBackground(self.color)
@@ -145,13 +134,12 @@ class PlanetaryHoursList(QtGui.QWidget):
 			self.tree.model().setFilterFixedString(self.filter_hour.itemText(idx)) #set filter based on planet name
 
 	def grab_nearest_hour(self,date):
-		target_date=date.replace(tzinfo=tz.gettz())
 		for i in xrange(self.last_index,24):
-			self._unhighlight_row(i)
 			if i+1 > 23:
 				looking_behind = self.get_date(i)
 				if looking_behind <= date:
 					self._highlight_row(i)
+					self._unhighlight_row(i-1)
 					self.last_index=i
 					return self.get_planet(i)
 			else:
@@ -159,6 +147,8 @@ class PlanetaryHoursList(QtGui.QWidget):
 				looking_ahead = self.get_date(i+1)
 				if looking_behind <= date and looking_ahead > date:
 					self._highlight_row(i)
+					if i != 0:
+						self._unhighlight_row(i-1)
 					self.last_index=i
 					return self.get_planet(i)
 		return "-Error-"
@@ -318,7 +308,7 @@ class SignsForDayList(QtGui.QWidget):
 
 	def get_constellations(self,date, observer):
 		self.observer=observer
-		self.target_date=date.replace(tzinfo=tz.gettz())
+		self.target_date=date
 		self.time.setTime(self.target_date.time())
 
 class MoonCycleList(QtGui.QTreeWidget):
@@ -352,18 +342,16 @@ class MoonCycleList(QtGui.QTreeWidget):
 		self.topLevelItem(idx).setBackground(2,self.base)
 
 	def highlight_cycle_phase(self,date):
-		target_date=date.replace(tzinfo=tz.gettz())
 		for i in xrange(self.last_index,29):
 			self._unhighlight_row(i)
 			cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
-			if cycling.timetuple().tm_yday == target_date.timetuple().tm_yday:
+			if cycling.timetuple().tm_yday == date.timetuple().tm_yday:
 				self._highlight_row(i)
 				self.last_index=i
 				break
 
 	def get_moon_cycle(self,date):
-		target_date=date.replace(tzinfo=tz.gettz())
-		moon_cycle=get_moon_cycle(target_date)
+		moon_cycle=get_moon_cycle(date)
 		for i in xrange (29):
 			newmooncycleitem = QtGui.QTreeWidgetItem()
 			newmooncycleitem.setData(0,32,QtCore.QVariant(QtCore.QDateTime(moon_cycle[i][0])))
