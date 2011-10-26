@@ -1,0 +1,6 @@
+Enabled,Date,Hour,Event Type,Text
+True,Saturn,Saturn,Textual reminder,Base Chakra Meditation
+True,Everyday,06:00,Textual reminder,Wake up
+True,Moon,Moon,Textual reminder,Third Eye Meditation
+True,Everyday,Every planetary hour,Textual reminder,Planetary hour changed from %(prev)s to %(next)s
+True,Sun,Sun,Textual reminder,Solar Plexus Chakra Meditation

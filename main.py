@@ -12,7 +12,7 @@ from shlex import split
 from subprocess import call
 from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
-from re import findall
+from re import findall,match
 import datetime
 from astro_rewrite import *
 from astrowidgets import *
@@ -609,6 +609,49 @@ class ChronosLNX(QtGui.QWidget):
 		else: #event_type == "Textual reminder"
 			self.show_notification("Reminder", text, planet_trigger)
 
+
+	def parse_phour_args(string):
+		alist=None
+		args=len(findall("%\(prev\)s|%\(next\)s", string))
+		if args == 2:
+			if self.hoursToday.last_index > 0:
+				idx=self.hoursToday.last_index - 1
+			else:
+				idx=self.hoursToday.last_index + 6
+			prev_hour=self.hoursToday.get_planet(idx)
+			alist={'prev': prev_hour, "next": self.phour}
+		elif args == 1:
+			if match("%\(prev\)s"):
+				if self.hoursToday.last_index > 0:
+					idx=self.hoursToday.last_index - 1
+				else:
+					idx=self.hoursToday.last_index + 6
+				prev_hour=self.hoursToday.get_planet(idx)
+				alist={"prev": prev_hour}
+			else:
+				alist={"next": self.phour}
+		return alist,args
+
+	def parse_hour_args(string):
+		alist=None
+		args=len(findall("%\(prev\)s|%\(next\)s", string))
+		if args == 2:
+			if self.now.hour == 0:
+				prev_hour = 23
+			else:
+				prev_hour = self.now.hour - 1
+			alist={'prev': prev_hour, "next": self.now.hour}
+		elif args == 1:
+			if match("%\(prev\)s"):
+				if self.now.hour == 0:
+					prev_hour = 23
+				else:
+					prev_hour = self.now.hour - 1
+				alist={"prev": prev_hour}
+			else:
+				alist={"next": self.now.hour}
+		return alist,args
+
 	def check_alarm(self):
 		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
 			hour_trigger=False
@@ -627,17 +670,9 @@ class ChronosLNX(QtGui.QWidget):
 					if hour_item == "Every planetary hour":
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
-						pt=True
-						args=len(findall("%\(prev\)s|%\(next\)s", txt))
-						if args == 2:
-							if self.hoursToday.last_index > 0:
-								prev_hour=self.hoursToday.get_planet(self.hoursToday.last_index - 1)
-							else:
-								prev_hour=self.hoursToday.get_planet(self.hoursToday.last_index + 6)
-							alist={'prev': prev_hour, "next": self.phour}
-						elif args == 1:
-							alist={"next": self.phour}
-
+						if hour_trigger:
+							pt=True
+							alist,args=parse_phour_args(txt)
 					elif self.phour == str(hour_item):
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
@@ -650,15 +685,7 @@ class ChronosLNX(QtGui.QWidget):
 								self.sunset.minute, self.minute.second)
 					elif hour_item == "Every normal hour":
 						hour_trigger=compare_to_the_second(self.now, self.now.hour,0,0)
-						args=len(findall("%\(prev\)s|%\(next\)s", txt))
-						if args == 2:
-							if self.now.hour == 0:
-								prev_hour = 23
-							else:
-								prev_hour = self.now.hour - 1
-							alist={'prev': prev_hour, "next": self.now.hour}
-						elif args == 1:
-							alist={"next": self.now.hour}
+						alist,args=parse_hour_args(txt)
 
 				if hour_trigger:
 					event_type_item=str(CLNXConfig.schedule.item(real_row, \

@@ -126,45 +126,39 @@ class ChronosLNXConfig:
 		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
 			self.APPNAME,
 			'/schedule.csv']).replace('//','/')
-		firsttime=False
-		#need more elegant first time
-		try:
-			planner = csv.reader(open(path, "rb"))
-		except IOError:
-			try:
+
+		if not os.path.exists(path):
+			if not os.path.exists(path.replace("schedule.csv","")):
+				print "Making directory to store schedule"
 				os.mkdir(path.replace("schedule.csv",""))
-			except OSError:
-				print "Already made data directory for schedule"
-			f=open(path,"w")
-			f.write("Enabled,Date,Hour,Event Type,Text")
-			f.close()
-			firsttime=True
-			planner = csv.reader(open(path, "rb"))
-		if not firsttime:
-			planner.next()
-			for entry in planner:
-				first_column=QtGui.QStandardItem()
-				second_column=QtGui.QStandardItem()
-				third_column=QtGui.QStandardItem()
-				fourth_column=QtGui.QStandardItem()
-				fifth_column=QtGui.QStandardItem()
-				first_column.setCheckable(True)
-				if literal_eval(entry[0]):
-					first_column.setCheckState(QtCore.Qt.Checked)
-				if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
-					#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
-					second_column.setData(QtCore.QDate.fromString(entry[1], "MM/dd/yyyy"),QtCore.Qt.UserRole)
-				else:
-					second_column.setData(entry[1],QtCore.Qt.UserRole)
-				second_column.setText(entry[1])
-				if QtCore.QTime.fromString(entry[2],"HH:mm").isValid():
-					third_column.setData(QtCore.QTime.fromString(entry[2],"HH:mm"),QtCore.Qt.UserRole)
-				else:
-					third_column.setData(entry[2],QtCore.Qt.UserRole)
-				third_column.setText(entry[2])
-				fourth_column.setText(entry[3])
-				fifth_column.setText(entry[4])
-				self.schedule.appendRow([first_column,second_column,third_column,fourth_column,fifth_column])
+			from shutil import copyfile
+			copyfile("%s/schedule.csv" %(os.sys.path[0]), path)
+		planner = csv.reader(open(path, "rb"))
+		planner.next()
+
+		for entry in planner:
+			first_column=QtGui.QStandardItem()
+			second_column=QtGui.QStandardItem()
+			third_column=QtGui.QStandardItem()
+			fourth_column=QtGui.QStandardItem()
+			fifth_column=QtGui.QStandardItem()
+			first_column.setCheckable(True)
+			if literal_eval(entry[0]):
+				first_column.setCheckState(QtCore.Qt.Checked)
+			if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
+				#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
+				second_column.setData(QtCore.QDate.fromString(entry[1], "MM/dd/yyyy"),QtCore.Qt.UserRole)
+			else:
+				second_column.setData(entry[1],QtCore.Qt.UserRole)
+			second_column.setText(entry[1])
+			if QtCore.QTime.fromString(entry[2],"HH:mm").isValid():
+				third_column.setData(QtCore.QTime.fromString(entry[2],"HH:mm"),QtCore.Qt.UserRole)
+			else:
+				third_column.setData(entry[2],QtCore.Qt.UserRole)
+			third_column.setText(entry[2])
+			fourth_column.setText(entry[3])
+			fifth_column.setText(entry[4])
+			self.schedule.appendRow([first_column,second_column,third_column,fourth_column,fifth_column])
 		self.schedule.rowsInserted.connect(self.add_delete_update)
 		self.schedule.rowsRemoved.connect(self.add_delete_update)
 		self.schedule.itemChanged.connect(self.changed_update)
