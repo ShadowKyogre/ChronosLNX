@@ -1,13 +1,11 @@
 You need these to run this:
 * PyQt
-* PyEphem
-* python-dateutil (removed for now for cross-platformness)
+* PySwissEph
+* python-dateutil
 
 Todo:
 * Find an alternate sunrise/sunset method to make this lighter
 * Find an alternate moon phase method to make this lighter
-* Get sorting for the events in here done
-* Set up event triggers
 
 Credits:
 *https://gist.github.com/202755
