@@ -18,7 +18,7 @@ class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.3.0"
+		self.APPVERSION="0.5.0"
 		self.AUTHOR="ShadowKyogre"
 		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 		self.YEAR="2011"
@@ -109,13 +109,30 @@ class ChronosLNXConfig:
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
 		self.settings.beginGroup("Location")
-		self.current_latitude=float(self.settings.value("latitude", 0.0).toPyObject())
-		self.current_longitude=float(self.settings.value("longitude", 0.0).toPyObject())
-		self.current_elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
+		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
+		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
 		self.settings.beginGroup("Appearance")
 		self.current_theme=str(self.settings.value("icontheme", QtCore.QString("DarkGlyphs")).toPyObject())
 		self.settings.endGroup()
+		self.settings.beginGroup("Tweaks")
+		try:
+			self.show_sign=literal_eval(self.settings.value("showSign",\
+			QtCore.QString("True")).toPyObject())
+		except ValueError: #denotes that config was from previous version
+			self.show_sign=True
+		try:
+			self.show_moon=literal_eval(self.settings.value("showMoonPhase",\
+			QtCore.QString("True")).toPyObject())
+		except ValueError:
+			self.show_moon=True
+		try:
+			self.show_house_of_moment=literal_eval(self.settings.value("showHouseOfMoment",\
+			QtCore.QString("True")).toPyObject())
+		except ValueError:
+			  self.show_house_of_moment=True
+			  self.settings.endGroup()
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()

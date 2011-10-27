@@ -22,34 +22,21 @@ def format_zodiacal_longitude(l):
 	minutes = int(round((l % 1) * 60))
 	return degrees, sign, minutes
 
-def next_full_moon(date, planet):
-	day=datetime_to_julian(date)-1
-	while True:
-		if 97.0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 100.0:
-			return revjul_to_datetime(swisseph.revjul(day))
-		day=day-1
+def previous_full_moon(date, planet):
+	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2
+	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
 
 def previous_new_moon(date, planet):
-	day=datetime_to_julian(date)-1
-	while True:
-		if 0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 2.0:
-			return revjul_to_datetime(swisseph.revjul(day))
-		day=day-1
-
+	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.3
+	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
 
 def next_full_moon(date, planet):
-	day=datetime_to_julian(date)
-	while True:
-		if 97.0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 100.0:
-			return revjul_to_datetime(swisseph.revjul(day))
-		day=day+1
+	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
+	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
 
 def next_new_moon(date, planet):
-	day=datetime_to_julian(date)
-	while True:
-		if 0 <= swisseph.pheno_ut(day, planet)[1] * 100 <= 2.0:
-			return revjul_to_datetime(swisseph.revjul(day))
-		day=day+1
+	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+1.3
+	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
 
 def is_retrograde(planet, date):
 	day=datetime_to_julian(date)
@@ -63,11 +50,13 @@ def get_house(planet, observer, date):
 	objlon=swisseph.calc_ut(day,planet)[0]
 	oblt=swisseph.calc_ut(day,planet)[1]
 	#float[12],#float[8]
-	cusps=swisseph.houses_ex(day, observer.lat, observer.long)[0]
-	asmc=swisseph.houses_ex(day, observer.lat, observer.long)[1]
+	cusps=swisseph.houses(day, observer.lat, observer.long)[0]
+	asmc=swisseph.houses(day, observer.lat, observer.long)[1]
 	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
 	return hom,format_zodiacal_longitude(objlon)
 
+#notes: swisseph.TRUE_NODE
+#south node = swisseph.TRUE_NODE's angle - 180
 def get_signs(date, observer):
 	entries={}
 	for i in xrange(10):
@@ -86,6 +75,7 @@ def grab_phase(planet, date):
 	next_full=next_full_moon(date,planet)
 	next_new=next_new_moon(date,planet)
 	phase=swisseph.pheno_ut(day,planet)[1]*100
+
 	if 97.0 <= phase <= 100.0:
 		illumination="Full"
 	elif 0 <= phase <= 2.0:
@@ -136,11 +126,10 @@ def utc_to_timezone(date):
 
 def get_moon_cycle(date):
 	prev_new=previous_new_moon(date, swisseph.MOON)
-	full=next_full_moon(date, swisseph.MOON)
 	new_m=next_new_moon(date, swisseph.MOON)
 	length = (new_m - prev_new) / 29
 	moon_phase=[]
-	for i in range (0,30):
+	for i in xrange (30):
 		cycling=prev_new + length * i
 		state_line=grab_phase(swisseph.MOON, cycling)
 		state=state_to_string(state_line, swisseph.MOON)
@@ -194,8 +183,8 @@ def hours_for_day(date,observer):
 	return hours
 
 def get_planet_day(day_type):
-  day_sequence=["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
-  return day_sequence[day_type]
+	day_sequence=["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+	return day_sequence[day_type]
 
 def progression_check(needed_planet, hour):
 	hour_sequence=["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"]

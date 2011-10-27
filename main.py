@@ -106,9 +106,9 @@ class ChronosLNX(QtGui.QWidget):
 		self.eventsToday.tree.setModel(CLNXConfig.todays_schedule)
 
 		dayData.addTab(self.hoursToday,"Planetary Hours")
-		dayData.addTab(self.moonToday,"Moon Cycles")
-		dayData.addTab(self.signsToday,"Today's Signs")
-		dayData.addTab(self.eventsToday,"Today's Events")
+		dayData.addTab(self.moonToday,"Moon Phases")
+		dayData.addTab(self.signsToday,"Signs")
+		dayData.addTab(self.eventsToday,"Events")
 
 		self.rightLayout.addLayout(dayinfo)
 		self.rightLayout.addWidget(dayData)
@@ -124,7 +124,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 	def update_moon_cycle(self):
-		if next_new_moon(self.now, swisseph.MOON).timetuple().tm_yday == self.now.timetuple().tm_yday:
+		if prev_new_moon(self.now, swisseph.MOON).timetuple().tm_yday == self.now.timetuple().tm_yday:
 			self.moonToday.clear()
 			self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
@@ -204,9 +204,9 @@ class ChronosLNX(QtGui.QWidget):
 		signsToday.get_constellations(date, CLNXConfig.observer)
 
 		dayData.addTab(hoursToday,"Planetary Hours")
-		dayData.addTab(moonToday,"Moon Cycles")
-		dayData.addTab(signsToday,"Signs For This Day")
-		dayData.addTab(eventsToday,"Events for This Day")
+		dayData.addTab(moonToday,"Moon Phases")
+		dayData.addTab(signsToday,"Signs")
+		dayData.addTab(eventsToday,"Events")
 		hbox.addWidget(dayData)
 		info_dialog.show()
 
@@ -237,7 +237,7 @@ class ChronosLNX(QtGui.QWidget):
 		all_check=QtGui.QCheckBox("All",checkboxes_frame)
 		ph_check=QtGui.QCheckBox("Planetary Hours",checkboxes_frame)
 		s_check=QtGui.QCheckBox("Planetary Signs",checkboxes_frame)
-		m_check=QtGui.QCheckBox("Moon Cycle",checkboxes_frame)
+		m_check=QtGui.QCheckBox("Moon Phase",checkboxes_frame)
 		e_check=QtGui.QCheckBox("Events",checkboxes_frame)
 
 		self.save_for_range_dialog.checkboxes.addButton(all_check)
@@ -303,7 +303,7 @@ class ChronosLNX(QtGui.QWidget):
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
 			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
-		elif option == "Moon Cycle":
+		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
 			text=prepare_sign_info(date, CLNXConfig.observer)
@@ -323,7 +323,7 @@ class ChronosLNX(QtGui.QWidget):
 	def print_to_file(self, option,date,filename=None,suppress_notification=False):
 		if option == "All":
 			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
-		elif option == "Moon Cycle":
+		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
 			text=prepare_sign_info(date, CLNXConfig.observer)
@@ -381,7 +381,7 @@ class ChronosLNX(QtGui.QWidget):
 			copyall.triggered.connect(lambda: self.copy_to_clipboard("All",date))
 			copydate.triggered.connect(lambda: app.clipboard().setText(date.strftime("%m/%d/%Y")))
 			copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours",date))
-			copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Cycle",date))
+			copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Phase",date))
 			copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs",date))
 			copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
 
@@ -395,7 +395,7 @@ class ChronosLNX(QtGui.QWidget):
 
 			saveall.triggered.connect(lambda: self.print_to_file("All",date))
 			saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours",date))
-			savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Cycle",date))
+			savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Phase",date))
 			savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs",date))
 			saveeventdata.triggered.connect(lambda: self.print_to_file("Events",date))
 
@@ -410,6 +410,14 @@ class ChronosLNX(QtGui.QWidget):
 		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
+		self.calendar.setIcons(CLNXConfig.moon_icons)
+		self.hoursToday.setIcons(CLNXConfig.main_icons)
+		self.moonToday.setIcons(CLNXConfig.moon_icons)
+		self.signsToday.setIcons(CLNXConfig.main_icons)
+		self.update_hours()
+		self.moonToday.clear()
+		self.moonToday.get_moon_cycle(self.now)
+		self.moonToday.highlight_cycle_phase(self.now)
 
 	def settings_change(self):
 
