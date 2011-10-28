@@ -38,10 +38,10 @@ def previous_full_moon(date, planet):
 		#sun-moon- indicates that this is after
 		degree1=swisseph.calc_ut(delta,planet)[0]
 		degree2=swisseph.calc_ut(delta,0)[0]
-		if round(degree2-degree1) < 180: #move forward
-			delta=delta+0.041666667
-		elif round(degree2-degree1) > 180: #move backward
-			delta=delta+0.041666667
+		if round(degree2-degree1) > 180: #move forward
+			delta=delta+0.020833334
+		elif round(degree2-degree1) < 180: #move backward
+			delta=delta-0.020833334
 		else:
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
@@ -58,9 +58,9 @@ def previous_new_moon(date, planet):
 		degree1=swisseph.calc_ut(delta,planet)[0]
 		degree2=swisseph.calc_ut(delta,0)[0]
 		if round(degree2-degree1) > 0: #move forward
-			delta=delta+0.041666667
+			delta=delta+0.020833334
 		elif round(degree2-degree1) < 0: #move backward
-			delta=delta-0.041666667
+			delta=delta-0.020833334
 		else:
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
@@ -76,10 +76,10 @@ def next_full_moon(date, planet):
 		#sun-moon- indicates that this is after
 		degree1=swisseph.calc_ut(delta,planet)[0]
 		degree2=swisseph.calc_ut(delta,0)[0]
-		if round(degree2-degree1) < 180: #move forward
-			delta=delta+0.041666667
-		elif round(degree2-degree1) > 180: #move backward
-			delta=delta+0.041666667
+		if round(degree2-degree1) > 180: #move forward
+			delta=delta+0.020833334
+		elif round(degree2-degree1) < 180: #move backward
+			delta=delta-0.020833334
 		else:
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
@@ -96,9 +96,9 @@ def next_new_moon(date, planet):
 		degree1=swisseph.calc_ut(delta,planet)[0]
 		degree2=swisseph.calc_ut(delta,0)[0]
 		if round(degree2-degree1) > 0: #move forward
-			delta=delta+0.041666667
+			delta=delta+0.020833334
 		elif round(degree2-degree1) < 0: #move backward
-			delta=delta-0.041666667
+			delta=delta-0.020833334
 		else:
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
