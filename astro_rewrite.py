@@ -23,36 +23,84 @@ def format_zodiacal_longitude(l):
 	minutes = int(round((l % 1) * 60))
 	return degrees, sign, minutes
 
+def parse_zodiacal_longitude(sign, degree, minute):
+	degrees=zodiac.index(sign)*30.0
+	return degrees+degree+minute/60.0
+
 def previous_full_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2 #get a baseline
 	day=cycles*29.53058868
+	delta=day
+	while math.fabs(day-delta) <= 2: #don't go too crazy
+		# sun
+		#/-----moon
+		#sun-moon+ indicates that this is before
+		#sun-moon- indicates that this is after
+		degree1=swisseph.calc_ut(delta,planet)[0]
+		degree2=swisseph.calc_ut(delta,0)[0]
+		if round(degree2-degree1) < 180: #move forward
+			delta=delta+0.041666667
+		elif round(degree2-degree1) > 180: #move backward
+			delta=delta+0.041666667
+		else:
+			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def previous_new_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.3
 	day=cycles*29.53058868
 	delta=day
-	#while True:
-		#degree1=swisseph.calc_ut(day,planet)[0]
-		#degree2=swisseph.calc_ut(day,0)[0]
-		#print delta
-		#print round(degree1-degree2)
-		#if round(degree1-degree2) > 0:
-			#delta=delta-0.041666667
-		#elif round(degree1-degree2) < 0:
-			#delta=delta+0.041666667
-		#else:
-			#return revjul_to_datetime(swisseph.revjul(delta))
+	while math.fabs(day-delta) <= 2: #don't go too crazy
+		# sun
+		#/-----moon
+		#sun-moon+ indicates that this is before
+		#sun-moon- indicates that this is after
+		degree1=swisseph.calc_ut(delta,planet)[0]
+		degree2=swisseph.calc_ut(delta,0)[0]
+		if round(degree2-degree1) > 0: #move forward
+			delta=delta+0.041666667
+		elif round(degree2-degree1) < 0: #move backward
+			delta=delta-0.041666667
+		else:
+			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def next_full_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
 	day=cycles*29.53058868
+	delta=day
+	while math.fabs(day-delta) <= 2: #don't go too crazy
+		# sun
+		#/-----moon
+		#sun-moon+ indicates that this is before
+		#sun-moon- indicates that this is after
+		degree1=swisseph.calc_ut(delta,planet)[0]
+		degree2=swisseph.calc_ut(delta,0)[0]
+		if round(degree2-degree1) < 180: #move forward
+			delta=delta+0.041666667
+		elif round(degree2-degree1) > 180: #move backward
+			delta=delta+0.041666667
+		else:
+			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def next_new_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+1.3
 	day=cycles*29.53058868
+	delta=day
+	while math.fabs(day-delta) <= 2: #don't go too crazy
+		# sun
+		#/-----moon
+		#sun-moon+ indicates that this is before
+		#sun-moon- indicates that this is after
+		degree1=swisseph.calc_ut(delta,planet)[0]
+		degree2=swisseph.calc_ut(delta,0)[0]
+		if round(degree2-degree1) > 0: #move forward
+			delta=delta+0.041666667
+		elif round(degree2-degree1) < 0: #move backward
+			delta=delta-0.041666667
+		else:
+			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def is_retrograde(planet, date):
