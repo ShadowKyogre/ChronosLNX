@@ -178,23 +178,28 @@ class ChronosLNX(QtGui.QWidget):
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
 		date=date.replace(hour=12).replace(minute=0).replace(second=0) #use noon time for default
-		#info_dialog.setWindowFlags(QtCore.Qt.WA_DeleteOnClose)
+		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		#info_dialog.setFlags(QtCore.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
 
 		hoursToday=PlanetaryHoursList(info_dialog)
 		hoursToday.setIcons(CLNXConfig.main_icons)
+		hoursToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		moonToday=MoonCycleList(info_dialog)
 		moonToday.setIcons(CLNXConfig.moon_icons)
+		moonToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		signsToday=SignsForDayList(info_dialog)
 		signsToday.setIcons(CLNXConfig.main_icons)
+		signsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		eventsToday=EventsList(info_dialog)
 		model=DayEventsModel()
 		model.setSourceModel(CLNXConfig.schedule)
 		model.setDate(date)
 		eventsToday.tree.setModel(model)
+		eventsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		dayData=QtGui.QTabWidget(info_dialog)
 
@@ -332,8 +337,8 @@ class ChronosLNX(QtGui.QWidget):
 		else:  #option == "Events"
 			text=prepare_events(date, CLNXConfig.schedule)
 		if filename == None:
-			filename=QtGui.QFileDialog.getSaveFileName(parent=self,
-					caption="Saving %s for %s" %(option, date.strftime("%m/%d/%Y")),
+			filename=QtGui.QFileDialog.getSaveFileName(self, caption="Saving %s for %s" \
+					%(option, date.strftime("%m/%d/%Y")),
 					filter="*.txt")
 		if filename is not None and filename != "":
 			f=open(filename,"w")

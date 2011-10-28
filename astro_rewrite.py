@@ -16,6 +16,7 @@ import math
 #ascmc[6] =     "co-ascendant" (Michael Munkasey)
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
 zodiac = 'Aries Taurus Gemini Cancer Leo Virgo Libra Scorpio Sagittarius Capricorn Aquarius Pisces'.split()
+zodiac_element = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
 def format_zodiacal_longitude(l):
 	degrees = int(l % 30)
 	sign = zodiac[int(l / 30)]
@@ -23,20 +24,36 @@ def format_zodiacal_longitude(l):
 	return degrees, sign, minutes
 
 def previous_full_moon(date, planet):
-	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2
-	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
+	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2 #get a baseline
+	day=cycles*29.53058868
+	return revjul_to_datetime(swisseph.revjul(day))
 
 def previous_new_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.3
-	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
+	day=cycles*29.53058868
+	delta=day
+	#while True:
+		#degree1=swisseph.calc_ut(day,planet)[0]
+		#degree2=swisseph.calc_ut(day,0)[0]
+		#print delta
+		#print round(degree1-degree2)
+		#if round(degree1-degree2) > 0:
+			#delta=delta-0.041666667
+		#elif round(degree1-degree2) < 0:
+			#delta=delta+0.041666667
+		#else:
+			#return revjul_to_datetime(swisseph.revjul(delta))
+	return revjul_to_datetime(swisseph.revjul(day))
 
 def next_full_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
-	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
+	day=cycles*29.53058868
+	return revjul_to_datetime(swisseph.revjul(day))
 
 def next_new_moon(date, planet):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+1.3
-	return revjul_to_datetime(swisseph.revjul(cycles*29.53058868))
+	day=cycles*29.53058868
+	return revjul_to_datetime(swisseph.revjul(day))
 
 def is_retrograde(planet, date):
 	day=datetime_to_julian(date)
@@ -50,10 +67,24 @@ def get_house(planet, observer, date):
 	objlon=swisseph.calc_ut(day,planet)[0]
 	oblt=swisseph.calc_ut(day,planet)[1]
 	#float[12],#float[8]
-	cusps=swisseph.houses(day, observer.lat, observer.long)[0]
-	asmc=swisseph.houses(day, observer.lat, observer.long)[1]
+	#note: houses move along!
+	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
 	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
+	swisseph.close()
 	return hom,format_zodiacal_longitude(objlon)
+
+def get_transit(planet, observer, date):
+	day=datetime_to_julian(date)
+	if observer.lat < 0:
+		transit=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
+				planet, observer.long, observer.lat, alt=observer.elevation, \
+				rsmi=swisseph.CALC_MTRANSIT)[1][0]))
+	else:
+		transit=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
+				planet, observer.long, observer.lat, alt=observer.elevation, \
+				rsmi=swisseph.CALC_ITRANSIT)[1][0]))
+	swisseph.close()
+	return transit
 
 #notes: swisseph.TRUE_NODE
 #south node = swisseph.TRUE_NODE's angle - 180
@@ -68,6 +99,7 @@ def get_signs(date, observer):
 		else:
 			retrograde=str(is_retrograde(i,date))
 		entries[swisseph.get_planet_name(i)]=[sign, angle, retrograde,str(int(house))]
+	swisseph.close()
 	return entries
 
 def grab_phase(planet, date):
@@ -89,6 +121,7 @@ def grab_phase(planet, date):
 	status="Waning"
 	if next_new - date > next_full - date:
 		status = "Waxing"
+	swisseph.close()
 	return status,illumination,"%.3f%%" %(phase)
 
 	#attr[0] = phase angle (earth-planet-sun)
@@ -108,11 +141,13 @@ def state_to_string(state_line, planet):
 			state="First %s %s" %(state_line[1], name)
 	else:
 		state="%s %s %s" %(state_line[0], state_line[1], name)
+	swisseph.close()
 	return state
 
 def datetime_to_julian(date):
 	utc=date.utctimetuple()
 	day=swisseph.julday(utc.tm_year, utc.tm_mon, utc.tm_mday, hour=utc.tm_hour*1.0)
+	swisseph.close()
 	return day
 
 def timezone_to_utc(date):
@@ -129,6 +164,7 @@ def get_moon_cycle(date):
 	new_m=next_new_moon(date, swisseph.MOON)
 	length = (new_m - prev_new) / 29
 	moon_phase=[]
+
 	for i in xrange (30):
 		cycling=prev_new + length * i
 		state_line=grab_phase(swisseph.MOON, cycling)
@@ -159,7 +195,7 @@ def get_sunrise_and_sunset(date,observer):
 	next_sunrise=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day,
 			swisseph.SUN, observer.long, observer.lat, observer.elevation, \
 			rsmi=swisseph.CALC_RISE)[1][0]))
-
+	swisseph.close()
 	return sunrise,sunset,next_sunrise
 
 def compare_to_the_second(date, hour, minute, second):
@@ -195,4 +231,6 @@ def progression_check(needed_planet, hour):
 	return hour_sequence[int(math.fabs(progress))]
 
 def get_sun_sign(date, observer):
-	return get_house(swisseph.SUN, observer, date)[1][1]
+	sign=get_house(swisseph.SUN, observer, date)[1][1]
+	swisseph.close()
+	return sign
