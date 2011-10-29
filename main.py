@@ -93,6 +93,10 @@ class ChronosLNX(QtGui.QWidget):
 
 		self.signsToday=SignsForDayList(self)
 		self.signsToday.setIcons(CLNXConfig.main_icons)
+		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
+		self.signsToday.setNodes(CLNXConfig.show_nodes)
+		self.signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
+		self.signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
 
 		self.eventsToday=EventsList(self)
 
@@ -118,13 +122,13 @@ class ChronosLNX(QtGui.QWidget):
 
 	def update_hours(self):
 		self.hoursToday.clear()
-		#self.signsToday.tree.clear()
+		self.signsToday.tree.clear()
 		self.prepare_hours_for_today()
 		self.eventsToday.tree.model().setDate(self.now.date())
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 	def update_moon_cycle(self):
-		if prev_new_moon(self.now, swisseph.MOON).timetuple().tm_yday == self.now.timetuple().tm_yday:
+		if prev_new_moon(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
 			self.moonToday.clear()
 			self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
@@ -192,6 +196,10 @@ class ChronosLNX(QtGui.QWidget):
 
 		signsToday=SignsForDayList(info_dialog)
 		signsToday.setIcons(CLNXConfig.main_icons)
+		signsToday.setSignIcons(CLNXConfig.sign_icons)
+		signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
+		signsToday.setNodes(CLNXConfig.show_nodes)
+		signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
 		signsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		eventsToday=EventsList(info_dialog)
@@ -411,18 +419,37 @@ class ChronosLNX(QtGui.QWidget):
 
 	def settings_reset(self):
 		CLNXConfig.reset_settings()
-		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
-		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
-		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
-		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
+		self.update_settings_widgets()
+
 		self.calendar.setIcons(CLNXConfig.moon_icons)
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
 		self.signsToday.setIcons(CLNXConfig.main_icons)
+		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
+		self.signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
+		self.signsToday.setNodes(CLNXConfig.show_nodes)
 		self.update_hours()
 		self.moonToday.clear()
 		self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
+
+	def update_settings_widgets(self):
+		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
+		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
+		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
+
+		idx=self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme)
+		self.settings_dialog.appearance_icons.setCurrentIndex(idx)
+
+		self.settings_dialog.s_check.setChecked(CLNXConfig.show_sign)
+		self.settings_dialog.m_check.setChecked(CLNXConfig.show_moon)
+		self.settings_dialog.h_check.setChecked(CLNXConfig.show_house_of_moment)
+
+		self.settings_dialog.n_check.setChecked(CLNXConfig.show_nodes)
+		self.settings_dialog.p_check.setChecked(CLNXConfig.pluto_alt)
+
+		idx2=self.settings_dialog.c_check.findText(CLNXConfig.capricorn_alt)
+		self.settings_dialog.c_check.setCurrentIndex(idx2)
 
 	def settings_change(self):
 
@@ -430,6 +457,7 @@ class ChronosLNX(QtGui.QWidget):
 		lng=float(self.settings_dialog.location_widget.longitude)
 		elv=float(self.settings_dialog.location_widget.elevation)
 		thm=str(self.settings_dialog.appearance_icons.currentText())
+		cp=str(self.settings_dialog.c_check.currentText())
 
 		CLNXConfig.observer.lat=lat
 		CLNXConfig.observer.long=lng
@@ -438,16 +466,26 @@ class ChronosLNX(QtGui.QWidget):
 		CLNXConfig.show_sign=self.settings_dialog.s_check.isChecked()
 		CLNXConfig.show_moon=self.settings_dialog.m_check.isChecked()
 		CLNXConfig.show_house_of_moment=self.settings_dialog.h_check.isChecked()
+		CLNXConfig.show_nodes=self.settings_dialog.n_check.isChecked()
+		CLNXConfig.pluto_alt=self.settings_dialog.p_check.isChecked()
+		CLNXConfig.capricorn_alt=cp
 
 		CLNXConfig.prepare_icons()
 		self.calendar.setIcons(CLNXConfig.moon_icons)
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
 		self.signsToday.setIcons(CLNXConfig.main_icons)
+		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
+		self.signsToday.setNodes(CLNXConfig.show_nodes)
+		self.signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
+		self.signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
 		self.update_hours()
 		self.moonToday.clear()
 		self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
+		self.settings_dialog.c_check.setItemIcon(0, CLNXConfig.sign_icons['Capricorn'])
+		self.settings_dialog.c_check.setItemIcon(1, CLNXConfig.sign_icons['Capricorn 2'])
+		self.settings_dialog.c_check.setItemIcon(2, CLNXConfig.sign_icons['Capricorn 3'])
 		#eventually load DB of events
 
 	def settings_write(self):
@@ -460,7 +498,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.settings_dialog=ReusableDialog(self)
 		self.settings_dialog.setWindowTitle("Settings")
 		tabs=QtGui.QTabWidget(self.settings_dialog)
-		self.settings_dialog.setFixedSize(400,400)
+		self.settings_dialog.setFixedSize(500,400)
 
 		location_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
@@ -473,9 +511,6 @@ class ChronosLNX(QtGui.QWidget):
 		tabs.addTab(tweaks_page,"Tweaks")
 
 		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
-		self.settings_dialog.location_widget.setLatitude(float(CLNXConfig.observer.lat))
-		self.settings_dialog.location_widget.setLongitude(float(CLNXConfig.observer.long))
-		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 
 		layout=QtGui.QVBoxLayout(self.settings_dialog)
 		layout.addWidget(tabs)
@@ -487,7 +522,7 @@ class ChronosLNX(QtGui.QWidget):
 		for theme in CLNXConfig.get_available_themes():
 			icon=QtGui.QIcon(CLNXConfig.grab_icon_path(theme,"misc","chronoslnx"))
 			self.settings_dialog.appearance_icons.addItem(icon,theme)
-		self.settings_dialog.appearance_icons.setCurrentIndex(self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme))
+
 		grid.addWidget(appearance_label,0,0)
 		grid.addWidget(self.settings_dialog.appearance_icons,0,1)
 
@@ -508,19 +543,28 @@ class ChronosLNX(QtGui.QWidget):
 		a_vbox.addWidget(eventplanner)
 		eventplanner.tree.setModel(CLNXConfig.schedule)
 
-		tweak_grid=QtGui.QVBoxLayout(tweaks_page)
+		tweak_grid=QtGui.QGridLayout(tweaks_page)
 		self.settings_dialog.s_check=QtGui.QCheckBox("Sign of the month",tweaks_page)
 		self.settings_dialog.m_check=QtGui.QCheckBox("Current moon phase",tweaks_page)
 		self.settings_dialog.h_check=QtGui.QCheckBox("House of moment",tweaks_page)
 
-		self.settings_dialog.s_check.setChecked(CLNXConfig.show_sign)
-		self.settings_dialog.m_check.setChecked(CLNXConfig.show_moon)
-		self.settings_dialog.h_check.setChecked(CLNXConfig.show_house_of_moment)
+		self.settings_dialog.n_check=QtGui.QCheckBox("Show Nodes",tweaks_page)
+		self.settings_dialog.p_check=QtGui.QCheckBox("Use the P-looking Pluto icon",tweaks_page)
+		self.settings_dialog.c_check=QtGui.QComboBox()
+		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn"],"Capricorn")
+		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 2"],"Capricorn 2")
+		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 3"],"Capricorn 3")
 
-		tweak_grid.addWidget(QtGui.QLabel("Show the following in the main window's textual information"))
-		tweak_grid.addWidget(self.settings_dialog.s_check)
-		tweak_grid.addWidget(self.settings_dialog.m_check)
-		tweak_grid.addWidget(self.settings_dialog.h_check)
+		tweak_grid.addWidget(QtGui.QLabel("Show the following in the main window's textual information"),0,0,1,2)
+		tweak_grid.addWidget(self.settings_dialog.s_check,1,1)
+		tweak_grid.addWidget(self.settings_dialog.m_check,2,1)
+		tweak_grid.addWidget(self.settings_dialog.h_check,3,1)
+		tweak_grid.addWidget(QtGui.QLabel("Change the following in the main window's signs information"),4,0,1,2)
+		tweak_grid.addWidget(self.settings_dialog.n_check,5,1)
+		tweak_grid.addWidget(self.settings_dialog.p_check,6,1)
+		tweak_grid.addWidget(self.settings_dialog.c_check,7,1)
+
+		self.update_settings_widgets()
 
 ## systray
 #http://stackoverflow.com/questions/893984/pyqt-show-menu-in-a-system-tray-application
@@ -594,7 +638,7 @@ class ChronosLNX(QtGui.QWidget):
 		else:
 			sign_string=""
 		if CLNXConfig.show_moon:
-			phase=grab_phase(swisseph.MOON,self.now)
+			phase=grab_phase(self.now)
 			moon_phase="<br />%s: %s illuminated" %(state_to_string(phase, swisseph.MOON), phase[2])
 		else:
 			moon_phase=""

@@ -6,6 +6,7 @@ You need these to run this:
 Todo:
 * Find an alternate sunrise/sunset method to make this lighter
 * Find an alternate moon phase method to make this lighter
+* Find a way to animate the chart with transit and birth chart combined, along with a planetary hour indicator.
 
 Credits:
 *https://gist.github.com/202755

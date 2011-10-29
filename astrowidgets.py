@@ -8,6 +8,22 @@ import re
 from dateutil import tz
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
+##http://doc.qt.nokia.com/latest/widgets-analogclock.html
+
+#class AstroClock(QtGui.QWidget):
+	#def __init__(self, *args):
+		#QtGui.QWidget.__init__(self, *args)
+
+	#def setColors(self, aspectsColors):
+
+	#def paintEvent(self, painter):
+
+	#def setTimer(self, timer):
+		#self.timer=timer
+
+	#def setHourSource(self, hoursSource):
+
+	#def setSignSource(self, hoursSource):
 
 class AstroCalendar(QtGui.QCalendarWidget):
 
@@ -43,7 +59,7 @@ class AstroCalendar(QtGui.QCalendarWidget):
 		#if first_date <= date <= last_date:
 			painter.fillRect(rect, self.color)
 		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz())
-		phase=state_to_string(grab_phase(swisseph.MOON, datetime), swisseph.MOON)
+		phase=state_to_string(grab_phase(datetime), swisseph.MOON)
 		icon=self.icons[phase]
 		icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
 
@@ -212,99 +228,39 @@ class SignsForDayList(QtGui.QWidget):
 	def setIcons(self, icon_list):
 		self.icons=icon_list
 
+	def setSignIcons(self, icon_list):
+		self.sign_icons=icon_list
+
+	def setPlutoAlternate(self, value):
+		self.pluto_alternate=value #should be boolean
+
+	def setCapricornAlternate(self, value):
+		self.capricorn_alternate=value #should be string
+
+	def setNodes(self, value):
+		self.nodes=value
+
 	def _grab(self):
 		self.tree.clear()
-		constellations=get_signs(self.target_date,self.observer)
-
-		sunitem=QtGui.QTreeWidgetItem()
-		sunitem.setIcon(0,self.icons["Sun"])
-		sunitem.setText(0,"Sun")
-		sunitem.setText(1,constellations["Sun"][0])
-		sunitem.setText(2,constellations["Sun"][1])
-		sunitem.setText(3,constellations["Sun"][2])
-		sunitem.setText(4,constellations["Sun"][3])
-		self.tree.addTopLevelItem(sunitem)
-
-		moonitem=QtGui.QTreeWidgetItem()
-		moonitem.setIcon(0,self.icons["Moon"])
-		moonitem.setText(0,"Moon")
-		moonitem.setText(1,constellations["Moon"][0])
-		moonitem.setText(2,constellations["Moon"][1])
-		moonitem.setText(3,constellations["Moon"][2])
-		moonitem.setText(4,constellations["Moon"][3])
-		self.tree.addTopLevelItem(moonitem)
-
-		venusitem=QtGui.QTreeWidgetItem()
-		venusitem.setIcon(0,self.icons["Venus"])
-		venusitem.setText(0,"Venus")
-		venusitem.setText(1,constellations["Venus"][0])
-		venusitem.setText(2,constellations["Venus"][1])
-		venusitem.setText(3,constellations["Venus"][2])
-		venusitem.setText(4,constellations["Venus"][3])
-		self.tree.addTopLevelItem(venusitem)
-
-		mercuryitem=QtGui.QTreeWidgetItem()
-		mercuryitem.setIcon(0,self.icons["Mercury"])
-		mercuryitem.setText(0,"Mercury")
-		mercuryitem.setText(1,constellations["Mercury"][0])
-		mercuryitem.setText(2,constellations["Mercury"][1])
-		mercuryitem.setText(3,constellations["Mercury"][2])
-		mercuryitem.setText(4,constellations["Mercury"][3])
-		self.tree.addTopLevelItem(mercuryitem)
-
-		marsitem=QtGui.QTreeWidgetItem()
-		marsitem.setIcon(0,self.icons["Mars"])
-		marsitem.setText(0,"Mars")
-		marsitem.setText(1,constellations["Mars"][0])
-		marsitem.setText(2,constellations["Mars"][1])
-		marsitem.setText(3,constellations["Mars"][2])
-		marsitem.setText(4,constellations["Mars"][3])
-		self.tree.addTopLevelItem(marsitem)
-
-		jupiteritem=QtGui.QTreeWidgetItem()
-		jupiteritem.setIcon(0,self.icons["Jupiter"])
-		jupiteritem.setText(0,"Jupiter")
-		jupiteritem.setText(1,constellations["Jupiter"][0])
-		jupiteritem.setText(2,constellations["Jupiter"][1])
-		jupiteritem.setText(3,constellations["Jupiter"][2])
-		jupiteritem.setText(4,constellations["Jupiter"][3])
-		self.tree.addTopLevelItem(jupiteritem)
-
-		saturnitem=QtGui.QTreeWidgetItem()
-		saturnitem.setIcon(0,self.icons["Saturn"])
-		saturnitem.setText(0,"Saturn")
-		saturnitem.setText(1,constellations["Saturn"][0])
-		saturnitem.setText(2,constellations["Saturn"][1])
-		saturnitem.setText(3,constellations["Saturn"][2])
-		saturnitem.setText(4,constellations["Saturn"][3])
-		self.tree.addTopLevelItem(saturnitem)
-
-		uranusitem=QtGui.QTreeWidgetItem()
-		uranusitem.setIcon(0,self.icons["Uranus"])
-		uranusitem.setText(0,"Uranus")
-		uranusitem.setText(1,constellations["Uranus"][0])
-		uranusitem.setText(2,constellations["Uranus"][1])
-		uranusitem.setText(3,constellations["Uranus"][2])
-		uranusitem.setText(4,constellations["Uranus"][3])
-		self.tree.addTopLevelItem(uranusitem)
-
-		neptuneitem=QtGui.QTreeWidgetItem()
-		neptuneitem.setIcon(0,self.icons["Neptune"])
-		neptuneitem.setText(0,"Neptune")
-		neptuneitem.setText(1,constellations["Neptune"][0])
-		neptuneitem.setText(2,constellations["Neptune"][1])
-		neptuneitem.setText(3,constellations["Neptune"][2])
-		neptuneitem.setText(4,constellations["Neptune"][3])
-		self.tree.addTopLevelItem(neptuneitem)
-
-		plutoitem=QtGui.QTreeWidgetItem()
-		plutoitem.setIcon(0,self.icons["Pluto"])
-		plutoitem.setText(0,"Pluto")
-		plutoitem.setText(1,constellations["Pluto"][0])
-		plutoitem.setText(2,constellations["Pluto"][1])
-		plutoitem.setText(3,constellations["Pluto"][2])
-		plutoitem.setText(4,constellations["Pluto"][3])
-		self.tree.addTopLevelItem(plutoitem)
+		constellations=get_signs(self.target_date,self.observer,nodes=self.nodes)
+		for i in constellations:
+			item=QtGui.QTreeWidgetItem()
+			if self.pluto_alternate and i[0] == "Pluto":
+				item.setIcon(0,self.icons['Pluto 2'])
+			else:
+				item.setIcon(0,self.icons[i[0]])
+			item.setText(0,i[0])
+			if i[1] == "Capricorn":
+				item.setIcon(1,self.sign_icons[self.capricorn_alternate])
+			else:
+				item.setIcon(1,self.sign_icons[i[1]])
+			item.setText(1,i[1])
+			item.setText(2,i[2])
+			item.setData(2,32,i[3])
+			item.setToolTip(2,"The real longitude is %.3f degrees" %i[3])
+			item.setText(3,i[4])
+			item.setText(4,i[5])
+			self.tree.addTopLevelItem(item)
 
 	def get_constellations(self,date, observer):
 		self.observer=observer

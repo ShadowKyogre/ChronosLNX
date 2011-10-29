@@ -6,7 +6,6 @@ import math
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
 #http://www.astrologyzine.com/what-is-a-house-cusp.shtml
-
 #ascmc[0] =      Ascendant
 #ascmc[1] =     MC
 #ascmc[2] =     ARMC
@@ -15,8 +14,16 @@ import math
 #ascmc[5] =     "co-ascendant" (Walter Koch)
 #ascmc[6] =     "co-ascendant" (Michael Munkasey)
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
-zodiac = 'Aries Taurus Gemini Cancer Leo Virgo Libra Scorpio Sagittarius Capricorn Aquarius Pisces'.split()
+zodiac =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 zodiac_element = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
+					  ##Formalhaut
+#stars=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
+#"Alpheratz" , "Baten Kaitos", \#Aries stars
+				###Caput Algol
+#"Mirach", "Hamal", "Almach", "Algol", "Alcyone", \#Taurus stars
+#"Hyades"
+#]
+
 def format_zodiacal_longitude(l):
 	degrees = int(l % 30)
 	sign = zodiac[int(l / 30)]
@@ -27,7 +34,16 @@ def parse_zodiacal_longitude(sign, degree, minute):
 	degrees=zodiac.index(sign)*30.0
 	return degrees+degree+minute/60.0
 
-def previous_full_moon(date, planet):
+def check_distance(degrees, orb, zodiacal1, zodiacal2):
+	true_measurement=parse_zodiacal_longitude(zodiacal1[0], \
+			  zodiacal1[1], zodiacal1[2])
+	true_measurement2=parse_zodiacal_longitude(zodiacal2[0], \
+			  zodiacal2[1], zodiacal2[2])
+	return degrees - orb <= \
+		math.fabs(true_measurement-true_measurement2) \
+		<= degrees + orb
+
+def previous_full_moon(date):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2 #get a baseline
 	day=cycles*29.53058868
 	delta=day
@@ -36,8 +52,8 @@ def previous_full_moon(date, planet):
 		#/-----moon
 		#sun-moon+ indicates that this is before
 		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,planet)[0]
-		degree2=swisseph.calc_ut(delta,0)[0]
+		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
+		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
 		swisseph.close()
 		if round(degree2-degree1) > 180: #move forward
 			delta=delta+0.020833334
@@ -47,7 +63,7 @@ def previous_full_moon(date, planet):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def previous_new_moon(date, planet):
+def previous_new_moon(date):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.3
 	day=cycles*29.53058868
 	delta=day
@@ -56,8 +72,8 @@ def previous_new_moon(date, planet):
 		#/-----moon
 		#sun-moon+ indicates that this is before
 		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,planet)[0]
-		degree2=swisseph.calc_ut(delta,0)[0]
+		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
+		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
 		swisseph.close()
 		if round(degree2-degree1) > 0: #move forward
 			delta=delta+0.020833334
@@ -67,7 +83,7 @@ def previous_new_moon(date, planet):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def next_full_moon(date, planet):
+def next_full_moon(date):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
 	day=cycles*29.53058868
 	delta=day
@@ -76,8 +92,8 @@ def next_full_moon(date, planet):
 		#/-----moon
 		#sun-moon+ indicates that this is before
 		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,planet)[0]
-		degree2=swisseph.calc_ut(delta,0)[0]
+		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
+		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
 		swisseph.close()
 		if round(degree2-degree1) > 180: #move forward
 			delta=delta+0.020833334
@@ -87,7 +103,7 @@ def next_full_moon(date, planet):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def next_new_moon(date, planet):
+def next_new_moon(date):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+1.3
 	day=cycles*29.53058868
 	delta=day
@@ -96,8 +112,8 @@ def next_new_moon(date, planet):
 		#/-----moon
 		#sun-moon+ indicates that this is before
 		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,planet)[0]
-		degree2=swisseph.calc_ut(delta,0)[0]
+		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
+		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
 		swisseph.close()
 		if round(degree2-degree1) > 0: #move forward
 			delta=delta+0.020833334
@@ -106,6 +122,7 @@ def next_new_moon(date, planet):
 		else:
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
+
 
 def is_retrograde(planet, date):
 	day=datetime_to_julian(date)
@@ -123,7 +140,7 @@ def get_house(planet, observer, date):
 	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
 	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
 	swisseph.close()
-	return hom,format_zodiacal_longitude(objlon)
+	return hom,objlon,format_zodiacal_longitude(objlon)
 
 def get_transit(planet, observer, date):
 	day=datetime_to_julian(date)
@@ -140,25 +157,40 @@ def get_transit(planet, observer, date):
 
 #notes: swisseph.TRUE_NODE
 #south node = swisseph.TRUE_NODE's angle - 180
-def get_signs(date, observer):
-	entries={}
+def get_signs(date, observer, nodes=False):
+	entries = []
 	for i in xrange(10):
-		house,info=get_house(i, observer, date)
+		house,truelon,info=get_house(i, observer, date)
 		degrees,sign,minutes=info
 		angle="%s*%s'" %(degrees, minutes)
 		if i == swisseph.SUN or i == swisseph.MOON:
 			retrograde=str('Not Applicable')
 		else:
 			retrograde=str(is_retrograde(i,date))
-		entries[swisseph.get_planet_name(i)]=[sign, angle, retrograde,str(int(house))]
+		entries.append([swisseph.get_planet_name(i), sign, angle, truelon, retrograde,str(int(house))])
+	if nodes: #add node entries
+		house,truelon,info=get_house(swisseph.TRUE_NODE, observer, date)
+		degrees,sign,minutes=info
+		angle="%s*%s'" %(degrees, minutes)
+		retrograde="Always"
+		entries.append(["North Node", sign, angle, truelon, retrograde,str(int(house))])
+
+		#do some trickery to display the South Node
+		reverse=swisseph.degnorm(truelon-180.0)
+		reverse_house=math.fabs(12-house)
+		rev_degrees,rev_sign,rev_minutes=format_zodiacal_longitude(reverse)
+		rev_angle="%s*%s'" %(rev_degrees, rev_minutes)
+		entries.append(["South Node", rev_sign, rev_angle, reverse, retrograde,str(int(reverse_house))])
+	#if stars:
+		#print "Todo"
 	swisseph.close()
 	return entries
 
-def grab_phase(planet, date):
+def grab_phase(date):
 	day=datetime_to_julian(date)
-	next_full=next_full_moon(date,planet)
-	next_new=next_new_moon(date,planet)
-	phase=swisseph.pheno_ut(day,planet)[1]*100
+	next_full=next_full_moon(date)
+	next_new=next_new_moon(date)
+	phase=swisseph.pheno_ut(day,swisseph.MOON)[1]*100
 
 	if 97.0 <= phase <= 100.0:
 		illumination="Full"
@@ -212,14 +244,14 @@ def utc_to_timezone(date):
 	return datenow
 
 def get_moon_cycle(date):
-	prev_new=previous_new_moon(date, swisseph.MOON)
-	new_m=next_new_moon(date, swisseph.MOON)
+	prev_new=previous_new_moon(date)
+	new_m=next_new_moon(date)
 	length = (new_m - prev_new) / 29
 	moon_phase=[]
 
 	for i in xrange (30):
 		cycling=prev_new + length * i
-		state_line=grab_phase(swisseph.MOON, cycling)
+		state_line=grab_phase(cycling)
 		state=state_to_string(state_line, swisseph.MOON)
 		moon_phase.append([cycling, state, state_line[2]])
 	return moon_phase
@@ -283,6 +315,6 @@ def progression_check(needed_planet, hour):
 	return hour_sequence[int(math.fabs(progress))]
 
 def get_sun_sign(date, observer):
-	sign=get_house(swisseph.SUN, observer, date)[1][1]
+	sign=get_house(swisseph.SUN, observer, date)[2][1]
 	swisseph.close()
 	return sign

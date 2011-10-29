@@ -18,7 +18,7 @@ class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.5.0"
+		self.APPVERSION="0.6.0"
 		self.AUTHOR="ShadowKyogre"
 		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 		self.YEAR="2011"
@@ -30,37 +30,9 @@ class ChronosLNXConfig:
 						self.APPNAME)
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
 
-		self.settings.beginGroup("Location")
 		self.observer=Observer()
-		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
-		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
-		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
-		self.settings.endGroup()
+		self.reset_settings()
 
-		self.settings.beginGroup("Appearance")
-		self.current_theme=str(self.settings.value("icontheme",
-					QtCore.QString("DarkGlyphs")).toPyObject())
-		self.settings.endGroup()
-
-		self.settings.beginGroup("Tweaks")
-		try:
-			self.show_sign=literal_eval(self.settings.value("showSign",
-					QtCore.QString("True")).toPyObject())
-		except ValueError: #denotes that config was from previous version
-			self.show_sign=True
-		try:
-			self.show_moon=literal_eval(self.settings.value("showMoonPhase",
-					QtCore.QString("True")).toPyObject())
-		except ValueError:
-			self.show_moon=True
-		try:
-			self.show_house_of_moment=literal_eval(self.settings.value("showHouseOfMoment",
-					QtCore.QString("True")).toPyObject())
-		except ValueError:
-			self.show_house_of_moment=True
-		self.settings.endGroup()
-
-		self.prepare_icons()
 		self.load_schedule()
 
 
@@ -80,6 +52,9 @@ class ChronosLNXConfig:
 			'Uranus' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","uranus")),
 			'Neptune' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","neptune")),
 			'Pluto' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","pluto")),
+			'Pluto 2' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","pluto_2")),
+			'North Node' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","north_node")),
+			'South Node' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","south_node")),
 			'logo' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","chronoslnx")),
 			'daylight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","day")),
 			'nightlight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","night")),
@@ -104,7 +79,22 @@ class ChronosLNXConfig:
 			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","last_quarter_moon")),
 			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_crescent_moon")),
 		}
-		#self.sign_icons = {}
+		self.sign_icons = {
+			'Aries': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aries')),
+			'Taurus': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'taurus')),
+			'Gemini': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'gemini')),
+			'Cancer': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'cancer')),
+			'Leo': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'leo')),
+			'Virgo': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'virgo')),
+			'Libra': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'libra')),
+			'Scorpio': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'scorpio')),
+			'Sagittarius': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'sagittarius')),
+			'Capricorn': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn')),
+			'Capricorn 2': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn_2')),
+			'Capricorn 3': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn_3')),
+			'Aquarius': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aquarius')),
+			'Pisces': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'pisces')),
+		}
 
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
@@ -132,7 +122,23 @@ class ChronosLNXConfig:
 			QtCore.QString("True")).toPyObject())
 		except ValueError:
 			  self.show_house_of_moment=True
-			  self.settings.endGroup()
+		try:
+			self.show_nodes=literal_eval(self.settings.value("showNodes",
+					QtCore.QString("True")).toPyObject())
+		except ValueError: #denotes that config was from previous version
+			self.show_nodes=True
+		try:
+			self.pluto_alt=literal_eval(self.settings.value("alternatePluto",
+					QtCore.QString("False")).toPyObject())
+		except ValueError: #denotes that config was from previous version
+			self.pluto_alt=False
+		try:
+			self.capricorn_alt=str(self.settings.value("alternateCapricorn", \
+				str(QtCore.QString("Capricorn"))).toPyObject())
+		except ValueError: #denotes that config was from previous version
+			self.capricorn_alt="Capricorn"
+		self.prepare_icons()
+		self.settings.endGroup()
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()
@@ -141,8 +147,7 @@ class ChronosLNXConfig:
 		self.todays_schedule=DayEventsModel()
 		self.todays_schedule.setSourceModel(self.schedule)
 		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
-			self.APPNAME,
-			'/schedule.csv']).replace('//','/')
+			self.APPNAME,'/schedule.csv']).replace('//', '/')
 
 		if not os.path.exists(path):
 			if not os.path.exists(path.replace("schedule.csv","")):
@@ -224,7 +229,11 @@ class ChronosLNXConfig:
 		themes=[]
 		for checking in os.listdir(os.sys.path[0]):
 			path="%s/%s" %(os.sys.path[0], checking)
-			if os.path.isdir(path) is True:
+			if os.path.isdir(path) is True and \
+				os.path.exists(path+"/signs") and \
+				os.path.exists(path+"/planets") and \
+				os.path.exists(path+"/moonphase") and \
+				os.path.exists(path+"/misc"):
 				themes.append(checking)
 		return themes
 
@@ -243,6 +252,10 @@ class ChronosLNXConfig:
 		self.settings.setValue("showSign", str(self.show_sign))
 		self.settings.setValue("showMoonPhase",str(self.show_moon))
 		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
+		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
+		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
+		self.settings.setValue("alternatePluto",str(self.pluto_alt))
+		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))
 		self.settings.endGroup()
 
 		self.settings.sync()
