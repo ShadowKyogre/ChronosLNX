@@ -378,15 +378,13 @@ def revjul_to_datetime(revjul):
 	return utc_to_timezone(utc)
 
 def get_sunrise_and_sunset(date,observer):
-	utc=timezone_to_utc(date)
-	precise_hour=utc.hour+float(utc.minute)/60+float(utc.second)/3600
-	day=swisseph.julday(utc.year,utc.month,utc.day, hour=precise_hour)
+	day=datetime_to_julian(date)
 
 	sunrise=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
 			swisseph.SUN, observer.long, observer.lat, alt=observer.elevation, \
 			rsmi=swisseph.CALC_RISE)[1][0]))
 
-	sunset=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day, \
+	sunset=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
 			swisseph.SUN, observer.long, observer.lat, observer.elevation, \
 			rsmi=swisseph.CALC_SET)[1][0]))
 

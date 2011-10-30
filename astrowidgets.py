@@ -126,6 +126,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 		model=self.tree.model().sourceModel()
 		for i in xrange(0,24):
 			icon=self.icons[planetary_hours[i][1]]
+
 			if planetary_hours[i][2] is True:
 				status_icon=self.icons['daylight']
 			else:

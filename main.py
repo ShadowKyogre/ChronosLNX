@@ -434,6 +434,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
 		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
+		self.settings_dialog.date.setDateTime(CLNXConfig.birthtime)
 
 		idx=self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme)
 		self.settings_dialog.appearance_icons.setCurrentIndex(idx)
@@ -456,6 +457,8 @@ class ChronosLNX(QtGui.QWidget):
 		thm=str(self.settings_dialog.appearance_icons.currentText())
 		cp=str(self.settings_dialog.c_check.currentText())
 
+		CLNXConfig.birthtime=self.settings_dialog.date.dateTime()\
+			.toPyDateTime().replace(tzinfo=tz.gettz())
 		CLNXConfig.observer.lat=lat
 		CLNXConfig.observer.long=lng
 		CLNXConfig.observer.elevation=elv
@@ -497,17 +500,25 @@ class ChronosLNX(QtGui.QWidget):
 		tabs=QtGui.QTabWidget(self.settings_dialog)
 		self.settings_dialog.setFixedSize(500,400)
 
-		location_page=QtGui.QFrame()
+		user_info_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
 		events_page=QtGui.QFrame()
 		tweaks_page=QtGui.QFrame()
 
-		tabs.addTab(location_page,"Location")
+		tabs.addTab(user_info_page,"Info on You")
 		tabs.addTab(appearance_page,"Appearance")
 		tabs.addTab(events_page,"Events")
 		tabs.addTab(tweaks_page,"Tweaks")
 
-		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
+		tgrid=QtGui.QGridLayout(user_info_page)
+		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(user_info_page)
+		self.settings_dialog.date = QtGui.QDateTimeEdit(user_info_page)
+		self.settings_dialog.date.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
+		self.settings_dialog.date.setDisplayFormat("MM/dd/yyyy - HH:mm:ss")
+
+		tgrid.addWidget(self.settings_dialog.location_widget,0,0,3,2)
+		tgrid.addWidget(QtGui.QLabel("Birth time"),3,0)
+		tgrid.addWidget(self.settings_dialog.date,3,1)
 
 		layout=QtGui.QVBoxLayout(self.settings_dialog)
 		layout.addWidget(tabs)

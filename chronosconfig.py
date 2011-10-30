@@ -99,14 +99,19 @@ class ChronosLNXConfig:
 
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
-		self.settings.beginGroup("Location")
+		self.settings.beginGroup("User")
+		try:
+			self.birthtime=self.settings.value("birthTime", \
+			QtCore.QVariant(datetime(2000,1,1,tzinfo=tz.gettz()))).toPyObject()
+		except ValueError:
+			self.birthtime=datetime(2000,1,1,tzinfo=tz.gettz())
 		#add bday
 		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
 		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
 		self.settings.beginGroup("Appearance")
-		self.current_theme=str(self.settings.value("icontheme", QtCore.QString("DarkGlyphs")).toPyObject())
+		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
 		self.settings.endGroup()
 		self.settings.beginGroup("Tweaks")
 		try:
@@ -140,7 +145,14 @@ class ChronosLNXConfig:
 		except ValueError: #denotes that config was from previous version
 			self.capricorn_alt="Capricorn"
 		self.prepare_icons()
-		#self.natal_information=get_signs(birthdate,observer,nodes=self.show_nodes) #keep a copy of natal information for transits, solar returns, and lunar returns
+
+		print "Loading natal data..."
+		self.natal_data=get_signs(self.birthtime,self.observer,self.show_nodes)
+		#keep a copy of natal information for transits
+		self.natal_sun=format_zodiacal_longitude(self.natal_data[0][3])
+		#keep a formatted copy for solar returns
+		self.natal_moon=format_zodiacal_longitude(self.natal_data[1][3])
+		#keep a formatted copy for lunar returns
 		self.settings.endGroup()
 
 	def load_schedule(self):
@@ -242,22 +254,22 @@ class ChronosLNXConfig:
 		return themes
 
 	def save_settings(self):
-		self.settings.beginGroup("Location")
+		self.settings.beginGroup("User")
+		self.settings.setValue("birthTime", self.birthtime)
 		self.settings.setValue("latitude", self.observer.lat)
 		self.settings.setValue("longitude", self.observer.long)
 		self.settings.setValue("elevation", self.observer.elevation)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Appearance")
-		self.settings.setValue("icontheme", self.current_theme)
+		self.settings.setValue("iconTheme", self.current_theme)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
 		self.settings.setValue("showSign", str(self.show_sign))
 		self.settings.setValue("showMoonPhase",str(self.show_moon))
 		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
-		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
-		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
+		self.settings.setValue("showNodes",str(self.show_house_of_moment))
 		self.settings.setValue("alternatePluto",str(self.pluto_alt))
 		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))
 		self.settings.endGroup()
