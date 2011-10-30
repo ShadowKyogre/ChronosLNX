@@ -190,7 +190,7 @@ def previous_new_moon(date):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def next_full_moon(date):
+def prev_m_moon(date):
 	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
 	day=cycles*29.53058868
 	delta=day
@@ -300,8 +300,8 @@ def get_signs(date, observer, nodes=False):
 
 def grab_phase(date):
 	day=datetime_to_julian(date)
-	next_full=next_full_moon(date)
-	next_new=next_new_moon(date)
+	full_m=previous_new_moon(date)
+	#next_new=next_new_moon(date)
 	phase=swisseph.pheno_ut(day,swisseph.MOON)[1]*100
 
 	if 97.0 <= phase <= 100.0:
@@ -315,7 +315,7 @@ def grab_phase(date):
 	else:
 		illumination="Gibbous"
 	status="Waning"
-	if next_new - date > next_full - date:
+	if timedelta(days=0) > date - full_m:
 		status = "Waxing"
 	swisseph.close()
 	return status,illumination,"%.3f%%" %(phase)

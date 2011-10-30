@@ -54,11 +54,10 @@ class AstroCalendar(QtGui.QCalendarWidget):
 		#else:
 			#first_date = current_date.addDays(first_day - 7 - current_day)
 		#last_date = first_date.addDays(6)
-		#print grab_moon_phase(datetime(date.toPyDate()))
 		if date == QtCore.QDate.currentDate():
 		#if first_date <= date <= last_date:
 			painter.fillRect(rect, self.color)
-		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz())
+		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
 		phase=state_to_string(grab_phase(datetime), swisseph.MOON)
 		icon=self.icons[phase]
 		icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))

@@ -57,6 +57,11 @@ class ChronosLNX(QtGui.QWidget):
 		self.make_calendar_menu()
 		self.leftLayout.addWidget(self.calendar)
 
+		natalButton=QtGui.QPushButton("&View Natal Data",self)
+		natalButton.clicked.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime))
+		natalButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
+		self.leftLayout.addWidget(natalButton)
+
 		saveRangeButton=QtGui.QPushButton("Save data from dates",self)
 		saveRangeButton.clicked.connect(self.save_for_range_dialog.open)
 		saveRangeButton.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
@@ -181,7 +186,6 @@ class ChronosLNX(QtGui.QWidget):
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
-		date=date.replace(hour=12).replace(minute=0).replace(second=0) #use noon time for default
 		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 		#info_dialog.setFlags(QtCore.Qt.WA_DeleteOnClose)
 		hbox=QtGui.QHBoxLayout(info_dialog)
@@ -362,9 +366,9 @@ class ChronosLNX(QtGui.QWidget):
 			if idx.row() is 1 and day > 7:
 				replace_month=month-1
 				if replace_month == 0:
-					date=datetime(year=year-1,month=12,day=day).replace(tzinfo=tz.gettz())
+					date=datetime(year=year-1,month=12,day=day, hour=12).replace(tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,month=month-1,day=day).replace(tzinfo=tz.gettz())
+					date=datetime(year=year,month=month-1,day=day, hour=12).replace(tzinfo=tz.gettz())
 			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
 				replace_month=(month+1)%12
 				if replace_month == 1:
@@ -737,7 +741,7 @@ class ChronosLNX(QtGui.QWidget):
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						if hour_trigger:
 							pt=True
-							alist,args=parse_phour_args(txt)
+							alist,args=self.parse_phour_args(txt)
 					elif self.phour == str(hour_item):
 						dt = self.hoursToday.get_date(self.hoursToday.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
@@ -750,7 +754,7 @@ class ChronosLNX(QtGui.QWidget):
 								self.sunset.minute, self.minute.second)
 					elif hour_item == "Every normal hour":
 						hour_trigger=compare_to_the_second(self.now, self.now.hour,0,0)
-						alist,args=parse_hour_args(txt)
+						alist,args=self.parse_hour_args(txt)
 
 				if hour_trigger:
 					event_type_item=str(CLNXConfig.schedule.item(real_row, \
