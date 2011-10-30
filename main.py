@@ -58,7 +58,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.leftLayout.addWidget(self.calendar)
 
 		natalButton=QtGui.QPushButton("&View Natal Data",self)
-		natalButton.clicked.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime))
+		natalButton.clicked.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime, birth=True))
 		natalButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
 		self.leftLayout.addWidget(natalButton)
 
@@ -182,7 +182,11 @@ class ChronosLNX(QtGui.QWidget):
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
-	def get_info_for_date(self, date):
+	def get_info_for_date(self, date, birth=False):
+		if birth:
+			ob=CLNXConfig.baby
+		else:
+			ob=CLNXConfig.observer
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
@@ -212,10 +216,10 @@ class ChronosLNX(QtGui.QWidget):
 
 		dayData=QtGui.QTabWidget(info_dialog)
 
-		hoursToday.prepareHours(date,CLNXConfig.observer)
+		hoursToday.prepareHours(date,ob)
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
-		signsToday.get_constellations(date, CLNXConfig.observer)
+		signsToday.get_constellations(date, ob)
 
 		dayData.addTab(hoursToday,"Planetary Hours")
 		dayData.addTab(moonToday,"Moon Phases")
@@ -366,17 +370,17 @@ class ChronosLNX(QtGui.QWidget):
 			if idx.row() is 1 and day > 7:
 				replace_month=month-1
 				if replace_month == 0:
-					date=datetime(year=year-1,month=12,day=day, hour=12).replace(tzinfo=tz.gettz())
+					date=datetime(year=year-1,month=12,day=day, hour=12, tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,month=month-1,day=day, hour=12).replace(tzinfo=tz.gettz())
+					date=datetime(year=year,month=month-1,day=day, hour=12, tzinfo=tz.gettz())
 			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
 				replace_month=(month+1)%12
 				if replace_month == 1:
-					date=datetime(year=year+1,month=replace_month,day=day).replace(tzinfo=tz.gettz())
+					date=datetime(year=year+1,month=replace_month,day=day, tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,month=replace_month,day=day).replace(tzinfo=tz.gettz())
+					date=datetime(year=year,month=replace_month,day=day, tzinfo=tz.gettz())
 			else:
-				date=datetime(year=year,month=month,day=day).replace(tzinfo=tz.gettz())
+				date=datetime(year=year,month=month,day=day, tzinfo=tz.gettz())
 			#self.calendar.setGridVisible(True)
 			menu=QtGui.QMenu()
 			infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
@@ -438,7 +442,11 @@ class ChronosLNX(QtGui.QWidget):
 		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
 		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
+
 		self.settings_dialog.date.setDateTime(CLNXConfig.birthtime)
+		self.settings_dialog.birth_widget.setLatitude(CLNXConfig.baby.lat)
+		self.settings_dialog.birth_widget.setLongitude(CLNXConfig.baby.long)
+		self.settings_dialog.birth_widget.setElevation(CLNXConfig.baby.elevation)
 
 		idx=self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme)
 		self.settings_dialog.appearance_icons.setCurrentIndex(idx)
@@ -458,14 +466,24 @@ class ChronosLNX(QtGui.QWidget):
 		lat=float(self.settings_dialog.location_widget.latitude)
 		lng=float(self.settings_dialog.location_widget.longitude)
 		elv=float(self.settings_dialog.location_widget.elevation)
+
+		blat=float(self.settings_dialog.birth_widget.latitude)
+		blng=float(self.settings_dialog.birth_widget.longitude)
+		belv=float(self.settings_dialog.birth_widget.elevation)
+
 		thm=str(self.settings_dialog.appearance_icons.currentText())
 		cp=str(self.settings_dialog.c_check.currentText())
 
-		CLNXConfig.birthtime=self.settings_dialog.date.dateTime()\
-			.toPyDateTime().replace(tzinfo=tz.gettz())
 		CLNXConfig.observer.lat=lat
 		CLNXConfig.observer.long=lng
 		CLNXConfig.observer.elevation=elv
+
+		CLNXConfig.baby.lat=blat
+		CLNXConfig.baby.long=blng
+		CLNXConfig.baby.elevation=belv
+		date=self.settings_dialog.date.dateTime().toPyDateTime()
+		CLNXConfig.birthtime=date.replace(tzinfo=CLNXConfig.generate_timezone())
+
 		CLNXConfig.current_theme=thm
 		CLNXConfig.show_sign=self.settings_dialog.s_check.isChecked()
 		CLNXConfig.show_moon=self.settings_dialog.m_check.isChecked()
@@ -475,11 +493,8 @@ class ChronosLNX(QtGui.QWidget):
 		CLNXConfig.capricorn_alt=cp
 
 		CLNXConfig.prepare_icons()
-		CLNXConfig.natal_data=get_signs(CLNXConfig.birthtime,CLNXConfig.observer,CLNXConfig.show_nodes)
-		#keep a copy of natal information for transits
-		CLNXConfig.natal_sun=format_zodiacal_longitude(CLNXConfig.natal_data[0][3])
-		#keep a formatted copy for solar returns
-		CLNXConfig.natal_moon=format_zodiacal_longitude(CLNXConfig.natal_data[1][3])
+		CLNXConfig.load_natal_data()
+
 		self.calendar.setIcons(CLNXConfig.moon_icons)
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
@@ -509,23 +524,29 @@ class ChronosLNX(QtGui.QWidget):
 		tabs=QtGui.QTabWidget(self.settings_dialog)
 		self.settings_dialog.setFixedSize(500,400)
 
+		location_page=QtGui.QFrame()
 		user_info_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
 		events_page=QtGui.QFrame()
 		tweaks_page=QtGui.QFrame()
 
-		tabs.addTab(user_info_page,"Info on You")
+		tabs.addTab(location_page,"Location")
+		tabs.addTab(user_info_page,"Birth Information")
 		tabs.addTab(appearance_page,"Appearance")
 		tabs.addTab(events_page,"Events")
 		tabs.addTab(tweaks_page,"Tweaks")
 
-		tgrid=QtGui.QGridLayout(user_info_page)
-		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(user_info_page)
+		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
+		vbox=QtGui.QVBoxLayout(location_page)
+		vbox.addWidget(self.settings_dialog.location_widget)
+
+		self.settings_dialog.birth_widget = geolocationwidget.GeoLocationWidget(user_info_page)
 		self.settings_dialog.date = QtGui.QDateTimeEdit(user_info_page)
 		self.settings_dialog.date.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
 		self.settings_dialog.date.setDisplayFormat("MM/dd/yyyy - HH:mm:ss")
 
-		tgrid.addWidget(self.settings_dialog.location_widget,0,0,3,2)
+		tgrid=QtGui.QGridLayout(user_info_page)
+		tgrid.addWidget(self.settings_dialog.birth_widget,0,0,3,2)
 		tgrid.addWidget(QtGui.QLabel("Birth time"),3,0)
 		tgrid.addWidget(self.settings_dialog.date,3,1)
 

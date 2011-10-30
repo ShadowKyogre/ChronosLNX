@@ -51,7 +51,7 @@ class GeoLocationWidget(QWidget):
     Provides a custom geographical location widget.
     """
 
-    __pyqtSignals__ = ("latitudeChanged(double)", "longitudeChanged(double)")
+    __pyqtSignals__ = ("latitudeChanged(double)", "longitudeChanged(double)", "elevationChanged(double)")
 
     def __init__(self, parent = None):
 

@@ -7,6 +7,7 @@ import datetime
 from astro_rewrite import *
 #import dateutil
 from dateutil import tz
+import zonetab
 #from dateutil.parser import *
 
 class Observer:
@@ -19,7 +20,7 @@ class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.6.0"
+		self.APPVERSION="0.7.0"
 		self.AUTHOR="ShadowKyogre"
 		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 		self.YEAR="2011"
@@ -30,8 +31,12 @@ class ChronosLNXConfig:
 						self.AUTHOR,
 						self.APPNAME)
 		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
-
+		if os.uname()[0] != 'Linux':
+			self.zt=os.sys.path[0]+"/zone.tab" #use the local copy if this isn't a Linux
+		else:
+			self.zt="/usr/share/zoneinfo/zone.tab"
 		self.observer=Observer()
+		self.baby=Observer()
 		self.reset_settings()
 
 		self.load_schedule()
@@ -97,18 +102,32 @@ class ChronosLNXConfig:
 			'Pisces': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'pisces')),
 		}
 
+	def generate_timezone(self, birth=False):
+		timezone=zonetab.nearest_tz(self.baby.lat, \
+					    self.baby.long, \
+					    zonetab.timezones(zonetab=self.zt))[2]
+		print "Detected natal timezone to be %s" % timezone
+		return tz.gettz(timezone)
+
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
-		self.settings.beginGroup("User")
-		try:
-			self.birthtime=self.settings.value("birthTime", \
-			QtCore.QVariant(datetime(2000,1,1,tzinfo=tz.gettz()))).toPyObject()
-		except ValueError:
-			self.birthtime=datetime(2000,1,1,tzinfo=tz.gettz())
-		#add bday
+		self.settings.beginGroup("Location")
 		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
 		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.settings.endGroup()
+		self.settings.beginGroup("Birth")
+		self.birthzone=self.settings.value("birthZone",QtCore.QVariant())
+		self.baby.lat=float(self.settings.value("latitude", 0.0).toPyObject())
+		self.baby.long=float(self.settings.value("longitude", 0.0).toPyObject())
+		self.baby.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.tz=self.generate_timezone()
+		try:
+			self.birthtime=self.settings.value("birthTime", \
+			QtCore.QVariant(datetime(2000,1,1,tzinfo=self.tz))).toPyObject()
+		except ValueError:
+			self.birthtime=datetime(2000,1,1,tzinfo=self.tz)
+		#add bday
 		self.settings.endGroup()
 		self.settings.beginGroup("Appearance")
 		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
@@ -144,16 +163,18 @@ class ChronosLNXConfig:
 				str(QtCore.QString("Capricorn"))).toPyObject())
 		except ValueError: #denotes that config was from previous version
 			self.capricorn_alt="Capricorn"
-		self.prepare_icons()
+		self.settings.endGroup()
 
+		self.prepare_icons()
+		self.load_natal_data()
+
+	def load_natal_data(self):
 		print "Loading natal data..."
-		self.natal_data=get_signs(self.birthtime,self.observer,self.show_nodes)
+		self.natal_data=get_signs(self.birthtime,self.baby,self.show_nodes)
 		#keep a copy of natal information for transits
 		self.natal_sun=format_zodiacal_longitude(self.natal_data[0][3])
 		#keep a formatted copy for solar returns
 		self.natal_moon=format_zodiacal_longitude(self.natal_data[1][3])
-		#keep a formatted copy for lunar returns
-		self.settings.endGroup()
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()
@@ -254,11 +275,17 @@ class ChronosLNXConfig:
 		return themes
 
 	def save_settings(self):
-		self.settings.beginGroup("User")
-		self.settings.setValue("birthTime", self.birthtime)
+		self.settings.beginGroup("Location")
 		self.settings.setValue("latitude", self.observer.lat)
 		self.settings.setValue("longitude", self.observer.long)
 		self.settings.setValue("elevation", self.observer.elevation)
+		self.settings.endGroup()
+
+		self.settings.beginGroup("Birth")
+		self.settings.setValue("birthTime", self.birthtime)
+		self.settings.setValue("latitude", self.baby.lat)
+		self.settings.setValue("longitude", self.baby.long)
+		self.settings.setValue("elevation", self.baby.elevation)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Appearance")

@@ -16,6 +16,24 @@ import math
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
 zodiac =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 zodiac_element = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
+aspects = { 'conjunction': 0.0,
+	    'semi-sextile':30.0,
+	    'semi=square':45.0,
+	    'sextile':60.0,
+	    'quintile':72.0,
+	    'square':90.0,
+	    'trine':120.0,
+	    'sesiquadrate':135.0,
+	    'biquintile':144.0,
+	    'inconjunct':150.0,
+	    'opposition':180.0,
+	  }
+special_aspects = { 'grand trine':((1,120),(2,120)),
+		    'grand cross':((1,90),(3,90)),
+		    'yod':((1,150),(2,60)),
+		    'stellium':((1,0),(2,0)),
+		    't square':((2,180),(1,90)),
+		  }
 					  ##Formalhaut
 #stars=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
 #"Alpheratz" , "Baten Kaitos", \#Aries stars
@@ -45,6 +63,9 @@ def check_distance(degrees, orb, zodiacal1, zodiacal2):
 		math.fabs(true_measurement-true_measurement2) \
 		<= degrees + orb
 
+def create_aspect_table(zodiac,natal_data,orbs):
+	print "To do"
+
 def solar_return(date,year,data): #data contains the angular information, date is for a reasonable baseline
 	day=datetime_to_julian(date.replace(year=year))
 	origday=day
@@ -57,29 +78,29 @@ def solar_return(date,year,data): #data contains the angular information, date i
 		delta_seconds=this_degree[3]-data[3]
 		if same_sign:
 			if delta_degrees < 0:
-				day=day+0.0013020833 #1.875 minutes increment
+				day=day+0.0013020833
 			elif delta_degrees > 0:
 				day=day-0.0013020833
 			else:
 				if delta_minutes < 0:
-					day=day+0.00065104169 #0.93750003 minutes increment
+					day=day+0.00065104169
 				elif delta_minutes > 0:
 					day=day-0.00065104169
 				else:
 					if delta_seconds < 0: #move forward
 						if math.fabs(delta_seconds) <= 5:
-							day=day+0.000081380211 #+7.5 minutes
+							day=day+0.000081380211
 						elif math.fabs(delta_seconds) <= 10:
-							day=day+0.00016276042 #+7.5 minutes
+							day=day+0.00016276042
 						else:
-							day=day+0.00032552084 #+15 minutes
+							day=day+0.00032552084
 					elif delta_seconds > 0:
 						if math.fabs(delta_seconds) <= 5:
-							day=day-0.000081380211 #+7.5 minutes
+							day=day-0.000081380211
 						elif math.fabs(delta_seconds) <= 10:
-							day=day-0.00016276042 #+7.5 minutes
+							day=day-0.00016276042
 						else:
-							day=day-0.00032552084 #+15 minutes
+							day=day-0.00032552084
 					else:
 						return revjul_to_datetime(swisseph.revjul(day))
 		else:
@@ -92,13 +113,14 @@ def solar_return(date,year,data): #data contains the angular information, date i
 #off by +-10ish seconds for now
 def lunar_return(date,month,year,data): #data contains the angular information, date is for a reasonable baseline
 	start_of_last_lunar_cycle=previous_new_moon(date)
-	if month==1:
-		this_month=date.replace(month=12,year=year-1)
-	else:
-		this_month=date.replace(month=month-1,year=year)
+	this_month=date.replace(month=month,year=year)
+	#if month==1:
+		#this_month=date.replace(month=12,year=year-1)
+	#else:
+		#this_month=date.replace(month=month-1,year=year)
 	time_elapsed=date-start_of_last_lunar_cycle #get the progress of the cycle
 	start_of_month_lunar_cycle=previous_new_moon(this_month) #get the cycle for this month
-	day=datetime_to_julian(start_of_month_lunar_cycle+time_elapsed) #get the middle of the month
+	day=datetime_to_julian(start_of_month_lunar_cycle+time_elapsed)
 	origday=day
 	while math.fabs(origday-day) <= 30:#
 		this_degree=format_zodiacal_longitude(swisseph.calc_ut(day,swisseph.MOON)[0])
@@ -109,35 +131,35 @@ def lunar_return(date,month,year,data): #data contains the angular information, 
 		delta_seconds=this_degree[3]-data[3]
 		if same_sign:
 			if delta_degrees < 0: #move forward
-				day=day+0.00032552084 #+1 hr
+				day=day+0.00032552084
 			elif delta_degrees > 0: #move backward
-				day=day-0.00032552084 #+1 hr
+				day=day-0.00032552084
 			else:
 				if delta_minutes < 0:
-					day=day+0.00016276042 #30 minutes
+					day=day+0.00016276042
 				elif delta_minutes > 0:
-					day=day-0.00016276042 #30 minutes
+					day=day-0.00016276042
 				else:
 					if delta_seconds < 0: #move forward
 						if math.fabs(delta_seconds) <= 3:
-							day=day+0.000010172526 #+7.5 minutes
+							day=day+0.000010172526
 						elif math.fabs(delta_seconds) <= 5:
-							day=day+0.000020345053 #+7.5 minutes
+							day=day+0.000020345053
 						elif math.fabs(delta_seconds) <= 10:
-							day=day+0.000040690105 #+7.5 minutes
+							day=day+0.000040690105
 						else:
-							day=day+0.000081380211 #+15 minutes
+							day=day+0.000081380211
 					elif delta_seconds > 0:
 						if math.fabs(delta_seconds) <= 3:
-							day=day-0.000010172526 #+7.5 minutes
+							day=day-0.000010172526
 						if math.fabs(delta_seconds) <= 5:
-							day=day-0.000020345053 #+7.5 minutes
+							day=day-0.000020345053
 						elif math.fabs(delta_seconds) <= 10:
-							day=day-0.000040690105 #+7.5 minutes
+							day=day-0.000040690105
 						else:
-							day=day-0.000081380211 #+15 minutes
+							day=day-0.000081380211
 					else:
-						return revjul_to_datetime(swisseph.revjul(day-0.0002055))
+						return revjul_to_datetime(swisseph.revjul(day))
 		else:
 			if zodiac.index(this_degree[1]) < zodiac.index(data[1]) or \
 				this_degree[1]=="Aries" and data[1]=="Pisces":
@@ -250,6 +272,7 @@ def get_house(planet, observer, date):
 	#float[12],#float[8]
 	#note: houses move along!
 	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
+	#get REALLY precise house position
 	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
 	swisseph.close()
 	return hom,objlon,format_zodiacal_longitude(objlon)
@@ -395,9 +418,9 @@ def get_moon_cycle(date):
 
 def revjul_to_datetime(revjul):
 	hours=int(math.modf(revjul[3])[1])
-	minutedouble=math.modf(revjul[3])
-	minutes=int(minutedouble[0]*60)
-	seconds=int(math.modf(minutedouble[0])[0]*60)
+	minutedouble=math.modf(revjul[3])[0]*60
+	minutes=int(minutedouble)
+	seconds=int(math.modf(minutedouble)[0]*60)
 	utc=datetime(int(revjul[0]), int(revjul[1]), int(revjul[2]), hour=hours,minute=minutes,second=seconds)
 	return utc_to_timezone(utc)
 
