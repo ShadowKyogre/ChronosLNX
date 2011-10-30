@@ -169,30 +169,6 @@ class PlanetaryHoursList(QtGui.QWidget):
 					return self.get_planet(i)
 		return "-Error-"
 
-	# def currentHour(self):
-		# return self.current_hour
-#
-	# def isUpdating(self):
-		# return self.updating
-#
-	# @pyqtSignature("setUpdating(bool)")
-	# def setUpdating(self,update_status):
-		# if self.updating != update_status:
-			# self.updating=updating
-			# self.emit(SIGNAL("updatingChanged(bool)"))
-	# updating = pyqtProperty("datetime", dateTime, setDateTime)
-#
-	# def dateTime(self):
-		# return self.datetime
-#
-	# @pyqtSignature("setDateTime(datetime)")
-	# def setDateTime(self, date):
-		# if self.datetime != date:
-			# self.date=date
-			# self.emit(SIGNAL("dateTimeChanged(datetime)"), date)
-	#
-	# datetime = pyqtProperty("datetime", dateTime, setDateTime)
-
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args):
 

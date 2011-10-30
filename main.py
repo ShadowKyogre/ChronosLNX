@@ -372,7 +372,7 @@ class ChronosLNX(QtGui.QWidget):
 			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
 				replace_month=(month+1)%12
 				if replace_month == 1:
-					 date=datetime(year=year+1,month=replace_month,day=day).replace(tzinfo=tz.gettz())
+					date=datetime(year=year+1,month=replace_month,day=day).replace(tzinfo=tz.gettz())
 				else:
 					date=datetime(year=year,month=replace_month,day=day).replace(tzinfo=tz.gettz())
 			else:
@@ -475,6 +475,11 @@ class ChronosLNX(QtGui.QWidget):
 		CLNXConfig.capricorn_alt=cp
 
 		CLNXConfig.prepare_icons()
+		CLNXConfig.natal_data=get_signs(CLNXConfig.birthtime,CLNXConfig.observer,CLNXConfig.show_nodes)
+		#keep a copy of natal information for transits
+		CLNXConfig.natal_sun=format_zodiacal_longitude(CLNXConfig.natal_data[0][3])
+		#keep a formatted copy for solar returns
+		CLNXConfig.natal_moon=format_zodiacal_longitude(CLNXConfig.natal_data[1][3])
 		self.calendar.setIcons(CLNXConfig.moon_icons)
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
@@ -583,19 +588,19 @@ class ChronosLNX(QtGui.QWidget):
 #http://www.itfingers.com/Question/758256/pyqt4-minimize-to-tray
 
 	def make_tray_icon(self):
-		  self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(CLNXConfig.main_icons['logo']), app)
-		  menu = QtGui.QMenu()
-		  quitAction = QtGui.QAction(self.tr("&Quit"), self)
-		  quitAction.triggered.connect(QtGui.qApp.quit)
-		  showaction=menu.addAction("&Show",self.show)
-		  showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
-		  setaction=menu.addAction("&Settings",self.settings_dialog.open)
-		  setaction.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
-		  menu.addAction(quitAction)
-		  quitAction.setIcon(QtGui.QIcon.fromTheme("application-exit"))
-		  self.trayIcon.setContextMenu(menu)
-		  self.trayIcon.activated.connect(self.__icon_activated)
-		  self.trayIcon.show()
+		self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(CLNXConfig.main_icons['logo']), app)
+		menu = QtGui.QMenu()
+		quitAction = QtGui.QAction(self.tr("&Quit"), self)
+		quitAction.triggered.connect(QtGui.qApp.quit)
+		showaction=menu.addAction("&Show",self.show)
+		showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
+		setaction=menu.addAction("&Settings",self.settings_dialog.open)
+		setaction.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
+		menu.addAction(quitAction)
+		quitAction.setIcon(QtGui.QIcon.fromTheme("application-exit"))
+		self.trayIcon.setContextMenu(menu)
+		self.trayIcon.activated.connect(self.__icon_activated)
+		self.trayIcon.show()
 
 	def _ChronosLNX__icon_activated(self,reason):
 		if reason == QtGui.QSystemTrayIcon.DoubleClick:

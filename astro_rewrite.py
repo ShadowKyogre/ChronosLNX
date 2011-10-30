@@ -267,16 +267,17 @@ def get_transit(planet, observer, date):
 	swisseph.close()
 	return transit
 
+#pisces, taurus
 #notes: swisseph.TRUE_NODE
 #south node = swisseph.TRUE_NODE's angle - 180
-def get_signs(date, observer, nodes=False):
+def get_signs(date, observer, nodes=False, axes=False):
 	entries = []
 	for i in xrange(10):
 		house,truelon,info=get_house(i, observer, date)
 		degrees,sign,minutes,seconds=info
 		angle="%s*%s\"%s'" %(degrees, minutes, seconds)
 		if i == swisseph.SUN or i == swisseph.MOON:
-			retrograde=str('Not Applicable')
+			retrograde='Not Applicable'
 		else:
 			retrograde=str(is_retrograde(i,date))
 		entries.append([swisseph.get_planet_name(i), sign, angle, truelon, retrograde,str(int(house))])
@@ -289,10 +290,33 @@ def get_signs(date, observer, nodes=False):
 
 		#do some trickery to display the South Node
 		reverse=swisseph.degnorm(truelon-180.0)
-		reverse_house=math.fabs(12-house)
+		reverse_house=(6+house)%12
 		rev_degrees,rev_sign,rev_minutes,rev_seconds=format_zodiacal_longitude(reverse)
 		rev_angle="%s*%s\"%s'" %(rev_degrees, rev_minutes, rev_seconds)
 		entries.append(["South Node", rev_sign, rev_angle, reverse, retrograde,str(int(reverse_house))])
+	if axes:
+		cusps,asmc=swisseph.houses(datetime_to_julian(date), observer.lat, observer.long)
+		ascendant=asmc[0]
+		descendant=cusps[6]
+		mc=asmc[1]
+		ic=cusps[3]
+		retrograde='Not a Planet'
+
+		a_degrees,a_sign,a_minutes,a_seconds=format_zodiacal_longitude(ascendant)
+		d_degrees,d_sign,d_minutes,d_seconds=format_zodiacal_longitude(descendant)
+		m_degrees,m_sign,m_minutes,m_seconds=format_zodiacal_longitude(mc)
+		i_degrees,i_sign,i_minutes,i_seconds=format_zodiacal_longitude(ic)
+
+		a_angle="%s*%s\"%s'" %(a_degrees, a_minutes, a_seconds)
+		d_angle="%s*%s\"%s'" %(d_degrees, d_minutes, d_seconds)
+		m_angle="%s*%s\"%s'" %(m_degrees, m_minutes, m_seconds)
+		i_angle="%s*%s\"%s'" %(i_degrees, i_minutes, i_seconds)
+
+		entries.append(["Ascendant", a_sign, a_angle, ascendant, retrograde,str(1)])
+		entries.append(["MC", m_sign, m_angle, ascendant, retrograde,str(10)])
+		entries.append(["Descendant", d_sign, d_angle, mc, retrograde,str(7)])
+		entries.append(["IC", i_sign, i_angle, ic, retrograde,str(4)])
+
 	#if stars:
 		#print "Todo"
 	swisseph.close()
