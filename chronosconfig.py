@@ -4,6 +4,7 @@ import os, csv
 from ast import literal_eval
 from eventplanner import *
 import datetime
+from astro_rewrite import *
 #import dateutil
 from dateutil import tz
 #from dateutil.parser import *
@@ -99,6 +100,7 @@ class ChronosLNXConfig:
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
 		self.settings.beginGroup("Location")
+		#add bday
 		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
 		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
@@ -138,6 +140,7 @@ class ChronosLNXConfig:
 		except ValueError: #denotes that config was from previous version
 			self.capricorn_alt="Capricorn"
 		self.prepare_icons()
+		#self.natal_information=get_signs(birthdate,observer,nodes=self.show_nodes) #keep a copy of natal information for transits, solar returns, and lunar returns
 		self.settings.endGroup()
 
 	def load_schedule(self):
@@ -167,6 +170,7 @@ class ChronosLNXConfig:
 			first_column.setCheckable(True)
 			if literal_eval(entry[0]):
 				first_column.setCheckState(QtCore.Qt.Checked)
+			first_column.setEditable(False)
 			if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
 				#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
 				second_column.setData(QtCore.QDate.fromString(entry[1], "MM/dd/yyyy"),QtCore.Qt.UserRole)

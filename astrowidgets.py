@@ -215,7 +215,7 @@ class SignsForDayList(QtGui.QWidget):
 		self.tree.setHeaderLabels(header)
 		self.tree.setColumnCount(5)
 		vbox.addWidget(self.tree)
-		self.time.setDisplayFormat("HH:mm")
+		self.time.setDisplayFormat("HH:mm:ss")
 		self.time.timeChanged.connect(self.update_degrees)
 
 	def update_degrees(self, qtime):

@@ -188,11 +188,9 @@ class ChronosLNX(QtGui.QWidget):
 
 		hoursToday=PlanetaryHoursList(info_dialog)
 		hoursToday.setIcons(CLNXConfig.main_icons)
-		hoursToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		moonToday=MoonCycleList(info_dialog)
 		moonToday.setIcons(CLNXConfig.moon_icons)
-		moonToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		signsToday=SignsForDayList(info_dialog)
 		signsToday.setIcons(CLNXConfig.main_icons)
@@ -200,7 +198,6 @@ class ChronosLNX(QtGui.QWidget):
 		signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
 		signsToday.setNodes(CLNXConfig.show_nodes)
 		signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
-		signsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
 		eventsToday=EventsList(info_dialog)
 		model=DayEventsModel()

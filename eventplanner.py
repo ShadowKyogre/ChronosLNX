@@ -259,7 +259,7 @@ class EventsList(QtGui.QWidget):
 		#inputstuff=EventList(events_page)
 		a_vbox.addLayout(editbuttons)
 
-		self.tree=QtGui.QTreeView(self)
+		self.tree=QtGui.QTableView(self)
 
 		dateeditor=DateEditorDelegate(self.tree)
 		timeeditor=TimeEditorDelegate(self.tree)
@@ -280,6 +280,7 @@ class EventsList(QtGui.QWidget):
 	def add(self):
 		item=QtGui.QStandardItem()
 		item.setCheckable(True)
+		item.setEditable(False)
 		item2=QtGui.QStandardItem("Everyday")
 		item3=QtGui.QStandardItem("Sun")
 		item4=QtGui.QStandardItem("Textual reminder")
