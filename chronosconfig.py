@@ -30,11 +30,12 @@ class ChronosLNXConfig:
 						QtCore.QSettings.UserScope,
 						self.AUTHOR,
 						self.APPNAME)
-		#self.settings=QtCore.QSettings(self.AUTHOR,self.APPNAME)
+
 		if os.uname()[0] != 'Linux':
 			self.zt=os.sys.path[0]+"/zone.tab" #use the local copy if this isn't a Linux
 		else:
 			self.zt="/usr/share/zoneinfo/zone.tab"
+
 		self.observer=Observer()
 		self.baby=Observer()
 		self.reset_settings()
@@ -84,6 +85,8 @@ class ChronosLNXConfig:
 			'Waning Gibbous Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_gibbous_moon")),
 			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","last_quarter_moon")),
 			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_crescent_moon")),
+			'Solar Return' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","solar_return")),
+			'Lunar Return' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","lunar_return")),
 		}
 		self.sign_icons = {
 			'Aries': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aries')),
@@ -116,53 +119,44 @@ class ChronosLNXConfig:
 		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		self.settings.endGroup()
+
 		self.settings.beginGroup("Birth")
 		self.birthzone=self.settings.value("birthZone",QtCore.QVariant())
 		self.baby.lat=float(self.settings.value("latitude", 0.0).toPyObject())
 		self.baby.long=float(self.settings.value("longitude", 0.0).toPyObject())
 		self.baby.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
-		self.tz=self.generate_timezone()
-		try:
-			self.birthtime=self.settings.value("birthTime", \
-			QtCore.QVariant(datetime(2000,1,1,tzinfo=self.tz))).toPyObject()
-		except ValueError:
-			self.birthtime=datetime(2000,1,1,tzinfo=self.tz)
+		tzo=self.generate_timezone()
+		self.birthtime=self.settings.value("birthTime", \
+			QtCore.QVariant(datetime(2000,1,1,tzinfo=tzo)\
+			.astimezone(tz.gettz()))).toPyObject()
 		#add bday
 		self.settings.endGroup()
+
 		self.settings.beginGroup("Appearance")
 		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
-		self.settings.endGroup()
-		self.settings.beginGroup("Tweaks")
-		try:
-			self.show_sign=literal_eval(self.settings.value("showSign",\
-			QtCore.QString("True")).toPyObject())
-		except ValueError: #denotes that config was from previous version
-			self.show_sign=True
-		try:
-			self.show_moon=literal_eval(self.settings.value("showMoonPhase",\
-			QtCore.QString("True")).toPyObject())
-		except ValueError:
-			self.show_moon=True
-		try:
-			self.show_house_of_moment=literal_eval(self.settings.value("showHouseOfMoment",\
-			QtCore.QString("True")).toPyObject())
-		except ValueError:
-			  self.show_house_of_moment=True
-		try:
-			self.show_nodes=literal_eval(self.settings.value("showNodes",
-					QtCore.QString("True")).toPyObject())
-		except ValueError: #denotes that config was from previous version
-			self.show_nodes=True
-		try:
-			self.pluto_alt=literal_eval(self.settings.value("alternatePluto",
-					QtCore.QString("False")).toPyObject())
-		except ValueError: #denotes that config was from previous version
-			self.pluto_alt=False
-		try:
-			self.capricorn_alt=str(self.settings.value("alternateCapricorn", \
+		self.pluto_alt=literal_eval(str(self.settings.value("alternatePluto",
+					QtCore.QString("False")).toPyObject()))
+		self.capricorn_alt=str(self.settings.value("alternateCapricorn", \
 				str(QtCore.QString("Capricorn"))).toPyObject())
-		except ValueError: #denotes that config was from previous version
-			self.capricorn_alt="Capricorn"
+		self.settings.endGroup()
+
+		self.settings.beginGroup("Tweaks")
+		self.show_sign=literal_eval(str(self.settings.value("showSign",\
+			QtCore.QString("True")).toPyObject()))
+		self.show_moon=literal_eval(str(self.settings.value("showMoonPhase",\
+			QtCore.QString("True")).toPyObject()))
+		self.show_house_of_moment=literal_eval(str(self.settings.value("showHouseOfMoment",\
+			QtCore.QString("True")).toPyObject()))
+		self.show_nodes=literal_eval(str(self.settings.value("showNodes",
+					QtCore.QString("True")).toPyObject()))
+		self.show_admi=literal_eval(str(self.settings.value("showADMI",
+					QtCore.QString("False")).toPyObject()))
+		self.show_mcal=literal_eval(str(self.settings.value("showMoonOnCal",
+					QtCore.QString("False")).toPyObject()))
+		self.show_sr=literal_eval(str(self.settings.value("showSolarReturnOnCal",
+					QtCore.QString("False")).toPyObject()))
+		self.show_lr=literal_eval(str(self.settings.value("showLunarReturnOnCal",
+					QtCore.QString("False")).toPyObject()))
 		self.settings.endGroup()
 
 		self.prepare_icons()
@@ -170,7 +164,9 @@ class ChronosLNXConfig:
 
 	def load_natal_data(self):
 		print "Loading natal data..."
-		self.natal_data=get_signs(self.birthtime,self.baby,self.show_nodes)
+		self.natal_data=get_signs(self.birthtime,self.baby,\
+					  nodes=self.show_nodes,\
+					  axes=self.show_admi)
 		#keep a copy of natal information for transits
 		self.natal_sun=format_zodiacal_longitude(self.natal_data[0][3])
 		#keep a formatted copy for solar returns
@@ -290,15 +286,19 @@ class ChronosLNXConfig:
 
 		self.settings.beginGroup("Appearance")
 		self.settings.setValue("iconTheme", self.current_theme)
+		self.settings.setValue("alternatePluto",str(self.pluto_alt))
+		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
 		self.settings.setValue("showSign", str(self.show_sign))
 		self.settings.setValue("showMoonPhase",str(self.show_moon))
 		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
-		self.settings.setValue("showNodes",str(self.show_house_of_moment))
-		self.settings.setValue("alternatePluto",str(self.pluto_alt))
-		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))
+		self.settings.setValue("showNodes",str(self.show_nodes))
+		self.settings.setValue("showADMI",str(self.show_admi))
+		self.settings.setValue("showMoonOnCal",str(self.show_mcal))
+		self.settings.setValue("showSolarReturnOnCal",str(self.show_lr))
+		self.settings.setValue("showLunarReturnOnCal",str(self.show_sr))
 		self.settings.endGroup()
 
 		self.settings.sync()

@@ -31,12 +31,85 @@ class AstroCalendar(QtGui.QCalendarWidget):
 
 		QtGui.QCalendarWidget.__init__(self, *args)
 		self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Midlight))
+		self.solar = QtGui.QColor("#C09600")
+		self.lunar = QtGui.QColor("#A8CDD1")
 		self.color.setAlpha(64)
+		self.solar.setAlpha(64)
+		self.lunar.setAlpha(64)
 		self.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
+		self.currentPageChanged.connect(self.checkInternals)
 		self.selectionChanged.connect(self.updateCells)
+		self.solarReturn=False
+		self.lunarReturn=False
+		self.showPhase=False
+		self.birthtime=None
 
 	def setIcons(self, icon_list):
 		self.icons=icon_list
+
+	def setShowPhase(self, value):
+		self.showPhase=value
+
+	def setSolarReturn(self, value):
+		self.solarReturn=value
+
+	def setLunarReturn(self, value):
+		self.lunarReturn=value
+
+	def setBirthTime(self, time):
+		self.birthtime=time
+		#self.updateSun()
+		#self.updateMoon()
+
+	def setNatalMoon(self, zodiacal_data):
+		if not self.birthtime:
+			raise RuntimeError, "Cannot update natal moon without a birthtime!"
+		self.natal_moon=zodiacal_data
+		if self.lunarReturn:
+			self.updateMoon()
+
+	def setNatalSun(self, zodiacal_data):
+		if not self.birthtime:
+			raise RuntimeError, "Cannot update natal sun without a birthtime!"
+		self.natal_sun=zodiacal_data
+		if self.solarReturn:
+			self.updateSun()
+
+	def checkInternals(self, year, month):
+		if self.solarReturn:
+			if not self.isSolarReturnValid():
+				print "Updating solar return..."
+				self.updateSun()
+		if self.lunarReturn:
+			if not self.isLunarReturnsValid():
+				print "Updating lunar returns..."
+				self.updateMoon()
+		#self.listidx=self.isLunarReturnsValid()
+
+	def updateSun(self):
+		self.solarReturnTime=solar_return(self.birthtime, \
+						  self.yearShown(), \
+						  self.natal_sun)
+
+	def updateMoon(self):
+		self.lunarReturns=[]
+		for m in xrange(1,13):
+			self.lunarReturns.append(lunar_return(self.birthtime,\
+				m,self.yearShown(),self.natal_moon))
+
+	def isSolarReturnValid(self):
+		return self.solarReturnTime.year == self.yearShown()
+
+	def isLunarReturnsValid(self):
+		stillInYear=False
+		for i in xrange(len(self.lunarReturns)):
+			t=self.lunarReturns[i]
+			if t.year == self.yearShown() and \
+				t.month == self.monthShown():
+				return i
+			elif t.year == self.yearShown():
+				stillInYear=True
+		return stillInYear
 
 	def selectedDateTime(self):
 		return QtCore.QDateTime(self.selectedDate())
@@ -44,28 +117,33 @@ class AstroCalendar(QtGui.QCalendarWidget):
 	def paintCell(self, painter, rect, date):
 		QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
 
-		#first_day = self.firstDayOfWeek()
-		#last_day = first_day + 6
-		##current_date = self.selectedDate()
-		#current_day = current_date.dayOfWeek()
-		##print first_day,last_day
-		#if first_day <= current_day:
-			#first_date = current_date.addDays(first_day - current_day)
-		#else:
-			#first_date = current_date.addDays(first_day - 7 - current_day)
-		#last_date = first_date.addDays(6)
 		if date == QtCore.QDate.currentDate():
-		#if first_date <= date <= last_date:
 			painter.fillRect(rect, self.color)
-		datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
-		phase=state_to_string(grab_phase(datetime), swisseph.MOON)
-		icon=self.icons[phase]
-		icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
+
+		if self.solarReturn:
+			if self.solarReturnTime.date() == date.toPyDate():
+				icon=self.icons['Solar Return']
+				point=rect.bottomRight()
+				icon.paint(painter,QtCore.QRect(rect.x(),point.y()-14, 14, 14))
+				#painter.fillRect(rect, self.solar)
+
+		if self.lunarReturn:
+			self.idx=self.isLunarReturnsValid()
+			if self.lunarReturns[self.idx].date() == date.toPyDate():
+				icon=self.icons['Lunar Return']
+				point=rect.bottomRight()
+				icon.paint(painter,QtCore.QRect(point.x()-14,point.y()-14, 14, 14))
+				#painter.fillRect(rect, self.lunar)
+
+		if self.showPhase:
+			datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
+			phase=state_to_string(grab_phase(datetime), swisseph.MOON)
+			icon=self.icons[phase]
+			icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
 
 #http://doc.qt.nokia.com/stable/qhelpcontentwidget.html
 #http://www.riverbankcomputing.com/static/Docs/PyQt4/html/qthelp.html
 #http://ubuntuforums.org/showthread.php?t=1110989
-#figure out how to get these to load icons
 #http://www.commandprompt.com/community/pyqt/x6082
 
 class PlanetaryHoursList(QtGui.QWidget):
@@ -201,6 +279,9 @@ class SignsForDayList(QtGui.QWidget):
 		.replace(second=qtime.second())
 		self._grab()
 
+	def setADMI(self, value):
+		self.admi=value
+
 	def setIcons(self, icon_list):
 		self.icons=icon_list
 
@@ -218,12 +299,14 @@ class SignsForDayList(QtGui.QWidget):
 
 	def _grab(self):
 		self.tree.clear()
-		constellations=get_signs(self.target_date,self.observer,nodes=self.nodes)
+		constellations=get_signs(self.target_date,self.observer,\
+					nodes=self.nodes,axes=self.admi)
 		for i in constellations:
 			item=QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i[0] == "Pluto":
 				item.setIcon(0,self.icons['Pluto 2'])
-			else:
+			elif not (i[0] == "Ascendant" or i[0] == "Descendant" or \
+			i[0] == "MC" or i[0] == "IC"):
 				item.setIcon(0,self.icons[i[0]])
 			item.setText(0,i[0])
 			if i[1] == "Capricorn":

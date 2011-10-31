@@ -113,7 +113,7 @@ def solar_return(date,year,data): #data contains the angular information, date i
 #off by +-10ish seconds for now
 def lunar_return(date,month,year,data): #data contains the angular information, date is for a reasonable baseline
 	start_of_last_lunar_cycle=previous_new_moon(date)
-	this_month=date.replace(month=month,year=year)
+	this_month=date.replace(month=month,year=year, day=20)
 	#if month==1:
 		#this_month=date.replace(month=12,year=year-1)
 	#else:
