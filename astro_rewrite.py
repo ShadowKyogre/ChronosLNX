@@ -314,6 +314,8 @@ def get_signs(date, observer, nodes=False, axes=False):
 		#do some trickery to display the South Node
 		reverse=swisseph.degnorm(truelon-180.0)
 		reverse_house=(6+house)%12
+		if reverse_house < 1:
+			reverse_house=12+reverse_house
 		rev_degrees,rev_sign,rev_minutes,rev_seconds=format_zodiacal_longitude(reverse)
 		rev_angle="%s*%s\"%s'" %(rev_degrees, rev_minutes, rev_seconds)
 		entries.append(["South Node", rev_sign, rev_angle, reverse, retrograde,str(int(reverse_house))])

@@ -103,6 +103,10 @@ class ChronosLNXConfig:
 			'Capricorn 3': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn_3')),
 			'Aquarius': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aquarius')),
 			'Pisces': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'pisces')),
+			'Ascendant' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","ascendant")),
+			'Descendant' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","descendant")),
+			'IC' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","ic")),
+			'MC' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","mc")),
 		}
 
 	def generate_timezone(self, birth=False):

@@ -305,8 +305,10 @@ class SignsForDayList(QtGui.QWidget):
 			item=QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i[0] == "Pluto":
 				item.setIcon(0,self.icons['Pluto 2'])
-			elif not (i[0] == "Ascendant" or i[0] == "Descendant" or \
+			elif (i[0] == "Ascendant" or i[0] == "Descendant" or \
 			i[0] == "MC" or i[0] == "IC"):
+				item.setIcon(0,self.sign_icons[i[0]])
+			else:
 				item.setIcon(0,self.icons[i[0]])
 			item.setText(0,i[0])
 			if i[1] == "Capricorn":
