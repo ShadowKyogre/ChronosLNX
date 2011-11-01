@@ -14,11 +14,28 @@ import math
 #ascmc[5] =     "co-ascendant" (Walter Koch)
 #ascmc[6] =     "co-ascendant" (Michael Munkasey)
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
+
+SOLAR_YEAR_SECONDS=31556925.51 #source openastro.org
+SOLAR_DEGREE_SECOND=1.1407955438685572e-05
+SOLAR_DEGREE_MS=1.1407955438685574e-08
+SOLAR_YEAR_DAYS=365.2421934027778
+
+LUNAR_MONTH_SECONDS=2551442.8619520003
+LUNAR_DEGREE_SECOND=0.00014109663413139473
+LUNAR_DEGREE_MS=1.4109663413139472e-07
+LUNAR_DEGREE_NS=1.410966341313947e-10
+LUNAR_MONTH_DAYS=29.53058868
+LMONTH_IN_SYEAR=12.368266591655964
+LMONTH_TO_MONTH=0.9702248824500268
+
+SECS_TO_DAYS=86400.0
+
 zodiac =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 zodiac_element = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
+zodiac_mode = ['cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable']
 aspects = { 'conjunction': 0.0,
 	    'semi-sextile':30.0,
-	    'semi=square':45.0,
+	    'semi-square':45.0,
 	    'sextile':60.0,
 	    'quintile':72.0,
 	    'square':90.0,
@@ -28,12 +45,29 @@ aspects = { 'conjunction': 0.0,
 	    'inconjunct':150.0,
 	    'opposition':180.0,
 	  }
-special_aspects = { 'grand trine':((1,120),(2,120)),
-		    'grand cross':((1,90),(3,90)),
-		    'yod':((1,150),(2,60)),
-		    'stellium':((1,0),(2,0)),
-		    't square':((2,180),(1,90)),
+	  #
+special_aspects = { 'grand trine':((1,'trine'),(2,'trine')),
+		    'grand cross':((1,'square'),(3,'square')),
+		    'yod':((1,'inconjunct'),(2,'sextile')),
+		    'stellium':((1,'conjunction'),(2,'conjunction')),
+		    't square':((1,'square'),(2,'opposition')),
 		  }
+orbital_precedence={
+  "Ascendant": -4,
+  "Descendant": -3,
+  "MC": -2,
+  "IC": -1,
+  swisseph.MOON : 0,
+  swisseph.MERCURY : 1,
+  swisseph.VENUS : 2,
+  swisseph.SUN : 3,
+  swisseph.MARS : 4,
+  swisseph.JUPITER : 5,
+  swisseph.SATURN : 6,
+  swisseph.URANUS : 7,
+  swisseph.NEPTUNE : 8,
+  swisseph.PLUTO : 9,
+  }
 					  ##Formalhaut
 #stars=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
 #"Alpheratz" , "Baten Kaitos", \#Aries stars
@@ -54,122 +88,99 @@ def parse_zodiacal_longitude(sign, degree, minute, second):
 	degrees=zodiac.index(sign)*30.0
 	return degrees+degree+minute/60.0+second/3600
 
-def check_distance(degrees, orb, zodiacal1, zodiacal2):
-	true_measurement=parse_zodiacal_longitude(zodiacal1[0], \
-			  zodiacal1[1], zodiacal1[2])
-	true_measurement2=parse_zodiacal_longitude(zodiacal2[0], \
-			  zodiacal2[1], zodiacal2[2])
-	return degrees - orb <= \
-		math.fabs(true_measurement-true_measurement2) \
-		<= degrees + orb
+def check_distance(orb, zodiacal1, zodiacal2):
+	difference=math.fabs(zodiacal1-zodiacal2)
+	if difference > 180.0:
+		difference=360.0-difference
+	for i in aspects:
+		degrees=aspects[i]
+		o=orb[i]
+		if degrees - o <= difference <= degrees + o:
+			return i
 
-def create_aspect_table(zodiac,natal_data,orbs):
-	print "To do"
+def create_aspect_table(zodiac,orbs,natal_data=None):
+	#sun has precedence of 4
+	hi=[]
+	for i in zodiac:
+		for j in zodiac:
+			if i[0] == j[0]:
+				continue
+			if len(hi) > 0:
+				try:
+					#avoid duplicate entries
+					if zip(*hi)[0].index(j[0]) >= 0 and zip(*hi)[1].index(i[0]) >= 0:
+						continue
+				except:
+					print "%s on %s Entry needs to be added" %(i[0],j[0])
+			#if i[0] == "MC" and j[0] == "IC" or \
+			#i[0] == "Ascendant" and j[0] == "Descendant" or \
+			#j[0] == "MC" and i[0] == "IC" or \
+			#j[0] == "Ascendant" and i[0] == "Descendant" or \
+			#j[0] == "North Node" and i[0] == "South Node" or \
+			#i[0] == "North Node" and j[0] == "South Node":
+				#continue
+			hi.append([i[0],j[0],check_distance(orbs,i[3],j[3]),i[3],j[3],math.fabs(i[3]-j[3])])
+		if zodiac is not natal_data and natal_data is not None:
+			for j in natal_data:
+				hi.append([i[0],"Natal_%s" %(j[0]),check_distance(orbs,i[3],j[3]),i[3],j[3],math.fabs(i[3]-j[3])])
+	return hi
 
-def solar_return(date,year,data): #data contains the angular information, date is for a reasonable baseline
-	day=datetime_to_julian(date.replace(year=year))
-	origday=day
-	while math.fabs(origday-day) <= 30:#
-		this_degree=format_zodiacal_longitude(swisseph.calc_ut(day,swisseph.SUN)[0])
-		swisseph.close()
-		same_sign=this_degree[1]==data[1]
-		delta_degrees=this_degree[0]-data[0]
-		delta_minutes=this_degree[2]-data[2]
-		delta_seconds=this_degree[3]-data[3]
-		if same_sign:
-			if delta_degrees < 0:
-				day=day+0.0013020833
-			elif delta_degrees > 0:
-				day=day-0.0013020833
-			else:
-				if delta_minutes < 0:
-					day=day+0.00065104169
-				elif delta_minutes > 0:
-					day=day-0.00065104169
-				else:
-					if delta_seconds < 0: #move forward
-						if math.fabs(delta_seconds) <= 5:
-							day=day+0.000081380211
-						elif math.fabs(delta_seconds) <= 10:
-							day=day+0.00016276042
-						else:
-							day=day+0.00032552084
-					elif delta_seconds > 0:
-						if math.fabs(delta_seconds) <= 5:
-							day=day-0.000081380211
-						elif math.fabs(delta_seconds) <= 10:
-							day=day-0.00016276042
-						else:
-							day=day-0.00032552084
-					else:
-						return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			if zodiac.index(this_degree[1]) < zodiac.index(data[1]) or \
-				this_degree[1]=="Aries" and data[1]=="Pisces":
-				day=day+30 #we're not even in the same month
-			else:
-				day=day-30 #we're not even in the same month
+def solar_return(date,year,data): #data contains the angule, date is for a reasonable baseline
+	day=datetime_to_julian(date)+(SOLAR_YEAR_DAYS*(year-date.year))
 
-#off by +-10ish seconds for now
-def lunar_return(date,month,year,data): #data contains the angular information, date is for a reasonable baseline
-	start_of_last_lunar_cycle=previous_new_moon(date)
-	this_month=date.replace(month=month,year=year, day=20)
-	#if month==1:
-		#this_month=date.replace(month=12,year=year-1)
-	#else:
-		#this_month=date.replace(month=month-1,year=year)
-	time_elapsed=date-start_of_last_lunar_cycle #get the progress of the cycle
-	start_of_month_lunar_cycle=previous_new_moon(this_month) #get the cycle for this month
-	day=datetime_to_julian(start_of_month_lunar_cycle+time_elapsed)
-	origday=day
-	while math.fabs(origday-day) <= 30:#
-		this_degree=format_zodiacal_longitude(swisseph.calc_ut(day,swisseph.MOON)[0])
-		swisseph.close()
-		same_sign=this_degree[1]==data[1]
-		delta_degrees=this_degree[0]-data[0]
-		delta_minutes=this_degree[2]-data[2]
-		delta_seconds=this_degree[3]-data[3]
-		if same_sign:
-			if delta_degrees < 0: #move forward
-				day=day+0.00032552084
-			elif delta_degrees > 0: #move backward
-				day=day-0.00032552084
-			else:
-				if delta_minutes < 0:
-					day=day+0.00016276042
-				elif delta_minutes > 0:
-					day=day-0.00016276042
-				else:
-					if delta_seconds < 0: #move forward
-						if math.fabs(delta_seconds) <= 3:
-							day=day+0.000010172526
-						elif math.fabs(delta_seconds) <= 5:
-							day=day+0.000020345053
-						elif math.fabs(delta_seconds) <= 10:
-							day=day+0.000040690105
-						else:
-							day=day+0.000081380211
-					elif delta_seconds > 0:
-						if math.fabs(delta_seconds) <= 3:
-							day=day-0.000010172526
-						if math.fabs(delta_seconds) <= 5:
-							day=day-0.000020345053
-						elif math.fabs(delta_seconds) <= 10:
-							day=day-0.000040690105
-						else:
-							day=day-0.000081380211
-					else:
-						return revjul_to_datetime(swisseph.revjul(day))
-		else:
-			if zodiac.index(this_degree[1]) < zodiac.index(data[1]) or \
-				this_degree[1]=="Aries" and data[1]=="Pisces":
-				day=day+1 #move along until we're there
-			else:
-				day=day-1 #same
+	angle=swisseph.calc_ut(day,swisseph.SUN)[0]
+	sec=((data-angle)/SOLAR_DEGREE_SECOND)/SECS_TO_DAYS
+	day=day+sec
+
+	angle=swisseph.calc_ut(day,swisseph.SUN)[0]
+	msec=((data-angle)/SOLAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+
+	return revjul_to_datetime(swisseph.revjul(day+msec))
+
+def lunar_return(date,month,year,data): #data contains the angle, date is for a reasonable baseline
+	day=datetime_to_julian(date)
+	progress,cycles=math.modf((day/LUNAR_MONTH_DAYS))
+
+	cycles=cycles+(year-date.year)*LMONTH_IN_SYEAR
+	cycles=cycles+(month-date.month)*LMONTH_TO_MONTH
+
+	day=(cycles)*LUNAR_MONTH_DAYS
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	day=day+(data-angle)/360*LUNAR_MONTH_DAYS
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	day=day+(data-angle)/360*LUNAR_MONTH_DAYS
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+	day=day+sec
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+	day=day+sec
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+	day=day+msec
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+	day=day+msec
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+	day=day+nsec
+
+	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+	nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+	day=day+nsec
+
+	return revjul_to_datetime(swisseph.revjul(day))
 
 def previous_full_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]-0.2 #get a baseline
-	day=cycles*29.53058868
+	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]-0.2 #get a baseline
+	day=cycles*LUNAR_MONTH_DAYS
 	delta=day
 	while math.fabs(day-delta) <= 2: #don't go too crazy
 		# sun
@@ -188,8 +199,8 @@ def previous_full_moon(date):
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def previous_new_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.3
-	day=cycles*29.53058868
+	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+0.3
+	day=cycles*LUNAR_MONTH_DAYS
 	delta=day
 	while math.fabs(day-delta) <= 2: #don't go too crazy
 		# sun
@@ -212,9 +223,9 @@ def previous_new_moon(date):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def prev_m_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+0.8
-	day=cycles*29.53058868
+def prev_full_moon(date):
+	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+0.8
+	day=cycles*LUNAR_MONTH_DAYS
 	delta=day
 	while math.fabs(day-delta) <= 2: #don't go too crazy
 		# sun
@@ -233,8 +244,8 @@ def prev_m_moon(date):
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def next_new_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/29.53058868))[1]+1.3
-	day=cycles*29.53058868
+	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+1.3
+	day=cycles*LUNAR_MONTH_DAYS
 	delta=day
 	while math.fabs(day-delta) <= 2: #don't go too crazy
 		# sun
@@ -274,6 +285,7 @@ def get_house(planet, observer, date):
 	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
 	#get REALLY precise house position
 	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
+	#hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon)
 	swisseph.close()
 	return hom,objlon,format_zodiacal_longitude(objlon)
 
@@ -293,7 +305,7 @@ def get_transit(planet, observer, date):
 #pisces, taurus
 #notes: swisseph.TRUE_NODE
 #south node = swisseph.TRUE_NODE's angle - 180
-def get_signs(date, observer, nodes=False, axes=False):
+def get_signs(date, observer, nodes, axes):
 	entries = []
 	for i in xrange(10):
 		house,truelon,info=get_house(i, observer, date)
@@ -338,8 +350,8 @@ def get_signs(date, observer, nodes=False, axes=False):
 		i_angle="%s*%s\"%s'" %(i_degrees, i_minutes, i_seconds)
 
 		entries.append(["Ascendant", a_sign, a_angle, ascendant, retrograde,str(1)])
-		entries.append(["MC", m_sign, m_angle, ascendant, retrograde,str(10)])
-		entries.append(["Descendant", d_sign, d_angle, mc, retrograde,str(7)])
+		entries.append(["MC", m_sign, m_angle, mc, retrograde,str(10)])
+		entries.append(["Descendant", d_sign, d_angle, descendant, retrograde,str(7)])
 		entries.append(["IC", i_sign, i_angle, ic, retrograde,str(4)])
 
 	#if stars:
@@ -479,3 +491,4 @@ def get_sun_sign(date, observer):
 	sign=get_house(swisseph.SUN, observer, date)[2][1]
 	swisseph.close()
 	return sign
+

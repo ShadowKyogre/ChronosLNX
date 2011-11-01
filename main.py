@@ -196,16 +196,18 @@ class ChronosLNX(QtGui.QWidget):
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
 	def get_info_for_date(self, date, birth=False):
-		if birth:
-			ob=CLNXConfig.baby
-		else:
-			ob=CLNXConfig.observer
 		info_dialog=QtGui.QDialog(self)
 		info_dialog.setFixedSize(400,400)
 		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
 		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		vbox=QtGui.QVBoxLayout(info_dialog)
+
+		if birth:
+			ob=CLNXConfig.baby
+			vbox.addWidget(QtGui.QLabel("Note: This is for the birth timezone %s" % CLNXConfig.birthtime.tzname()))
+		else:
+			ob=CLNXConfig.observer
 		#info_dialog.setFlags(QtCore.Qt.WA_DeleteOnClose)
-		hbox=QtGui.QHBoxLayout(info_dialog)
 
 		hoursToday=PlanetaryHoursList(info_dialog)
 		hoursToday.setIcons(CLNXConfig.main_icons)
@@ -239,7 +241,7 @@ class ChronosLNX(QtGui.QWidget):
 		dayData.addTab(moonToday,"Moon Phases")
 		dayData.addTab(signsToday,"Signs")
 		dayData.addTab(eventsToday,"Events")
-		hbox.addWidget(dayData)
+		vbox.addWidget(dayData)
 		info_dialog.show()
 
 	def make_save_for_date_range(self):
@@ -386,21 +388,32 @@ class ChronosLNX(QtGui.QWidget):
 			if idx.row() is 1 and day > 7:
 				replace_month=month-1
 				if replace_month == 0:
-					date=datetime(year=year-1,month=12,day=day, hour=12, tzinfo=tz.gettz())
+					date=datetime(year=year-1,month=12,\
+							day=day, hour=12, \
+							minute=0, second=0, \
+							tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,month=month-1,day=day, hour=12, tzinfo=tz.gettz())
+					date=datetime(year=year,month=month-1,\
+							day=day, hour=12,\
+							minute=0, second=0, \
+							tzinfo=tz.gettz())
 			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
 				replace_month=(month+1)%12
 				if replace_month == 1:
-					date=datetime(year=year+1,month=replace_month,day=day, tzinfo=tz.gettz())
+					date=datetime(year=year+1,\
+						      month=replace_month,\
+						      day=day, tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,month=replace_month,day=day, tzinfo=tz.gettz())
+					date=datetime(year=year,\
+							month=replace_month,\
+							day=day, tzinfo=tz.gettz())
 			else:
 				date=datetime(year=year,month=month,day=day, tzinfo=tz.gettz())
 
 			if self.calendar.lunarReturn:
-				if date.date()==self.calendar.lunarReturns[self.calendar.idx].date():
-					date2=self.calendar.lunarReturns[self.calendar.idx]
+				idx=self.calendar.fetchLunarReturn(date.date())
+				if idx >= 0:
+					date2=self.calendar.lunarReturns[idx]
 			if self.calendar.solarReturn:
 				if date.date()==self.calendar.solarReturnTime.date():
 					date3=self.calendar.solarReturnTime

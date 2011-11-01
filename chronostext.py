@@ -16,13 +16,13 @@ def prepare_planetary_info(date,observer):
 			sphinfo.append(' - '.join([data, hour[1], "Night"]))
 	return "%s\n%s" %(header, "\n".join(sphinfo))
 
-def prepare_sign_info(date,observer):
+def prepare_sign_info(date,observer,nodes,admi):
 	sinfo=[]
 	for hour in xrange(0,24):
-		info=get_signs(date,observer)
+		info=get_signs(date,observer,nodes,admi)
 		sinfo.append("Info at %s:00" %(hour))
 		for i in info:
-		      sinfo.append(' - '.join([i, info[i][0], info[i][1], info[i][2]]))
+			sinfo.append(' - '.join([i[0], i[1], i[2], str(i[3]), i[4], i[5]]))
 		sinfo.append("\n")
 	return "Sign info for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(sinfo)
 
@@ -68,9 +68,9 @@ def prepare_moon_cycle(date):
 	return "Moon phases for %s\n%s"%(date.strftime("%m/%d/%Y"),"\n".join(smooncycle))
 
 
-def prepare_all(date,observer,source):
+def prepare_all(date,observer,source,nodes,admi):
 	return "All data for %s\n%s\n\n%s\n\n%s\n\n%s" %(date.strftime("%m/%d/%Y"), \
 	prepare_planetary_info(date,observer), \
 	prepare_moon_cycle(date), \
-	prepare_sign_info(date,observer), \
+	prepare_sign_info(date,observer,nodes,admi), \
 	prepare_events(date, source))

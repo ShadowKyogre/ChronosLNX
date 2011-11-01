@@ -131,8 +131,7 @@ class ChronosLNXConfig:
 		self.baby.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
 		tzo=self.generate_timezone()
 		self.birthtime=self.settings.value("birthTime", \
-			QtCore.QVariant(datetime(2000,1,1,tzinfo=tzo)\
-			.astimezone(tz.gettz()))).toPyObject()
+			QtCore.QVariant(datetime(2000,1,1,tzinfo=tzo))).toPyObject()
 		#add bday
 		self.settings.endGroup()
 
@@ -169,12 +168,12 @@ class ChronosLNXConfig:
 	def load_natal_data(self):
 		print "Loading natal data..."
 		self.natal_data=get_signs(self.birthtime,self.baby,\
-					  nodes=self.show_nodes,\
-					  axes=self.show_admi)
+					  self.show_nodes,\
+					  self.show_admi)
 		#keep a copy of natal information for transits
-		self.natal_sun=format_zodiacal_longitude(self.natal_data[0][3])
+		self.natal_sun=self.natal_data[0][3]
 		#keep a formatted copy for solar returns
-		self.natal_moon=format_zodiacal_longitude(self.natal_data[1][3])
+		self.natal_moon=self.natal_data[1][3]
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()

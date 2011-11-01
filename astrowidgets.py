@@ -31,11 +31,11 @@ class AstroCalendar(QtGui.QCalendarWidget):
 
 		QtGui.QCalendarWidget.__init__(self, *args)
 		self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Midlight))
-		self.solar = QtGui.QColor("#C09600")
-		self.lunar = QtGui.QColor("#A8CDD1")
+		#self.solar = QtGui.QColor("#C09600")
+		#self.lunar = QtGui.QColor("#A8CDD1")
 		self.color.setAlpha(64)
-		self.solar.setAlpha(64)
-		self.lunar.setAlpha(64)
+		#self.solar.setAlpha(64)
+		#self.lunar.setAlpha(64)
 		self.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
 		self.currentPageChanged.connect(self.checkInternals)
 		self.selectionChanged.connect(self.updateCells)
@@ -111,6 +111,15 @@ class AstroCalendar(QtGui.QCalendarWidget):
 				stillInYear=True
 		return stillInYear
 
+	def fetchLunarReturn(self,date):
+		for i in xrange(len(self.lunarReturns)):
+			t=self.lunarReturns[i]
+			if t.year == date.year and \
+				t.month == date.month and \
+				t.day == date.day:
+				return i
+		return -1
+
 	def selectedDateTime(self):
 		return QtCore.QDateTime(self.selectedDate())
 
@@ -128,8 +137,8 @@ class AstroCalendar(QtGui.QCalendarWidget):
 				#painter.fillRect(rect, self.solar)
 
 		if self.lunarReturn:
-			self.idx=self.isLunarReturnsValid()
-			if self.lunarReturns[self.idx].date() == date.toPyDate():
+			idx=self.fetchLunarReturn(date.toPyDate())
+			if idx >= 0:
 				icon=self.icons['Lunar Return']
 				point=rect.bottomRight()
 				icon.paint(painter,QtCore.QRect(point.x()-14,point.y()-14, 14, 14))
@@ -271,6 +280,71 @@ class SignsForDayList(QtGui.QWidget):
 		vbox.addWidget(self.tree)
 		self.time.setDisplayFormat("HH:mm:ss")
 		self.time.timeChanged.connect(self.update_degrees)
+		button=QtGui.QPushButton("Click me")
+		button.clicked.connect(self.showAspects)
+		grid.addWidget(button,2,0,1,2)
+
+	def showAspects(self):
+		#orbs = { 'conjunction': 10.0,
+		#'semi-sextile':3.0,
+		#'semi-square':3.0,
+		#'sextile':6.0,
+		#'quintile':1.0,
+		#'square':10.0,
+		#'trine':10.0,
+		#'sesiquadrate':3.0,
+		#'biquintile':1.0,
+		#'inconjunct':3.0,
+		#'opposition':10.0,
+		#}
+		orbs = { 'conjunction': 10.0,
+		'semi-sextile':3.0,
+		'semi-square':3.0,
+		'sextile':6.0,
+		'quintile':2.0,
+		'square':8.0,
+		'trine':8.0,
+		'sesiquadrate':3.0,
+		'biquintile':2.0,
+		'inconjunct':3.0,
+		'opposition':10.0,
+		}
+		at=create_aspect_table(get_signs(self.target_date,self.observer,\
+		self.nodes,self.admi),orbs)
+		info_dialog=QtGui.QDialog(self)
+		info_dialog.setFixedSize(600,600)
+		schedule=QtGui.QStandardItemModel()
+		count=10
+		a=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]
+		if self.nodes:
+			count=count+2
+			a.append("North Node")
+			a.append("South Node")
+		if self.admi:
+			count=count+4
+			a.append("Ascendant")
+			a.append("MC")
+			a.append("Descendant")
+			a.append("IC")
+		schedule.setColumnCount(count)
+		schedule.setRowCount(count)
+		schedule.setHorizontalHeaderLabels(a)
+		schedule.setVerticalHeaderLabels(a)
+		b=QtGui.QTableView(info_dialog)
+		vbox=QtGui.QVBoxLayout(info_dialog)
+		vbox.addWidget(b)
+		b.setModel(schedule)
+		b.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		for i in at:
+			if i[2] == None:
+				#c=QtGui.QStandardItem("%.3f - %.3f = ~%.3f" %(i[3], i[4], i[5]))
+				c=QtGui.QStandardItem("No aspect")
+			else:
+				c=QtGui.QStandardItem("%s" %(i[2].title()))
+			c.setToolTip("Difference: %.3f" %(i[5]))
+			schedule.setItem(a.index(i[1]),a.index(i[0]),c)
+			print i
+		info_dialog.show()
 
 	def update_degrees(self, qtime):
 		self.tree.clear()
@@ -300,7 +374,7 @@ class SignsForDayList(QtGui.QWidget):
 	def _grab(self):
 		self.tree.clear()
 		constellations=get_signs(self.target_date,self.observer,\
-					nodes=self.nodes,axes=self.admi)
+					self.nodes,self.admi)
 		for i in constellations:
 			item=QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i[0] == "Pluto":
