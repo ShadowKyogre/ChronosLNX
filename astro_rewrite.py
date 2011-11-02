@@ -3,6 +3,8 @@ import swisseph
 from dateutil import tz
 from datetime import datetime, timedelta
 import math
+from operator import itemgetter
+
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
 #http://www.astrologyzine.com/what-is-a-house-cusp.shtml
@@ -45,29 +47,19 @@ aspects = { 'conjunction': 0.0,
 	    'inconjunct':150.0,
 	    'opposition':180.0,
 	  }
-	  #
-special_aspects = { 'grand trine':((1,'trine'),(2,'trine')),
-		    'grand cross':((1,'square'),(3,'square')),
-		    'yod':((1,'inconjunct'),(2,'sextile')),
-		    'stellium':((1,'conjunction'),(2,'conjunction')),
-		    't square':((1,'square'),(2,'opposition')),
-		  }
-orbital_precedence={
-  "Ascendant": -4,
-  "Descendant": -3,
-  "MC": -2,
-  "IC": -1,
-  swisseph.MOON : 0,
-  swisseph.MERCURY : 1,
-  swisseph.VENUS : 2,
-  swisseph.SUN : 3,
-  swisseph.MARS : 4,
-  swisseph.JUPITER : 5,
-  swisseph.SATURN : 6,
-  swisseph.URANUS : 7,
-  swisseph.NEPTUNE : 8,
-  swisseph.PLUTO : 9,
-  }
+
+DEFAULT_ORBS = { 'conjunction': 10.0,
+'semi-sextile':3.0,
+'semi-square':3.0,
+'sextile':6.0,
+'quintile':1.0,
+'square':10.0,
+'trine':10.0,
+'sesiquadrate':3.0,
+'biquintile':1.0,
+'inconjunct':3.0,
+'opposition':10.0,
+}
 					  ##Formalhaut
 #stars=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
 #"Alpheratz" , "Baten Kaitos", \#Aries stars
@@ -84,6 +76,13 @@ def format_zodiacal_longitude(l):
 	second = int(math.modf(split[0] * 60)[0] * 60)
 	return degrees, sign, minutes, second
 
+def get_zodiacal_mode(sign):
+	return zodiac_mode[zodiac.index(sign)]
+
+def get_zodiacal_element(sign):
+	return zodiac_element[zodiac.index(sign)]
+
+
 def parse_zodiacal_longitude(sign, degree, minute, second):
 	degrees=zodiac.index(sign)*30.0
 	return degrees+degree+minute/60.0+second/3600
@@ -97,33 +96,240 @@ def check_distance(orb, zodiacal1, zodiacal2):
 		o=orb[i]
 		if degrees - o <= difference <= degrees + o:
 			return i
+#http://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
+#http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
 
-def create_aspect_table(zodiac,orbs,natal_data=None):
-	#sun has precedence of 4
-	hi=[]
+class SpecialAspect:
+	def __init__(self, descriptors, name):
+		self.descriptors=descriptors
+		self.name=name
+
+	def uniquePlanets(self):
+		planets=set()
+		for d in self.descriptors:
+			planets.add(d.planet1)
+			planets.add(d.planet2)
+		return planets
+
+	def uniqueMeasuerments(self):
+		measurements=set()
+		for d in self.descriptors:
+			measurements.add(d.measurements[0])
+			measurements.add(d.measurements[1])
+		return measurements
+
+	def __eq__(self, sa):
+		return self.name == sa.name and \
+		self.uniquePlanets() == sa.uniquePlanets()
+		#because they are the same points
+
+	def __ne__(self, sa):
+		return not self.__eq__(pr)
+
+	def __repr__(self):
+		return "%s\nUnique angles:%s\nUnique planets:%s" \
+		%(self.name.title(), [ ("%.3f" %(i)) for i in list(self.uniqueMeasuerments())], list(self.uniquePlanets()))
+
+class PlanetRelationship:
+	def __init__(self, p1, p2, aspect, measurements):
+		self.planet1=p1
+		self.planet2=p2
+		self.aspect=aspect
+		self.measurements=measurements
+
+	def isForPlanet(self, string):
+		return self.planet1==string or self.planet2==string
+
+	def partnerPlanet(self, string):
+		if self.planet1 == string:
+			return self.planet2
+		elif self.planet2 == string:
+			return self.planet1
+		else:
+			return None
+
+	def __repr__(self):
+		return "Planet 1 - %s\nPlanet 2 - %s\nRelationship - %s\nMeasurements - %s" \
+		%(self.planet1, self.planet2, self.aspect, [ ("%.3f" %(i)) for i in self.measurements])
+
+	def __eq__(self, pr):
+		return self.isForPlanet(pr.planet1) and self.isForPlanet(pr.planet2)
+
+	def __ne__(self, pr):
+		return not self.__eq__(pr)
+
+class PrefixedPlanetRelationship(PlanetRelationship):
+	def __init__(self, p1, p2, aspect, measurements,\
+				first_prefix="Natal", second_prefix=None):
+		PlanetRelationship.__init__(self,p1,p2,aspect,measurements)
+		self.first_prefix=None
+		self.second_prefix=None
+		if first_prefix:
+			self.first_prefix=first_prefix
+		if second_prefix:
+			self.second_prefix=second_prefix
+
+	def formattedFirstPlanet(self):
+		return "%s %s" %(self.first_prefix, self.planet1)
+
+	def formattedSecondPlanet(self):
+		return "%s %s" %(self.second_prefix, self.planet2)
+
+	def __repr__(self):
+		return "Planet 1 - %s\nPlanet 2 - %s\nRelationship - %s\nMeasurements - %s" \
+		%(self.planet1, self.planet2, self.aspect, self.measurements)
+
+def search_special_aspects(aspect_table):
+	yods=[]
+	gt=[]
+	gc=[]
+	stel=[]
+	tsq=[]
+
+	for i in xrange(10):
+		pn=swisseph.get_planet_name(i)
+
+		trine_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect == 'trine']
+
+		square_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect  == 'square']
+
+		sextile_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect  == 'sextile']
+
+		conjunction_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect  == 'conjunction']
+
+		inconjunct_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect  == 'inconjunct']
+
+		opposition_entries=[y for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(pn) and y.aspect  == 'opposition']
+
+		intersection_entries=[]
+		intersection_entries2=[]
+		intersection_entries3=[]
+		intersection_entries4=[]
+		intersection_entries5=[]
+
+		if len(trine_entries) > 2:
+			for i in xrange(len(trine_entries)-1):
+				otherp=trine_entries[i].partnerPlanet(pn)
+				otherp2=trine_entries[i+1].partnerPlanet(pn)
+				minitrines=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
+					and y.aspect == 'trine']
+				if len(minitrines) > 0:
+					intersection_entries.append(trine_entries[i])
+					intersection_entries.append(trine_entries[i+1])
+				for j in minitrines:
+					intersection_entries.append(j)
+				if len(intersection_entries) > 0:
+					gt.append(SpecialAspect(intersection_entries, 'grand trine'))
+					break
+
+		if len(opposition_entries) > 1:
+			for i in xrange(len(square_entries)-1):
+				otherp=square_entries[i].partnerPlanet(pn)
+				otherp2=square_entries[i+1].partnerPlanet(pn)
+				miniopposition=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
+					and y.aspect == 'opposition']
+				minisquare=[y for x, y in enumerate(aspect_table) \
+					if (y.isForPlanet(otherp) or y.isForPlanet(otherp2)) \
+					and y.aspect == "square" \
+					and not y.isForPlanet(pn)]
+				if len(miniopposition) > 0 and len(minisquare) > 0:
+					intersection_entries2.append(square_entries[i])
+					intersection_entries2.append(square_entries[i+1])
+					intersection_entries2.append(miniopposition[0])
+					intersection_entries2.append(minisquare[0])
+					if len(intersection_entries2) > 3:
+						gc.append(SpecialAspect(intersection_entries2, 'grand cross'))
+
+		if len(square_entries) > 2:
+			for i in xrange(len(square_entries)-1):
+				otherp=square_entries[i].partnerPlanet(pn)
+				otherp2=square_entries[i+1].partnerPlanet(pn)
+				miniopposition=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
+					and y.aspect == 'opposition']
+				if len(miniopposition) > 0:
+					intersection_entries3.append(square_entries[i])
+					intersection_entries3.append(square_entries[i+1])
+				for j in miniopposition:
+					intersection_entries3.append(j)
+				if len(intersection_entries3) > 2:
+					tsq.append(SpecialAspect(intersection_entries3,'t-square'))
+					break
+
+		if len(conjunction_entries) > 2:
+			for n in conjunction_entries:
+				#Check for other conjunctions that do not involve the root planet
+				if n.planet1 != pn:
+					b=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(n.planet1) and not y.isForPlanet(pn) \
+					and y.aspect == 'conjunction']
+				else:
+					b=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(n.planet2) and not y.isForPlanet(pn) \
+					and y.aspect == 'conjunction']
+				if len(b) > 0:
+					for j in b:
+						intersection_entries4.append(j)
+					intersection_entries4.append(n)
+				if len(intersection_entries4) > 2:
+					stel.append(SpecialAspect(intersection_entries4,'stellium'))
+					break
+
+		if len(inconjunct_entries) > 1:
+			for i in xrange(len(inconjunct_entries)-1):
+				otherp=inconjunct_entries[i].partnerPlanet(pn)
+				otherp2=inconjunct_entries[i+1].partnerPlanet(pn)
+				minisextiles=[y for x, y in enumerate(aspect_table) \
+					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
+					and y.aspect == 'sextile']
+				if len(minisextiles) > 0:
+					intersection_entries5.append(inconjunct_entries[i])
+					intersection_entries5.append(inconjunct_entries[i+1])
+				for j in minisextiles:
+					intersection_entries5.append(j)
+				if len(intersection_entries5) > 0:
+					yods.append(SpecialAspect(intersection_entries5,'yod'))
+					break
+
+	#clean up the entries of special configs by removing entries describing the same relationship
+	gt=[x for i,x in enumerate(gt) if x not in gt[i+1:]]
+	yods=[x for i,x in enumerate(yods) if x not in yods[i+1:]]
+	gc=[x for i,x in enumerate(gc) if x not in gc[i+1:]]
+	stel=[x for i,x in enumerate(stel) if x not in stel[i+1:]]
+	tsq=[x for i,x in enumerate(tsq) if x not in tsq[i+1:]]
+
+	return yods,gt,gc,stel,tsq
+
+def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
+	aspect_table=[]
+	comparison=[]
+
 	for i in zodiac:
 		for j in zodiac:
 			if i[0] == j[0]:
 				continue
-			if len(hi) > 0:
-				try:
-					#avoid duplicate entries
-					if zip(*hi)[0].index(j[0]) >= 0 and zip(*hi)[1].index(i[0]) >= 0:
-						continue
-				except:
-					print "%s on %s Entry needs to be added" %(i[0],j[0])
-			#if i[0] == "MC" and j[0] == "IC" or \
-			#i[0] == "Ascendant" and j[0] == "Descendant" or \
-			#j[0] == "MC" and i[0] == "IC" or \
-			#j[0] == "Ascendant" and i[0] == "Descendant" or \
-			#j[0] == "North Node" and i[0] == "South Node" or \
-			#i[0] == "North Node" and j[0] == "South Node":
-				#continue
-			hi.append([i[0],j[0],check_distance(orbs,i[3],j[3]),i[3],j[3],math.fabs(i[3]-j[3])])
-		if zodiac is not natal_data and natal_data is not None:
-			for j in natal_data:
-				hi.append([i[0],"Natal_%s" %(j[0]),check_distance(orbs,i[3],j[3]),i[3],j[3],math.fabs(i[3]-j[3])])
-	return hi
+			if len(aspect_table) > 0:
+				if len([x for x, y in enumerate(aspect_table) \
+				if y.isForPlanet(j[0]) and y.isForPlanet(i[0])]) > 0:
+					continue
+			pr=PlanetRelationship(i[0],j[0],check_distance(orbs,i[3],j[3]),[i[3],j[3],math.fabs(i[3]-j[3])])
+			aspect_table.append(pr)
+		if zodiac is not compare and compare is not None:
+			for j in compare:
+				pr=PlanetRelationship("Natal %s" % i[0],j[0],check_distance(orbs,i[3],j[3]),[i[3],j[3],math.fabs(i[3]-j[3])])
+				comparison.append(pr)
+	if len(comparison) > 0:
+		return aspect_table,comparison
+
+	return aspect_table
 
 def solar_return(date,year,data): #data contains the angule, date is for a reasonable baseline
 	day=datetime_to_julian(date)+(SOLAR_YEAR_DAYS*(year-date.year))

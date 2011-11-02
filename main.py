@@ -204,7 +204,10 @@ class ChronosLNX(QtGui.QWidget):
 
 		if birth:
 			ob=CLNXConfig.baby
-			vbox.addWidget(QtGui.QLabel("Note: This is for the birth timezone %s" % CLNXConfig.birthtime.tzname()))
+			text="""Note: This is for the birth timezone %s and this time.
+If you want adjust your birth time, go to Settings.""" \
+			% CLNXConfig.birthtime.tzname()
+			vbox.addWidget(QtGui.QLabel(text))
 		else:
 			ob=CLNXConfig.observer
 		#info_dialog.setFlags(QtCore.Qt.WA_DeleteOnClose)
@@ -235,7 +238,14 @@ class ChronosLNX(QtGui.QWidget):
 		hoursToday.prepareHours(date,ob)
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
-		signsToday.get_constellations(date, ob)
+		if birth:
+			print "Using already available birth data instead of recalculating it"
+			signsToday.time.timeChanged.disconnect()
+			signsToday.time.setReadOnly(True)
+			signsToday.time.setTime(CLNXConfig.birthtime.time())
+			signsToday.assembleFromZodiac(CLNXConfig.natal_data)
+		else:
+			signsToday.get_constellations(date, ob)
 
 		dayData.addTab(hoursToday,"Planetary Hours")
 		dayData.addTab(moonToday,"Moon Phases")

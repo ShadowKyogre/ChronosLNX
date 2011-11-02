@@ -256,10 +256,131 @@ class PlanetaryHoursList(QtGui.QWidget):
 					return self.get_planet(i)
 		return "-Error-"
 
+class AspectTableDisplay(QtGui.QWidget):
+	def __init__(self, *args):
+		QtGui.QWidget.__init__(self, *args)
+		vbox=QtGui.QVBoxLayout(self)
+#orbs = { 'conjunction': 10.0,
+		#'semi-sextile':3.0,
+		#'semi-square':3.0,
+		#'sextile':6.0,
+		#'quintile':2.0,
+		#'square':8.0,
+		#'trine':8.0,
+		#'sesiquadrate':3.0,
+		#'biquintile':2.0,
+		#'inconjunct':3.0,
+		#'opposition':10.0,
+		#}
+		self.tableAspects=QtGui.QStandardItemModel()
+		self.tableSpecial=QtGui.QStandardItemModel()
+		self.headers=[]
+
+		sa=["Yod","Grand Trine", "Grand Cross", "T-Square", "Stellium"]
+
+		guiAspects=QtGui.QTableView(self)
+		guiSpecial=QtGui.QTableView(self)
+		vbox.addWidget(guiAspects)
+		vbox.addWidget(guiSpecial)
+
+		guiAspects.setModel(self.tableAspects)
+		guiAspects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+
+		guiSpecial.setModel(self.tableSpecial)
+		guiSpecial.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+
+		self.tableSpecial.setColumnCount(5)
+		self.tableSpecial.setHorizontalHeaderLabels(sa)
+
+	def refresh(self,zodiac):
+		self.updateHeaders()
+		at=create_aspect_table(zodiac)
+		sad=search_special_aspects(at)
+		max_length,longest_element = max([(len(x),x) for x in sad])
+		self.tableSpecial.setRowCount(max_length)
+		for i in at:
+			if i.aspect == None:
+				c=QtGui.QStandardItem("No aspect")
+			else:
+				c=QtGui.QStandardItem("%s" %(i.aspect.title()))
+			c.setToolTip("Difference: %.3f" %(i.measurements[2]))
+			c.setData(i,32)
+			self.tableAspects.setItem(self.headers.index(i.planet2),self.headers.index(i.planet1),c)
+		i=0
+		for yod in sad[0]:
+			c=QtGui.QStandardItem(str(yod))
+			self.tableSpecial.setItem(i,0,c)
+			i=i+1
+		i=0
+		for gt in sad[1]:
+			d=QtGui.QStandardItem(str(gt))
+			self.tableSpecial.setItem(i,1,d)
+			i=i+1
+		i=0
+		for gc in sad[2]:
+			e=QtGui.QStandardItem(str(gc))
+			self.tableSpecial.setItem(i,2,e)
+			i=i+1
+		i=0
+		for tsq in sad[3]:
+			f=QtGui.QStandardItem(str(tsq))
+			self.tableSpecial.setItem(i,4,f)
+			i=i+1
+		i=0
+		for stellium in sad[4]:
+			g=QtGui.QStandardItem(str(stellium))
+			self.tableSpecial.setItem(i,3,g)
+			i=i+1
+
+	def updateHeaders(self):
+		self.headers=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]
+		if self.nodes:
+			self.headers.append("North Node")
+			self.headers.append("South Node")
+		if self.admi:
+			self.headers.append("Ascendant")
+			self.headers.append("MC")
+			self.headers.append("Descendant")
+			self.headers.append("IC")
+		length=len(self.headers)
+		self.tableAspects.setColumnCount(length)
+		self.tableAspects.setRowCount(length)
+		for v,i in enumerate(self.headers):
+			item=QtGui.QStandardItem(i)
+			if self.pluto_alternate and i == "Pluto":
+				item.setIcon(0,self.icons['Pluto 2'])
+			elif (i == "Ascendant" or i == "Descendant" or \
+			i == "MC" or i == "IC"):
+				item.setIcon(self.sign_icons[i])
+			else:
+				item.setIcon(self.icons[i])
+			item2=QtGui.QStandardItem(item)
+			self.tableAspects.setHorizontalHeaderItem(v,item)
+			self.tableAspects.setVerticalHeaderItem(v,item2)
+
+	def setADMI(self, value):
+		self.admi=value
+
+	def setIcons(self, icon_list):
+		self.icons=icon_list
+
+	def setSignIcons(self, icon_list):
+		self.sign_icons=icon_list
+
+	def setPlutoAlternate(self, value):
+		self.pluto_alternate=value #should be boolean
+
+	def setCapricornAlternate(self, value):
+		self.capricorn_alternate=value #should be string
+
+	def setNodes(self, value):
+		self.nodes=value
+
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args):
 
 		QtGui.QWidget.__init__(self, *args)
+		print args
 		vbox=QtGui.QVBoxLayout(self)
 		grid=QtGui.QGridLayout()
 		vbox.addLayout(grid)
@@ -280,70 +401,26 @@ class SignsForDayList(QtGui.QWidget):
 		vbox.addWidget(self.tree)
 		self.time.setDisplayFormat("HH:mm:ss")
 		self.time.timeChanged.connect(self.update_degrees)
-		button=QtGui.QPushButton("Click me")
+		button=QtGui.QPushButton("Show Aspects")
 		button.clicked.connect(self.showAspects)
 		grid.addWidget(button,2,0,1,2)
+		self.table=[]
+
+	def setCompareTable(self,table):
+		self.table=table
 
 	def showAspects(self):
-		#orbs = { 'conjunction': 10.0,
-		#'semi-sextile':3.0,
-		#'semi-square':3.0,
-		#'sextile':6.0,
-		#'quintile':1.0,
-		#'square':10.0,
-		#'trine':10.0,
-		#'sesiquadrate':3.0,
-		#'biquintile':1.0,
-		#'inconjunct':3.0,
-		#'opposition':10.0,
-		#}
-		orbs = { 'conjunction': 10.0,
-		'semi-sextile':3.0,
-		'semi-square':3.0,
-		'sextile':6.0,
-		'quintile':2.0,
-		'square':8.0,
-		'trine':8.0,
-		'sesiquadrate':3.0,
-		'biquintile':2.0,
-		'inconjunct':3.0,
-		'opposition':10.0,
-		}
-		at=create_aspect_table(get_signs(self.target_date,self.observer,\
-		self.nodes,self.admi),orbs)
 		info_dialog=QtGui.QDialog(self)
-		info_dialog.setFixedSize(600,600)
-		schedule=QtGui.QStandardItemModel()
-		count=10
-		a=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]
-		if self.nodes:
-			count=count+2
-			a.append("North Node")
-			a.append("South Node")
-		if self.admi:
-			count=count+4
-			a.append("Ascendant")
-			a.append("MC")
-			a.append("Descendant")
-			a.append("IC")
-		schedule.setColumnCount(count)
-		schedule.setRowCount(count)
-		schedule.setHorizontalHeaderLabels(a)
-		schedule.setVerticalHeaderLabels(a)
-		b=QtGui.QTableView(info_dialog)
+		aspects=AspectTableDisplay(info_dialog)
+		aspects.setIcons(self.icons)
+		aspects.setSignIcons(self.sign_icons)
+		aspects.setPlutoAlternate(self.pluto_alternate)
+		aspects.setADMI(self.admi)
+		aspects.setNodes(self.nodes)
+		aspects.setCapricornAlternate(self.capricorn_alternate)
+		aspects.refresh(self.reassembleZodiac())
 		vbox=QtGui.QVBoxLayout(info_dialog)
-		vbox.addWidget(b)
-		b.setModel(schedule)
-		b.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		for i in at:
-			if i[2] == None:
-				#c=QtGui.QStandardItem("%.3f - %.3f = ~%.3f" %(i[3], i[4], i[5]))
-				c=QtGui.QStandardItem("No aspect")
-			else:
-				c=QtGui.QStandardItem("%s" %(i[2].title()))
-			c.setToolTip("Difference: %.3f" %(i[5]))
-			schedule.setItem(a.index(i[1]),a.index(i[0]),c)
-			print i
+		vbox.addWidget(aspects)
 		info_dialog.show()
 
 	def update_degrees(self, qtime):
@@ -371,11 +448,9 @@ class SignsForDayList(QtGui.QWidget):
 	def setNodes(self, value):
 		self.nodes=value
 
-	def _grab(self):
+	def assembleFromZodiac(self, zodiac):
 		self.tree.clear()
-		constellations=get_signs(self.target_date,self.observer,\
-					self.nodes,self.admi)
-		for i in constellations:
+		for i in zodiac:
 			item=QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i[0] == "Pluto":
 				item.setIcon(0,self.icons['Pluto 2'])
@@ -396,6 +471,27 @@ class SignsForDayList(QtGui.QWidget):
 			item.setText(3,i[4])
 			item.setText(4,i[5])
 			self.tree.addTopLevelItem(item)
+
+	def _grab(self):
+		constellations=get_signs(self.target_date,self.observer,\
+					self.nodes,self.admi)
+		self.assembleFromZodiac(constellations)
+
+	def reassembleZodiac(self):
+		zodiac=[]
+		i=QtGui.QTreeWidgetItemIterator(self.tree)
+		i.__iadd__(0)
+		while i.value() != None:
+			row=i.value()
+			planet=str(row.data(0,0).toPyObject())
+			sign=str(row.data(1,0).toPyObject())
+			angle=str(row.data(2,0).toPyObject())
+			longitude=float(row.data(2,32).toPyObject())
+			retro=str(row.data(3,0).toPyObject())
+			house=str(row.data(4,0).toPyObject())
+			zodiac.append([planet, sign, angle, longitude, retro, house])
+			i.__iadd__(1)
+		return zodiac
 
 	def get_constellations(self,date, observer):
 		self.observer=observer
