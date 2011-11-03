@@ -220,7 +220,7 @@ def search_special_aspects(aspect_table):
 					gt.append(SpecialAspect(intersection_entries, 'grand trine'))
 					break
 
-		if len(opposition_entries) > 1:
+		if len(opposition_entries) > 0:
 			for i in xrange(len(square_entries)-1):
 				otherp=square_entries[i].partnerPlanet(pn)
 				otherp2=square_entries[i+1].partnerPlanet(pn)

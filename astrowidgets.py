@@ -312,7 +312,13 @@ class AspectTableDisplay(QtGui.QWidget):
 				c=QtGui.QStandardItem("%s" %(i.aspect.title()))
 			c.setToolTip("%s" %(i))
 			c.setData(i,32)
-			self.tableAspects.setItem(self.headers.index(i.planet2.rpartition('Natal ')[2]),self.headers.index(i.planet1),c)
+			if self.comparative:
+				self.tableAspects.setItem(self.headers.\
+				index(i.planet2.rpartition('Natal ')[2]),\
+				self.headers.index(i.planet1),c)
+			else:
+				self.tableAspects.setItem(self.headers.index(i.planet2),\
+				self.headers.index(i.planet1),c)
 		i=0
 		for yod in sad[0]:
 			c=QtGui.QStandardItem(str(yod))
