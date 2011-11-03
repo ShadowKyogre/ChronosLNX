@@ -278,34 +278,41 @@ class AspectTableDisplay(QtGui.QWidget):
 
 		sa=["Yod","Grand Trine", "Grand Cross", "T-Square", "Stellium"]
 
-		guiAspects=QtGui.QTableView(self)
-		guiSpecial=QtGui.QTableView(self)
-		vbox.addWidget(guiAspects)
-		vbox.addWidget(guiSpecial)
+		self.guiAspects=QtGui.QTableView(self)
+		self.guiSpecial=QtGui.QTableView(self)
+		vbox.addWidget(QtGui.QLabel("General Aspects:\nThe row indicates the planet being aspected."))
+		vbox.addWidget(self.guiAspects)
+		vbox.addWidget(QtGui.QLabel("Special Aspects"))
+		vbox.addWidget(self.guiSpecial)
 
-		guiAspects.setModel(self.tableAspects)
-		guiAspects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.guiAspects.setModel(self.tableAspects)
+		self.guiAspects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
-		guiSpecial.setModel(self.tableSpecial)
-		guiSpecial.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.guiSpecial.setModel(self.tableSpecial)
+		self.guiSpecial.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
 		self.tableSpecial.setColumnCount(5)
 		self.tableSpecial.setHorizontalHeaderLabels(sa)
 
 	def refresh(self,zodiac):
-		self.updateHeaders()
 		at=create_aspect_table(zodiac)
 		sad=search_special_aspects(at)
+		self.buildTable(at,sad)
+
+	def buildTable(self,at,sad,comparative=False):
+		self.comparative=comparative
+		self.updateHeaders()
 		max_length,longest_element = max([(len(x),x) for x in sad])
 		self.tableSpecial.setRowCount(max_length)
+		self.tableSpecial.removeRows(0, self.tableSpecial.rowCount())
 		for i in at:
 			if i.aspect == None:
 				c=QtGui.QStandardItem("No aspect")
 			else:
 				c=QtGui.QStandardItem("%s" %(i.aspect.title()))
-			c.setToolTip("Difference: %.3f" %(i.measurements[2]))
+			c.setToolTip("%s" %(i))
 			c.setData(i,32)
-			self.tableAspects.setItem(self.headers.index(i.planet2),self.headers.index(i.planet1),c)
+			self.tableAspects.setItem(self.headers.index(i.planet2.rpartition('Natal ')[2]),self.headers.index(i.planet1),c)
 		i=0
 		for yod in sad[0]:
 			c=QtGui.QStandardItem(str(yod))
@@ -331,6 +338,10 @@ class AspectTableDisplay(QtGui.QWidget):
 			g=QtGui.QStandardItem(str(stellium))
 			self.tableSpecial.setItem(i,3,g)
 			i=i+1
+		self.guiAspects.resizeRowsToContents()
+		self.guiAspects.resizeColumnsToContents()
+		self.guiSpecial.resizeRowsToContents()
+		self.guiSpecial.resizeColumnsToContents()
 
 	def updateHeaders(self):
 		self.headers=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"]
@@ -355,6 +366,8 @@ class AspectTableDisplay(QtGui.QWidget):
 			else:
 				item.setIcon(self.icons[i])
 			item2=QtGui.QStandardItem(item)
+			if self.comparative:
+				item2.setText("Natal %s" %i)
 			self.tableAspects.setHorizontalHeaderItem(v,item)
 			self.tableAspects.setVerticalHeaderItem(v,item2)
 
@@ -380,7 +393,6 @@ class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args):
 
 		QtGui.QWidget.__init__(self, *args)
-		print args
 		vbox=QtGui.QVBoxLayout(self)
 		grid=QtGui.QGridLayout()
 		vbox.addLayout(grid)
@@ -411,6 +423,8 @@ class SignsForDayList(QtGui.QWidget):
 
 	def showAspects(self):
 		info_dialog=QtGui.QDialog(self)
+		zodiac=self.reassembleZodiac()
+		tabs=QtGui.QTabWidget(info_dialog)
 		aspects=AspectTableDisplay(info_dialog)
 		aspects.setIcons(self.icons)
 		aspects.setSignIcons(self.sign_icons)
@@ -418,9 +432,25 @@ class SignsForDayList(QtGui.QWidget):
 		aspects.setADMI(self.admi)
 		aspects.setNodes(self.nodes)
 		aspects.setCapricornAlternate(self.capricorn_alternate)
-		aspects.refresh(self.reassembleZodiac())
 		vbox=QtGui.QVBoxLayout(info_dialog)
-		vbox.addWidget(aspects)
+		tabs.addTab(aspects,"Aspects for this table")
+		vbox.addWidget(tabs)
+		if len(self.table) > 0:
+			caspects=AspectTableDisplay(info_dialog)
+			caspects.setIcons(self.icons)
+			caspects.setSignIcons(self.sign_icons)
+			caspects.setPlutoAlternate(self.pluto_alternate)
+			caspects.setADMI(self.admi)
+			caspects.setNodes(self.nodes)
+			caspects.setCapricornAlternate(self.capricorn_alternate)
+			at,compare=create_aspect_table(zodiac,compare=self.table)
+			sado=search_special_aspects(at)
+			sad=search_special_aspects(compare)
+			caspects.buildTable(compare,sad,comparative=True)
+			aspects.buildTable(at,sado)
+			tabs.addTab(caspects,"Aspects to Natal Chart")
+		else:
+			aspects.refresh(zodiac)
 		info_dialog.show()
 
 	def update_degrees(self, qtime):
@@ -547,3 +577,4 @@ class MoonCycleList(QtGui.QTreeWidget):
 			newmooncycleitem.setText(1,moon_cycle[i][1])
 			newmooncycleitem.setText(2,moon_cycle[i][2])
 			self.addTopLevelItem(newmooncycleitem)
+

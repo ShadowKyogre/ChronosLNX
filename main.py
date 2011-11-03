@@ -130,6 +130,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
 
+		self.signsToday.setCompareTable(CLNXConfig.natal_data)
 		self.signsToday.setIcons(CLNXConfig.main_icons)
 		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
 		self.signsToday.setADMI(CLNXConfig.show_admi)
@@ -225,6 +226,8 @@ If you want adjust your birth time, go to Settings.""" \
 		signsToday.setADMI(CLNXConfig.show_admi)
 		signsToday.setNodes(CLNXConfig.show_nodes)
 		signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
+		if not birth:
+			signsToday.setCompareTable(CLNXConfig.natal_data)
 
 		eventsToday=EventsList(info_dialog)
 		model=DayEventsModel()

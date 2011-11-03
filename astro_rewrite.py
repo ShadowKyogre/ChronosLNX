@@ -32,9 +32,9 @@ LMONTH_TO_MONTH=0.9702248824500268
 
 SECS_TO_DAYS=86400.0
 
-zodiac =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
-zodiac_element = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
-zodiac_mode = ['cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable']
+ZODIAC =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+ZODIAC_ELEMENT = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
+ZODIAC_MODE = ['cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable']
 aspects = { 'conjunction': 0.0,
 	    'semi-sextile':30.0,
 	    'semi-square':45.0,
@@ -71,30 +71,33 @@ DEFAULT_ORBS = { 'conjunction': 10.0,
 def format_zodiacal_longitude(l):
 	split=math.modf(l)
 	degrees = int(split[1] % 30)
-	sign = zodiac[int(split[1] / 30)]
+	sign = ZODIAC[int(split[1] / 30)]
 	minutes = int(split[0] * 60)
 	second = int(math.modf(split[0] * 60)[0] * 60)
 	return degrees, sign, minutes, second
 
 def get_zodiacal_mode(sign):
-	return zodiac_mode[zodiac.index(sign)]
+	return ZODIAC_MODE[ZODIAC.index(sign)]
 
 def get_zodiacal_element(sign):
-	return zodiac_element[zodiac.index(sign)]
+	return ZODIAC_ELEMENT[ZODIAC.index(sign)]
 
 
 def parse_zodiacal_longitude(sign, degree, minute, second):
-	degrees=zodiac.index(sign)*30.0
+	degrees=ZODIAC.index(sign)*30.0
 	return degrees+degree+minute/60.0+second/3600
 
-def check_distance(orb, zodiacal1, zodiacal2):
+def format_zodiacal_difference(zodiacal1,zodiacal2):
 	difference=math.fabs(zodiacal1-zodiacal2)
 	if difference > 180.0:
 		difference=360.0-difference
+	return difference
+
+def check_distance(orb, diff):
 	for i in aspects:
 		degrees=aspects[i]
 		o=orb[i]
-		if degrees - o <= difference <= degrees + o:
+		if degrees - o <= diff <= degrees + o:
 			return i
 #http://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
 #http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
@@ -158,33 +161,21 @@ class PlanetRelationship:
 	def __ne__(self, pr):
 		return not self.__eq__(pr)
 
-class PrefixedPlanetRelationship(PlanetRelationship):
-	def __init__(self, p1, p2, aspect, measurements,\
-				first_prefix="Natal", second_prefix=None):
-		PlanetRelationship.__init__(self,p1,p2,aspect,measurements)
-		self.first_prefix=None
-		self.second_prefix=None
-		if first_prefix:
-			self.first_prefix=first_prefix
-		if second_prefix:
-			self.second_prefix=second_prefix
-
-	def formattedFirstPlanet(self):
-		return "%s %s" %(self.first_prefix, self.planet1)
-
-	def formattedSecondPlanet(self):
-		return "%s %s" %(self.second_prefix, self.planet2)
-
-	def __repr__(self):
-		return "Planet 1 - %s\nPlanet 2 - %s\nRelationship - %s\nMeasurements - %s" \
-		%(self.planet1, self.planet2, self.aspect, self.measurements)
-
 def search_special_aspects(aspect_table):
 	yods=[]
 	gt=[]
 	gc=[]
 	stel=[]
 	tsq=[]
+	#if prefix != None:
+		#checking_planets=20
+	#else:
+		#checking_planets=10
+	#for i in xrange(checking_planets):
+		#if i > 9:
+			#pn="%s %s" %(prefix, swisseph.get_planet_name(i%10))
+		#else:
+			#pn=swisseph.get_planet_name(i)
 
 	for i in xrange(10):
 		pn=swisseph.get_planet_name(i)
@@ -225,7 +216,7 @@ def search_special_aspects(aspect_table):
 					intersection_entries.append(trine_entries[i+1])
 				for j in minitrines:
 					intersection_entries.append(j)
-				if len(intersection_entries) > 0:
+				if len(intersection_entries) > 2:
 					gt.append(SpecialAspect(intersection_entries, 'grand trine'))
 					break
 
@@ -276,9 +267,9 @@ def search_special_aspects(aspect_table):
 					if y.isForPlanet(n.planet2) and not y.isForPlanet(pn) \
 					and y.aspect == 'conjunction']
 				if len(b) > 0:
+					intersection_entries4.append(n)
 					for j in b:
 						intersection_entries4.append(j)
-					intersection_entries4.append(n)
 				if len(intersection_entries4) > 2:
 					stel.append(SpecialAspect(intersection_entries4,'stellium'))
 					break
@@ -295,7 +286,7 @@ def search_special_aspects(aspect_table):
 					intersection_entries5.append(inconjunct_entries[i+1])
 				for j in minisextiles:
 					intersection_entries5.append(j)
-				if len(intersection_entries5) > 0:
+				if len(intersection_entries5) > 2:
 					yods.append(SpecialAspect(intersection_entries5,'yod'))
 					break
 
@@ -306,9 +297,20 @@ def search_special_aspects(aspect_table):
 	stel=[x for i,x in enumerate(stel) if x not in stel[i+1:]]
 	tsq=[x for i,x in enumerate(tsq) if x not in tsq[i+1:]]
 
+	#remove redundant entries in tsq that are described in gc
+	if len(tsq) > 0:
+		for i in tsq[:]:
+			for j in gc:
+				planets=i.uniquePlanets()
+				if planets.intersection(j.uniquePlanets()) == planets:
+					tsq.remove(i)
+					break
+				else:
+					"Failed to remove. %s|%s|%s|%s" %(planets,j.uniquePlanets(),planets.intersection(j.uniquePlanets()),planets.intersection(j.uniquePlanets()) == planets)
+
 	return yods,gt,gc,stel,tsq
 
-def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
+def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None, prefix="Natal"):
 	aspect_table=[]
 	comparison=[]
 
@@ -320,11 +322,17 @@ def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
 				if len([x for x, y in enumerate(aspect_table) \
 				if y.isForPlanet(j[0]) and y.isForPlanet(i[0])]) > 0:
 					continue
-			pr=PlanetRelationship(i[0],j[0],check_distance(orbs,i[3],j[3]),[i[3],j[3],math.fabs(i[3]-j[3])])
+			diff=format_zodiacal_difference(i[3],j[3])
+			pr=PlanetRelationship(i[0],j[0],\
+			check_distance(orbs,diff),\
+			[i[3],j[3],diff])
 			aspect_table.append(pr)
 		if zodiac is not compare and compare is not None:
 			for j in compare:
-				pr=PlanetRelationship("Natal %s" % i[0],j[0],check_distance(orbs,i[3],j[3]),[i[3],j[3],math.fabs(i[3]-j[3])])
+				diff=format_zodiacal_difference(i[3],j[3])
+				pr=PlanetRelationship(i[0], "%s %s" %(prefix,j[0]),\
+				check_distance(orbs,diff),\
+				[i[3],j[3],diff])
 				comparison.append(pr)
 	if len(comparison) > 0:
 		return aspect_table,comparison
