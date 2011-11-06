@@ -99,17 +99,17 @@ class SpecialAspect:
 
 	def contains(self, sa):
 		otherplanets=sa.uniquePlanets
-		return self.uniquePlanets.intersection(otherplanets) \
-		== otherplanets and len(otherplanets) \
-		< len(self.uniquePlanets)
+		return otherplanets.issubset(self.uniquePlanets)
 
 	def __eq__(self, sa):
+		if sa is None:
+			return False
 		return self.name == sa.name and \
 		self.uniquePlanets == sa.uniquePlanets
 		#because they are the same points
 
 	def __ne__(self, sa):
-		return not self.__eq__(pr)
+		return not self.__eq__(sa)
 
 	def __hash__(self):
 		return hash(frozenset(self.uniquePlanets))

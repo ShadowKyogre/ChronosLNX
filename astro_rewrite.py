@@ -124,6 +124,7 @@ def search_special_aspects(aspect_table):
 					intersection_entries2.append(minisquare[0])
 					if len(intersection_entries2) > 3:
 						gc.add(SpecialAspect(intersection_entries2, 'grand cross'))
+						break
 
 		if len(square_entries) > 2:
 			for i in xrange(len(square_entries)-1):
@@ -192,7 +193,12 @@ def search_special_aspects(aspect_table):
 				if j.contains(i):
 					tsq.remove(i)
 					break
-
+	print gc
+	for i in gc:
+		for j in gc:
+			print hash(i)==hash(j)
+			print i==j
+			print i,j
 	return yods,gt,gc,stel,tsq
 
 def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
