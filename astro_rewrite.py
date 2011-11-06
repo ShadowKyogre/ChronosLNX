@@ -66,22 +66,22 @@ def search_special_aspects(aspect_table):
 	for i in xrange(10):
 		pn=swisseph.get_planet_name(i)
 
-		trine_entries=[y for x, y in enumerate(aspect_table) \
+		trine_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect == 'trine']
 
-		square_entries=[y for x, y in enumerate(aspect_table) \
+		square_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect  == 'square']
 
-		sextile_entries=[y for x, y in enumerate(aspect_table) \
+		sextile_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect  == 'sextile']
 
-		conjunction_entries=[y for x, y in enumerate(aspect_table) \
+		conjunction_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect  == 'conjunction']
 
-		inconjunct_entries=[y for x, y in enumerate(aspect_table) \
+		inconjunct_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect  == 'inconjunct']
 
-		opposition_entries=[y for x, y in enumerate(aspect_table) \
+		opposition_entries=[y for y in aspect_table \
 				if y.isForPlanet(pn) and y.aspect  == 'opposition']
 
 		intersection_entries=[]
@@ -94,7 +94,7 @@ def search_special_aspects(aspect_table):
 			for i in xrange(len(trine_entries)-1):
 				otherp=trine_entries[i].partnerPlanet(pn)
 				otherp2=trine_entries[i+1].partnerPlanet(pn)
-				minitrines=[y for x, y in enumerate(aspect_table) \
+				minitrines=[y for y in aspect_table \
 					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					and y.aspect == 'trine']
 				if len(minitrines) > 0:
@@ -110,10 +110,10 @@ def search_special_aspects(aspect_table):
 			for i in xrange(len(square_entries)-1):
 				otherp=square_entries[i].partnerPlanet(pn)
 				otherp2=square_entries[i+1].partnerPlanet(pn)
-				miniopposition=[y for x, y in enumerate(aspect_table) \
+				miniopposition=[y for y in aspect_table \
 					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					and y.aspect == 'opposition']
-				minisquare=[y for x, y in enumerate(aspect_table) \
+				minisquare=[y for y in aspect_table \
 					if (y.isForPlanet(otherp) or y.isForPlanet(otherp2)) \
 					and y.aspect == "square" \
 					and not y.isForPlanet(pn)]
@@ -130,7 +130,7 @@ def search_special_aspects(aspect_table):
 			for i in xrange(len(square_entries)-1):
 				otherp=square_entries[i].partnerPlanet(pn)
 				otherp2=square_entries[i+1].partnerPlanet(pn)
-				miniopposition=[y for x, y in enumerate(aspect_table) \
+				miniopposition=[y for y in aspect_table \
 					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					and y.aspect == 'opposition']
 				if len(miniopposition) > 0:
@@ -146,11 +146,11 @@ def search_special_aspects(aspect_table):
 			for n in conjunction_entries:
 				#Check for other conjunctions that do not involve the root planet
 				if n.planet1 != pn:
-					b=[y for x, y in enumerate(aspect_table) \
+					b=[y for y in aspect_table \
 					if y.isForPlanet(n.planet1) and not y.isForPlanet(pn) \
 					and y.aspect == 'conjunction']
 				else:
-					b=[y for x, y in enumerate(aspect_table) \
+					b=[y for y in aspect_table \
 					if y.isForPlanet(n.planet2) and not y.isForPlanet(pn) \
 					and y.aspect == 'conjunction']
 				if len(b) > 0:
@@ -165,7 +165,7 @@ def search_special_aspects(aspect_table):
 			for i in xrange(len(inconjunct_entries)-1):
 				otherp=inconjunct_entries[i].partnerPlanet(pn)
 				otherp2=inconjunct_entries[i+1].partnerPlanet(pn)
-				minisextiles=[y for x, y in enumerate(aspect_table) \
+				minisextiles=[y for y in aspect_table \
 					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					and y.aspect == 'sextile']
 				if len(minisextiles) > 0:
@@ -179,7 +179,8 @@ def search_special_aspects(aspect_table):
 
 	#remove stelliums contained in stelliums that
 	#involve the same planets
-	if len(stel) > 0:
+
+	if len(stel) > 1:
 		for i in stel.copy():
 			for j in stel.copy():
 				if j.contains(i):
@@ -193,12 +194,7 @@ def search_special_aspects(aspect_table):
 				if j.contains(i):
 					tsq.remove(i)
 					break
-	print gc
-	for i in gc:
-		for j in gc:
-			print hash(i)==hash(j)
-			print i==j
-			print i,j
+
 	return yods,gt,gc,stel,tsq
 
 def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):

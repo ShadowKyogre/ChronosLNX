@@ -49,13 +49,13 @@ class Aspect:
 				return i
 		return "None"
 
-	def isForPlanet(self, string):
-		return self.planet1.realName == string or self.planet2.realName == string
+	def isForPlanet(self, planet):
+		return self.planet1 == planet or self.planet2 == planet
 
-	def partnerPlanet(self, string):
-		if self.planet1.realName == string:
+	def partnerPlanet(self, planet):
+		if self.planet1 == planet:
 			return self.planet2.realName
-		elif self.planet2.realName == string:
+		elif self.planet2 == planet:
 			return self.planet1.realName
 		else:
 			return None

@@ -527,6 +527,8 @@ class SignsForDayList(QtGui.QWidget):
 
 	def assembleFromZodiac(self, zodiac):
 		self.tree.clear()
+		if len(self.z) == 0:
+			self.z=zodiac
 		for i in zodiac:
 			item=QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i.name == "Pluto":
