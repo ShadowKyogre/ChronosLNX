@@ -169,11 +169,11 @@ class ChronosLNXConfig:
 		print "Loading natal data..."
 		self.natal_data=get_signs(self.birthtime,self.baby,\
 					  self.show_nodes,\
-					  self.show_admi)
+					  self.show_admi,prefix="Natal")
 		#keep a copy of natal information for transits
-		self.natal_sun=self.natal_data[0][3]
+		self.natal_sun=self.natal_data[1][0].m.longitude
 		#keep a formatted copy for solar returns
-		self.natal_moon=self.natal_data[1][3]
+		self.natal_moon=self.natal_data[1][1].m.longitude
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()

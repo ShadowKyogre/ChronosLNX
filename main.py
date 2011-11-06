@@ -40,12 +40,12 @@ class ChronosLNX(QtGui.QWidget):
 		self.setFixedSize(840, 420)
 		self.setWindowTitle(CLNXConfig.APPNAME)
 		self.setWindowIcon(CLNXConfig.main_icons['logo'])
+		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
+		CLNXConfig.show_nodes,CLNXConfig.show_admi)
 		self.mainLayout=QtGui.QGridLayout(self)
 		self.leftLayout=QtGui.QVBoxLayout()
 		self.rightLayout=QtGui.QVBoxLayout()
 		self.add_widgets()
-		self.mainLayout.addLayout(self.leftLayout,0,0)
-		self.mainLayout.addLayout(self.rightLayout,0,1)
 		self.timer.timeout.connect(self.update)
 		#self.setWindowFlags(QtGui.Qt.WA_Window)
 		self.timer.start(1000)
@@ -56,30 +56,48 @@ class ChronosLNX(QtGui.QWidget):
 		self.make_calendar_menu()
 		self.leftLayout.addWidget(self.calendar)
 
+		buttonbox=QtGui.QHBoxLayout()
+		self.mainLayout.addLayout(self.leftLayout,0,0)
+		self.mainLayout.addLayout(self.rightLayout,0,1)
+		self.mainLayout.addLayout(buttonbox,1,0,1,2)
+
+		aspectsButton=QtGui.QPushButton("Aspects for Now",self)
+		aspectsButton.clicked.connect(lambda: aspectsDialog(self, self.zodiac, CLNXConfig.natal_data[1], \
+		CLNXConfig.main_icons, CLNXConfig.sign_icons, \
+		CLNXConfig.pluto_alt, CLNXConfig.show_admi, CLNXConfig.show_nodes))
+		aspectsButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
+		buttonbox.addWidget(aspectsButton)
+
+		housesButton=QtGui.QPushButton("Houses for Now",self)
+		housesButton.clicked.connect(lambda: housesDialog(self, self.houses, \
+		CLNXConfig.capricorn_alt,CLNXConfig.sign_icons))
+		housesButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
+		buttonbox.addWidget(housesButton)
+
 		natalButton=QtGui.QPushButton("&View Natal Data",self)
 		natalButton.clicked.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime, birth=True))
 		natalButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
-		self.leftLayout.addWidget(natalButton)
+		buttonbox.addWidget(natalButton)
 
 		saveRangeButton=QtGui.QPushButton("Save data from dates",self)
 		saveRangeButton.clicked.connect(self.save_for_range_dialog.open)
 		saveRangeButton.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
-		self.leftLayout.addWidget(saveRangeButton)
+		buttonbox.addWidget(saveRangeButton)
 
 		settingsButton=QtGui.QPushButton("Settings",self)
 		settingsButton.clicked.connect(self.settings_dialog.open)
 		settingsButton.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
-		self.leftLayout.addWidget(settingsButton)
+		buttonbox.addWidget(settingsButton)
 
-		#helpButton=QtGui.QPushButton("Help",self)
-		#helpButton.clicked.connect(self.show_about)
-		#helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
-		#self.leftLayout.addWidget(helpButton)
+		helpButton=QtGui.QPushButton("Help",self)
+		helpButton.clicked.connect(self.show_help)
+		helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
+		buttonbox.addWidget(helpButton)
 
 		aboutButton=QtGui.QPushButton("About",self)
 		aboutButton.clicked.connect(self.show_about)
 		aboutButton.setIcon(QtGui.QIcon.fromTheme("help-about"))
-		self.leftLayout.addWidget(aboutButton)
+		buttonbox.addWidget(aboutButton)
 
 		##right pane
 		dayinfo=QtGui.QHBoxLayout()
@@ -130,7 +148,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
 
-		self.signsToday.setCompareTable(CLNXConfig.natal_data)
+		self.signsToday.setCompareTable(CLNXConfig.natal_data[1])
 		self.signsToday.setIcons(CLNXConfig.main_icons)
 		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
 		self.signsToday.setADMI(CLNXConfig.show_admi)
@@ -227,7 +245,7 @@ If you want adjust your birth time, go to Settings.""" \
 		signsToday.setNodes(CLNXConfig.show_nodes)
 		signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
 		if not birth:
-			signsToday.setCompareTable(CLNXConfig.natal_data)
+			signsToday.setCompareTable(CLNXConfig.natal_data[1])
 
 		eventsToday=EventsList(info_dialog)
 		model=DayEventsModel()
@@ -246,7 +264,7 @@ If you want adjust your birth time, go to Settings.""" \
 			signsToday.time.timeChanged.disconnect()
 			signsToday.time.setReadOnly(True)
 			signsToday.time.setTime(CLNXConfig.birthtime.time())
-			signsToday.assembleFromZodiac(CLNXConfig.natal_data)
+			signsToday.assembleFromZodiac(CLNXConfig.natal_data[1])
 		else:
 			signsToday.get_constellations(date, ob)
 
@@ -349,7 +367,8 @@ If you want adjust your birth time, go to Settings.""" \
 
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
+			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule, \
+			CLNXConfig.show_nodes, CLNXConfig.show_admi)
 		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
@@ -369,7 +388,8 @@ If you want adjust your birth time, go to Settings.""" \
 
 	def print_to_file(self, option,date,filename=None,suppress_notification=False):
 		if option == "All":
-			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule)
+			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule,\
+			CLNXConfig.show_nodes, CLNXConfig.show_admi)
 		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
@@ -421,7 +441,8 @@ If you want adjust your birth time, go to Settings.""" \
 							month=replace_month,\
 							day=day, tzinfo=tz.gettz())
 			else:
-				date=datetime(year=year,month=month,day=day, tzinfo=tz.gettz())
+				date=datetime(year=year,month=month,day=day,\
+				hour=12,minute=0, second=0, tzinfo=tz.gettz())
 
 			if self.calendar.lunarReturn:
 				idx=self.calendar.fetchLunarReturn(date.date())
@@ -717,18 +738,22 @@ If you want adjust your birth time, go to Settings.""" \
 		CLNXConfig.PAGE, \
 		CLNXConfig.APPNAME))
 
+	def show_help(self):
+		print "Stubbing out"
+
 # house of moment == sun is in == #number of that hour in day or night
 # so basically
 
 	def update(self):
 		self.now = datetime.now().replace(tzinfo=tz.gettz())
+		updatePandC(self.now, CLNXConfig.observer, self.houses, self.zodiac)
 		if self.now > self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
-			hom=int(get_house(0, CLNXConfig.observer, self.now)[0])
+			hom=self.zodiac[0].m.house_info.num
 			if hom == 1:
 				suffix="st"
 			elif hom == 2:
@@ -741,7 +766,7 @@ If you want adjust your birth time, go to Settings.""" \
 		else:
 			house_of_moment_string=""
 		if CLNXConfig.show_sign:
-			sign_string="<br />The sign of the month is %s" %(get_sun_sign(self.now, CLNXConfig.observer))
+			sign_string="<br />The sign of the month is %s" %(self.zodiac[0].m.signData['name'])
 		else:
 			sign_string=""
 		if CLNXConfig.show_moon:

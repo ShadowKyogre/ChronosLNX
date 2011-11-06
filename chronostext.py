@@ -2,6 +2,7 @@
 from astro_rewrite import *
 from eventplanner import DayEventsModel
 from PyQt4 import QtGui,QtCore
+from datetime import timedelta
 import swisseph
 
 def prepare_planetary_info(date,observer):
@@ -17,13 +18,23 @@ def prepare_planetary_info(date,observer):
 	return "%s\n%s" %(header, "\n".join(sphinfo))
 
 def prepare_sign_info(date,observer,nodes,admi):
+	houses,signs=get_signs(date,observer,nodes,admi)
 	sinfo=[]
 	for hour in xrange(0,24):
-		info=get_signs(date,observer,nodes,admi)
 		sinfo.append("Info at %s:00" %(hour))
-		for i in info:
-			sinfo.append(' - '.join([i[0], i[1], i[2], str(i[3]), i[4], i[5]]))
-		sinfo.append("\n")
+		for i in signs:
+			sinfo.append("%s - %s - %s - %s - %s" %(
+			i.name, i.m.signData['name'], i.m.only_degs(), \
+			i.retrograde, i.m.house_info.num))
+		sinfo.append("\nHouses overview:")
+		for i in houses:
+			sinfo.append("%s - %s - %s - %s - %s - %s" %(
+				"House %s" %(i.num), i.natRulerData['name'], \
+				i.cusp.signData['name'], i.cusp.only_degs(), \
+				i.end.signData['name'], i.end.only_degs()))
+		date=date+timedelta(days=1)
+		updatePandC(date, observer, houses, signs)
+			#sinfo.append("\n")
 	return "Sign info for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(sinfo)
 
 def prepare_events(date, source):

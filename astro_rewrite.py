@@ -3,7 +3,9 @@ import swisseph
 from dateutil import tz
 from datetime import datetime, timedelta
 import math
-from operator import itemgetter
+from measurements import *
+from planet import Planet
+from aspects import *
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
@@ -32,150 +34,34 @@ LMONTH_TO_MONTH=0.9702248824500268
 
 SECS_TO_DAYS=86400.0
 
-ZODIAC =['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
-ZODIAC_ELEMENT = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water']
-ZODIAC_MODE = ['cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable','cardinal', 'fixed', 'mutable']
-aspects = { 'conjunction': 0.0,
-	    'semi-sextile':30.0,
-	    'semi-square':45.0,
-	    'sextile':60.0,
-	    'quintile':72.0,
-	    'square':90.0,
-	    'trine':120.0,
-	    'sesiquadrate':135.0,
-	    'biquintile':144.0,
-	    'inconjunct':150.0,
-	    'opposition':180.0,
-	  }
+#http://www.guidingstar.com/Articles/Rulerships.html ? Either this or just mod Uranus, Neptune, and Pluto to have just one sign
 
-DEFAULT_ORBS = { 'conjunction': 10.0,
-'semi-sextile':3.0,
-'semi-square':3.0,
-'sextile':6.0,
-'quintile':1.0,
-'square':10.0,
-'trine':10.0,
-'sesiquadrate':3.0,
-'biquintile':1.0,
-'inconjunct':3.0,
-'opposition':10.0,
-}
 					  ##Formalhaut
-#stars=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
+#FIXED_STARS=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
 #"Alpheratz" , "Baten Kaitos", \#Aries stars
-				###Caput Algol
+				##Caput Algol
 #"Mirach", "Hamal", "Almach", "Algol", "Alcyone", \#Taurus stars
-#"Hyades"
+##Hyades 	#Epsilon Tauri/Northern Bull's Eye		#Polaris
+#"Prima Hyadum", "Ain", "Rigel", "Bellatrix", "Capella", "Alnilam", ",alUMi", "Betelgeuse", \#gemini stars
+#"Sirius","Castor","Pollux","Procyon", \#cancer stars
+#"Praesepe","Alphard", \#Leo stars
+#"Zosma", "Denebola", \#Virgo stars
+#"Vindemiatrix", "Algorab", "Spica", "Arcturus", \#Libra stars
+			##Zuben Algenubi/North Scale	#Zuben Ashamali/South Scale
+#"Princeps", "Alphecca", "Zuben Elgenubi", "Zuben Eshamali", "Unukalhai", \#Scorpio stars
+	  ##Aculeus
+#"Lesath", "Sargas", "Acumen", ""
 #]
 
-def format_zodiacal_longitude(l):
-	split=math.modf(l)
-	degrees = int(split[1] % 30)
-	sign = ZODIAC[int(split[1] / 30)]
-	minutes = int(split[0] * 60)
-	second = int(math.modf(split[0] * 60)[0] * 60)
-	return degrees, sign, minutes, second
-
-def get_zodiacal_mode(sign):
-	return ZODIAC_MODE[ZODIAC.index(sign)]
-
-def get_zodiacal_element(sign):
-	return ZODIAC_ELEMENT[ZODIAC.index(sign)]
-
-
-def parse_zodiacal_longitude(sign, degree, minute, second):
-	degrees=ZODIAC.index(sign)*30.0
-	return degrees+degree+minute/60.0+second/3600
-
-def format_zodiacal_difference(zodiacal1,zodiacal2):
-	difference=math.fabs(zodiacal1-zodiacal2)
-	if difference > 180.0:
-		difference=360.0-difference
-	return difference
-
-def check_distance(orb, diff):
-	for i in aspects:
-		degrees=aspects[i]
-		o=orb[i]
-		if degrees - o <= diff <= degrees + o:
-			return i
 #http://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
 #http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
 
-class SpecialAspect:
-	def __init__(self, descriptors, name):
-		self.descriptors=descriptors
-		self.name=name
-
-	def uniquePlanets(self):
-		planets=set()
-		for d in self.descriptors:
-			planets.add(d.planet1)
-			planets.add(d.planet2)
-		return planets
-
-	def uniqueMeasuerments(self):
-		measurements=set()
-		for d in self.descriptors:
-			measurements.add(d.measurements[0])
-			measurements.add(d.measurements[1])
-		return measurements
-
-	def __eq__(self, sa):
-		return self.name == sa.name and \
-		self.uniquePlanets() == sa.uniquePlanets()
-		#because they are the same points
-
-	def __ne__(self, sa):
-		return not self.__eq__(pr)
-
-	def __repr__(self):
-		return "%s\nUnique angles:%s\nUnique planets:%s" \
-		%(self.name.title(), [ ("%.3f" %(i)) for i in list(self.uniqueMeasuerments())], list(self.uniquePlanets()))
-
-class PlanetRelationship:
-	def __init__(self, p1, p2, aspect, measurements):
-		self.planet1=p1
-		self.planet2=p2
-		self.aspect=aspect
-		self.measurements=measurements
-
-	def isForPlanet(self, string):
-		return self.planet1==string or self.planet2==string
-
-	def partnerPlanet(self, string):
-		if self.planet1 == string:
-			return self.planet2
-		elif self.planet2 == string:
-			return self.planet1
-		else:
-			return None
-
-	def __repr__(self):
-		return "Planet 1 - %s\nPlanet 2 - %s\nRelationship - %s\nMeasurements - %s" \
-		%(self.planet1, self.planet2, self.aspect, [ ("%.3f" %(i)) for i in self.measurements])
-
-	def __eq__(self, pr):
-		return self.isForPlanet(pr.planet1) and self.isForPlanet(pr.planet2)
-
-	def __ne__(self, pr):
-		return not self.__eq__(pr)
-
 def search_special_aspects(aspect_table):
-	yods=[]
-	gt=[]
-	gc=[]
-	stel=[]
-	tsq=[]
-	#if prefix != None:
-		#checking_planets=20
-	#else:
-		#checking_planets=10
-	#for i in xrange(checking_planets):
-		#if i > 9:
-			#pn="%s %s" %(prefix, swisseph.get_planet_name(i%10))
-		#else:
-			#pn=swisseph.get_planet_name(i)
+	yods=set()
+	gt=set()
+	gc=set()
+	stel=set()
+	tsq=set()
 
 	for i in xrange(10):
 		pn=swisseph.get_planet_name(i)
@@ -217,7 +103,7 @@ def search_special_aspects(aspect_table):
 				for j in minitrines:
 					intersection_entries.append(j)
 				if len(intersection_entries) > 2:
-					gt.append(SpecialAspect(intersection_entries, 'grand trine'))
+					gt.add(SpecialAspect(intersection_entries, 'grand trine'))
 					break
 
 		if len(opposition_entries) > 0:
@@ -237,7 +123,7 @@ def search_special_aspects(aspect_table):
 					intersection_entries2.append(miniopposition[0])
 					intersection_entries2.append(minisquare[0])
 					if len(intersection_entries2) > 3:
-						gc.append(SpecialAspect(intersection_entries2, 'grand cross'))
+						gc.add(SpecialAspect(intersection_entries2, 'grand cross'))
 
 		if len(square_entries) > 2:
 			for i in xrange(len(square_entries)-1):
@@ -252,7 +138,7 @@ def search_special_aspects(aspect_table):
 				for j in miniopposition:
 					intersection_entries3.append(j)
 				if len(intersection_entries3) > 2:
-					tsq.append(SpecialAspect(intersection_entries3,'t-square'))
+					tsq.add(SpecialAspect(intersection_entries3,'t-square'))
 					break
 
 		if len(conjunction_entries) > 2:
@@ -270,9 +156,9 @@ def search_special_aspects(aspect_table):
 					intersection_entries4.append(n)
 					for j in b:
 						intersection_entries4.append(j)
-				if len(intersection_entries4) > 2:
-					stel.append(SpecialAspect(intersection_entries4,'stellium'))
-					break
+					if len(intersection_entries4) > 2:
+						stel.add(SpecialAspect(intersection_entries4,'stellium'))
+						break
 
 		if len(inconjunct_entries) > 1:
 			for i in xrange(len(inconjunct_entries)-1):
@@ -287,56 +173,42 @@ def search_special_aspects(aspect_table):
 				for j in minisextiles:
 					intersection_entries5.append(j)
 				if len(intersection_entries5) > 2:
-					yods.append(SpecialAspect(intersection_entries5,'yod'))
+					yods.add(SpecialAspect(intersection_entries5,'yod'))
 					break
 
-	#clean up the entries of special configs by removing entries describing the same relationship
-	gt=[x for i,x in enumerate(gt) if x not in gt[i+1:]]
-	yods=[x for i,x in enumerate(yods) if x not in yods[i+1:]]
-	gc=[x for i,x in enumerate(gc) if x not in gc[i+1:]]
-	stel=[x for i,x in enumerate(stel) if x not in stel[i+1:]]
-	tsq=[x for i,x in enumerate(tsq) if x not in tsq[i+1:]]
+	#remove stelliums contained in stelliums that
+	#involve the same planets
+	if len(stel) > 0:
+		for i in stel.copy():
+			for j in stel.copy():
+				if j.contains(i):
+					stel.remove(i)
+					break
 
 	#remove redundant entries in tsq that are described in gc
 	if len(tsq) > 0:
-		for i in tsq[:]:
+		for i in tsq.copy():
 			for j in gc:
-				planets=i.uniquePlanets()
-				if planets.intersection(j.uniquePlanets()) == planets:
+				if j.contains(i):
 					tsq.remove(i)
 					break
-				else:
-					"Failed to remove. %s|%s|%s|%s" %(planets,j.uniquePlanets(),planets.intersection(j.uniquePlanets()),planets.intersection(j.uniquePlanets()) == planets)
 
 	return yods,gt,gc,stel,tsq
 
-def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None, prefix="Natal"):
+def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
 	aspect_table=[]
 	comparison=[]
 
-	for i in zodiac:
-		for j in zodiac:
-			if i[0] == j[0]:
-				continue
-			if len(aspect_table) > 0:
-				if len([x for x, y in enumerate(aspect_table) \
-				if y.isForPlanet(j[0]) and y.isForPlanet(i[0])]) > 0:
-					continue
-			diff=format_zodiacal_difference(i[3],j[3])
-			pr=PlanetRelationship(i[0],j[0],\
-			check_distance(orbs,diff),\
-			[i[3],j[3],diff])
+	for idx, i in enumerate(zodiac):
+		for j in zodiac[idx+1:]:
+			pr=Aspect(i,j,DEFAULT_ORBS)
 			aspect_table.append(pr)
 		if zodiac is not compare and compare is not None:
 			for j in compare:
-				diff=format_zodiacal_difference(i[3],j[3])
-				pr=PlanetRelationship(i[0], "%s %s" %(prefix,j[0]),\
-				check_distance(orbs,diff),\
-				[i[3],j[3],diff])
+				pr=Aspect(i,j,DEFAULT_ORBS)
 				comparison.append(pr)
 	if len(comparison) > 0:
 		return aspect_table,comparison
-
 	return aspect_table
 
 def solar_return(date,year,data): #data contains the angule, date is for a reasonable baseline
@@ -482,27 +354,6 @@ def next_new_moon(date):
 			return revjul_to_datetime(swisseph.revjul(delta))
 	return revjul_to_datetime(swisseph.revjul(day))
 
-
-def is_retrograde(planet, date):
-	day=datetime_to_julian(date)
-	# lat.speed < 0, then retrograde (source: openastro.org)
-	return (swisseph.calc_ut(day,planet)[3] < 0)
-
-def get_house(planet, observer, date):
-	day=datetime_to_julian(date)
-	#longitude, latitude, distance, [long. speed], lat. speed, dist. speed
-	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
-	objlon=swisseph.calc_ut(day,planet)[0]
-	oblt=swisseph.calc_ut(day,planet)[1]
-	#float[12],#float[8]
-	#note: houses move along!
-	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
-	#get REALLY precise house position
-	hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon, objlat=oblt)
-	#hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, objlon)
-	swisseph.close()
-	return hom,objlon,format_zodiacal_longitude(objlon)
-
 def get_transit(planet, observer, date):
 	day=datetime_to_julian(date)
 	if observer.lat < 0:
@@ -515,63 +366,138 @@ def get_transit(planet, observer, date):
 				rsmi=swisseph.CALC_ITRANSIT)[1][0]))
 	swisseph.close()
 	return transit
+#i, (i+1)%12 # counter clockwise
+#(i+1)%12, i # clockwise
+def fill_houses(date, observer, houses=None,data=None):
+	day=datetime_to_julian(date)
+	if not data:
+		data=swisseph.houses(day, observer.lat, observer.long)[0]
+	if houses == None:
+		houses=[]
+		for i in xrange(12):
+			houses.append(HouseMeasurement(data[i],data[(i+1)%12],num=i+1))
+		swisseph.close()
+		return houses
+	else:
+		for i in xrange(12):
+			houses[i].cusp.longitude=data[i]
+			houses[i].end.longitude=data[(i+1)%12]
+		swisseph.close()
 
-#pisces, taurus
-#notes: swisseph.TRUE_NODE
-#south node = swisseph.TRUE_NODE's angle - 180
-def get_signs(date, observer, nodes, axes):
-	entries = []
+def updatePandC(date, observer, houses, entries):
+	day=datetime_to_julian(date)
+	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
+	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
+	fill_houses(date, observer, houses=houses, data=cusps)
 	for i in xrange(10):
-		house,truelon,info=get_house(i, observer, date)
-		degrees,sign,minutes,seconds=info
-		angle="%s*%s\"%s'" %(degrees, minutes, seconds)
+		calcs=swisseph.calc_ut(day,i)
+		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
 		if i == swisseph.SUN or i == swisseph.MOON:
 			retrograde='Not Applicable'
 		else:
-			retrograde=str(is_retrograde(i,date))
-		entries.append([swisseph.get_planet_name(i), sign, angle, truelon, retrograde,str(int(house))])
-	if nodes: #add node entries
-		house,truelon,info=get_house(swisseph.TRUE_NODE, observer, date)
-		degrees,sign,minutes,seconds=info
-		angle="%s*%s\"%s'" %(degrees, minutes, seconds)
+			retrograde=str(calcs[3] < 0)
+		entries[i].retrograde=retrograde
+		entries[i].m.longitude=calcs[0]
+		entries[i].m.latitude=calcs[1]
+		entries[i].m.progress=hom%1.0
+		entries[i].m.house_info=houses[int(hom-1)]
+	if len(entries) > 10: #add node entries
+		calcs=swisseph.calc_ut(day,swisseph.TRUE_NODE)
+		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
 		retrograde="Always"
-		entries.append(["North Node", sign, angle, truelon, retrograde,str(int(house))])
+
+		entries[10].retrograde=retrograde
+		entries[10].m.longitude=calcs[0]
+		entries[10].m.latitude=calcs[1]
+		entries[10].m.progress=hom%1.0
+		entries[10].m.house_info=houses[int(hom-1)]
 
 		#do some trickery to display the South Node
-		reverse=swisseph.degnorm(truelon-180.0)
-		reverse_house=(6+house)%12
-		if reverse_house < 1:
-			reverse_house=12+reverse_house
-		rev_degrees,rev_sign,rev_minutes,rev_seconds=format_zodiacal_longitude(reverse)
-		rev_angle="%s*%s\"%s'" %(rev_degrees, rev_minutes, rev_seconds)
-		entries.append(["South Node", rev_sign, rev_angle, reverse, retrograde,str(int(reverse_house))])
-	if axes:
-		cusps,asmc=swisseph.houses(datetime_to_julian(date), observer.lat, observer.long)
+		reverse=swisseph.degnorm(calcs[0]-180.0)
+		revhouse=(int(hom)+6)%12
+		revprogress=1-hom%1.0
+		entries[11].retrograde=retrograde
+		entries[11].m.longitude=reverse
+		entries[11].m.latitude=calcs[1]
+		entries[11].m.progress=revprogress
+		entries[11].m.house_info=houses[int(revhouse-1)]
+	if len(entries) > 12:
 		ascendant=asmc[0]
 		descendant=cusps[6]
 		mc=asmc[1]
 		ic=cusps[3]
 		retrograde='Not a Planet'
 
-		a_degrees,a_sign,a_minutes,a_seconds=format_zodiacal_longitude(ascendant)
-		d_degrees,d_sign,d_minutes,d_seconds=format_zodiacal_longitude(descendant)
-		m_degrees,m_sign,m_minutes,m_seconds=format_zodiacal_longitude(mc)
-		i_degrees,i_sign,i_minutes,i_seconds=format_zodiacal_longitude(ic)
+		entries[12].m.longitude=ascendant
+		entries[13].m.longitude=descendant
+		entries[14].m.longitude=mc
+		entries[15].m.longitude=ic
 
-		a_angle="%s*%s\"%s'" %(a_degrees, a_minutes, a_seconds)
-		d_angle="%s*%s\"%s'" %(d_degrees, d_minutes, d_seconds)
-		m_angle="%s*%s\"%s'" %(m_degrees, m_minutes, m_seconds)
-		i_angle="%s*%s\"%s'" %(i_degrees, i_minutes, i_seconds)
+	swisseph.close()
 
-		entries.append(["Ascendant", a_sign, a_angle, ascendant, retrograde,str(1)])
-		entries.append(["MC", m_sign, m_angle, mc, retrograde,str(10)])
-		entries.append(["Descendant", d_sign, d_angle, descendant, retrograde,str(7)])
-		entries.append(["IC", i_sign, i_angle, ic, retrograde,str(4)])
+#def update_planets(date, observer):
+#notes: swisseph.TRUE_NODE
+#south node = swisseph.TRUE_NODE's angle - 180
+def get_signs(date, observer, nodes, axes, prefix=None):
+	entries = []
+	houses = fill_houses(date, observer)
+	day=datetime_to_julian(date)
+	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
+
+	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
+
+	for i in xrange(10):
+		calcs=swisseph.calc_ut(day,i)
+		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
+		zm=ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
+		if i == swisseph.SUN or i == swisseph.MOON:
+			retrograde='Not Applicable'
+		else:
+			retrograde=retrograde=str(calcs[3] < 0)
+		planet=Planet(swisseph.get_planet_name(i),prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+	if nodes: #add node entries
+		calcs=swisseph.calc_ut(day,swisseph.TRUE_NODE)
+		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
+		zm=ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
+		retrograde="Always"
+		planet=Planet("North Node",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+
+		#do some trickery to display the South Node
+		reverse=swisseph.degnorm(calcs[0]+180.0)
+		revhouse=(int(hom)+6)%12
+		revprogress=1-hom%1.0
+		zm=ActiveZodiacalMeasurement(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
+		planet=Planet("South Node",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+	if axes:
+		ascendant=asmc[0]
+		descendant=cusps[6]
+		mc=asmc[1]
+		ic=cusps[3]
+		retrograde='Not a Planet'
+
+		zm=ActiveZodiacalMeasurement(ascendant, 0.0, houses[0], progress=0.0)
+		planet=Planet("Ascendant",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+
+		zm=ActiveZodiacalMeasurement(descendant, 0.0, houses[6], progress=0.0)
+		planet=Planet("Descendant",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+
+		zm=ActiveZodiacalMeasurement(mc, 0.0, houses[9], progress=0.0)
+		planet=Planet("MC",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
+
+		zm=ActiveZodiacalMeasurement(ic, 0.0, houses[3], progress=0.0)
+		planet=Planet("IC",prefix=prefix,m=zm,retrograde=retrograde)
+		entries.append(planet)
 
 	#if stars:
 		#print "Todo"
 	swisseph.close()
-	return entries
+	return houses,entries
 
 def grab_phase(date):
 	day=datetime_to_julian(date)
@@ -659,7 +585,7 @@ def get_sunrise_and_sunset(date,observer):
 			swisseph.SUN, observer.long, observer.lat, alt=observer.elevation, \
 			rsmi=swisseph.CALC_RISE)[1][0]))
 
-	sunset=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
+	sunset=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day, \
 			swisseph.SUN, observer.long, observer.lat, observer.elevation, \
 			rsmi=swisseph.CALC_SET)[1][0]))
 

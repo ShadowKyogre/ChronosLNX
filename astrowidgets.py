@@ -162,7 +162,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 		hbox=QtGui.QVBoxLayout(self)
 		self.tree=QtGui.QTreeView(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.tree.setRootIsDecorated(True)
+		self.tree.setRootIsDecorated(False)
 		color=self.palette().color(QtGui.QPalette.Midlight)
 		color.setAlpha(64)
 		self.color=QtGui.QBrush(color)
@@ -312,13 +312,8 @@ class AspectTableDisplay(QtGui.QWidget):
 				c=QtGui.QStandardItem("%s" %(i.aspect.title()))
 			c.setToolTip("%s" %(i))
 			c.setData(i,32)
-			if self.comparative:
-				self.tableAspects.setItem(self.headers.\
-				index(i.planet2.rpartition('Natal ')[2]),\
-				self.headers.index(i.planet1),c)
-			else:
-				self.tableAspects.setItem(self.headers.index(i.planet2),\
-				self.headers.index(i.planet1),c)
+			self.tableAspects.setItem(self.headers.index(i.planet2.name),\
+			self.headers.index(i.planet1.name),c)
 		i=0
 		for yod in sad[0]:
 			c=QtGui.QStandardItem(str(yod))
@@ -356,8 +351,8 @@ class AspectTableDisplay(QtGui.QWidget):
 			self.headers.append("South Node")
 		if self.admi:
 			self.headers.append("Ascendant")
-			self.headers.append("MC")
 			self.headers.append("Descendant")
+			self.headers.append("MC")
 			self.headers.append("IC")
 		length=len(self.headers)
 		self.tableAspects.setColumnCount(length)
@@ -389,11 +384,77 @@ class AspectTableDisplay(QtGui.QWidget):
 	def setPlutoAlternate(self, value):
 		self.pluto_alternate=value #should be boolean
 
-	def setCapricornAlternate(self, value):
-		self.capricorn_alternate=value #should be string
-
 	def setNodes(self, value):
 		self.nodes=value
+
+
+def aspectsDialog(widget, zodiac, other_table, icons, \
+	sign_icons, pluto_alternate, admi, nodes):
+	info_dialog=QtGui.QDialog(widget)
+	tabs=QtGui.QTabWidget(info_dialog)
+	aspects=AspectTableDisplay(info_dialog)
+	aspects.setIcons(icons)
+	aspects.setSignIcons(sign_icons)
+	aspects.setPlutoAlternate(pluto_alternate)
+	aspects.setADMI(admi)
+	aspects.setNodes(nodes)
+	vbox=QtGui.QVBoxLayout(info_dialog)
+	tabs.addTab(aspects,"Aspects for this table")
+	vbox.addWidget(tabs)
+	if other_table is not None and len(other_table) > 0:
+		caspects=AspectTableDisplay(info_dialog)
+		caspects.setIcons(icons)
+		caspects.setSignIcons(sign_icons)
+		caspects.setPlutoAlternate(pluto_alternate)
+		caspects.setADMI(admi)
+		caspects.setNodes(nodes)
+		at,compare=create_aspect_table(zodiac,compare=other_table)
+		sado=search_special_aspects(at)
+		sad=search_special_aspects(compare)
+		caspects.buildTable(compare,sad,comparative=True)
+		aspects.buildTable(at,sado)
+		tabs.addTab(caspects,"Aspects to Natal Chart")
+	else:
+		aspects.refresh(zodiac)
+	info_dialog.show()
+
+def housesDialog(widget, houses, capricorn_alternate, sign_icons):
+	info_dialog=QtGui.QDialog(widget)
+	tree=QtGui.QTreeWidget(info_dialog)
+	tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+	tree.setRootIsDecorated(False)
+	tree.setHeaderLabels(["Number","Natural Ruler","Cusp Sign","Degrees","End Sign","Degrees"])
+	tree.setColumnCount(6)
+	vbox=QtGui.QVBoxLayout(info_dialog)
+	vbox.addWidget(tree)
+	for i in houses:
+		item=QtGui.QTreeWidgetItem()
+		item.setText(0,"House %s" %(i.num))
+		item.setToolTip(0,str(i))
+		if i.natRulerData['name'] == "Capricorn":
+			item.setIcon(1,sign_icons[capricorn_alternate])
+		else:
+			item.setIcon(1,sign_icons[i.natRulerData['name']])
+		item.setText(1,i.natRulerData['name'])
+		item.setToolTip(1,i.natRulerStr())
+		if i.cusp.signData['name'] == "Capricorn":
+			item.setIcon(2,sign_icons[capricorn_alternate])
+		else:
+			item.setIcon(2,sign_icons[i.cusp.signData['name']])
+		item.setText(2,i.cusp.signData['name'])
+		item.setToolTip(2,i.cusp.dataAsText())
+		item.setText(3,i.cusp.only_degs())
+		item.setToolTip(3,"The real longitude is %.3f degrees" %(i.cusp.longitude))
+		if i.end.signData['name'] == "Capricorn":
+			item.setIcon(4,sign_icons[capricorn_alternate])
+		else:
+			item.setIcon(4,sign_icons[i.end.signData['name']])
+		item.setText(4,i.end.signData['name'])
+		item.setToolTip(4,i.end.dataAsText())
+		item.setText(5,i.end.only_degs())
+		item.setToolTip(5,"The real longitude is %.3f degrees" %(i.end.longitude))
+		tree.addTopLevelItem(item)
+	info_dialog.show()
 
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args):
@@ -407,7 +468,7 @@ class SignsForDayList(QtGui.QWidget):
 		grid.addWidget(self.time,0,1)
 		self.tree=QtGui.QTreeWidget(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.tree.setRootIsDecorated(True)
+		self.tree.setRootIsDecorated(False)
 		header=QtCore.QStringList()
 		header.append("Planet")
 		header.append("Constellation")
@@ -419,45 +480,25 @@ class SignsForDayList(QtGui.QWidget):
 		vbox.addWidget(self.tree)
 		self.time.setDisplayFormat("HH:mm:ss")
 		self.time.timeChanged.connect(self.update_degrees)
-		button=QtGui.QPushButton("Show Aspects")
+		button=QtGui.QPushButton("&Aspects")
 		button.clicked.connect(self.showAspects)
-		grid.addWidget(button,2,0,1,2)
+		button2=QtGui.QPushButton("&Houses Overview")
+		button2.clicked.connect(self.showHouses)
+		grid.addWidget(button,2,0)
+		grid.addWidget(button2,2,1)
+		self.z=[]
+		self.h=[]
 		self.table=[]
 
 	def setCompareTable(self,table):
 		self.table=table
 
 	def showAspects(self):
-		info_dialog=QtGui.QDialog(self)
-		zodiac=self.reassembleZodiac()
-		tabs=QtGui.QTabWidget(info_dialog)
-		aspects=AspectTableDisplay(info_dialog)
-		aspects.setIcons(self.icons)
-		aspects.setSignIcons(self.sign_icons)
-		aspects.setPlutoAlternate(self.pluto_alternate)
-		aspects.setADMI(self.admi)
-		aspects.setNodes(self.nodes)
-		aspects.setCapricornAlternate(self.capricorn_alternate)
-		vbox=QtGui.QVBoxLayout(info_dialog)
-		tabs.addTab(aspects,"Aspects for this table")
-		vbox.addWidget(tabs)
-		if len(self.table) > 0:
-			caspects=AspectTableDisplay(info_dialog)
-			caspects.setIcons(self.icons)
-			caspects.setSignIcons(self.sign_icons)
-			caspects.setPlutoAlternate(self.pluto_alternate)
-			caspects.setADMI(self.admi)
-			caspects.setNodes(self.nodes)
-			caspects.setCapricornAlternate(self.capricorn_alternate)
-			at,compare=create_aspect_table(zodiac,compare=self.table)
-			sado=search_special_aspects(at)
-			sad=search_special_aspects(compare)
-			caspects.buildTable(compare,sad,comparative=True)
-			aspects.buildTable(at,sado)
-			tabs.addTab(caspects,"Aspects to Natal Chart")
-		else:
-			aspects.refresh(zodiac)
-		info_dialog.show()
+		aspectsDialog(self, self.z, self.table, self.icons, \
+		self.sign_icons, self.pluto_alternate, self.admi, self.nodes)
+
+	def showHouses(self):
+		housesDialog(self, self.h, self.capricorn_alternate, self.sign_icons)
 
 	def update_degrees(self, qtime):
 		self.tree.clear()
@@ -488,46 +529,37 @@ class SignsForDayList(QtGui.QWidget):
 		self.tree.clear()
 		for i in zodiac:
 			item=QtGui.QTreeWidgetItem()
-			if self.pluto_alternate and i[0] == "Pluto":
+			if self.pluto_alternate and i.name == "Pluto":
 				item.setIcon(0,self.icons['Pluto 2'])
-			elif (i[0] == "Ascendant" or i[0] == "Descendant" or \
-			i[0] == "MC" or i[0] == "IC"):
-				item.setIcon(0,self.sign_icons[i[0]])
+			elif (i.name == "Ascendant" or i.name == "Descendant" or \
+			i.name == "MC" or i.name == "IC"):
+				item.setIcon(0,self.sign_icons[i.name])
 			else:
-				item.setIcon(0,self.icons[i[0]])
-			item.setText(0,i[0])
-			if i[1] == "Capricorn":
+				item.setIcon(0,self.icons[i.name])
+			item.setText(0,i.name)
+			item.setToolTip(0,str(i))
+			if i.m.signData['name'] == "Capricorn":
 				item.setIcon(1,self.sign_icons[self.capricorn_alternate])
 			else:
-				item.setIcon(1,self.sign_icons[i[1]])
-			item.setText(1,i[1])
-			item.setText(2,i[2])
-			item.setData(2,32,i[3])
-			item.setToolTip(2,"The real longitude is %.3f degrees" %i[3])
-			item.setText(3,i[4])
-			item.setText(4,i[5])
+				item.setIcon(1,self.sign_icons[i.m.signData['name']])
+			item.setText(1,i.m.signData['name'])
+			item.setToolTip(1,i.m.dataAsText())
+			item.setText(2,i.m.only_degs())
+			item.setToolTip(2,("The real longitude is %.3f degrees"
+			"\nOr %.3f, if ecliptic latitude is considered.")\
+			%(i.m.longitude, i.m.projectedLon))
+			item.setText(3,i.retrograde)
+			item.setText(4,str(i.m.house_info.num))
+			item.setToolTip(4,i.m.status())
 			self.tree.addTopLevelItem(item)
 
 	def _grab(self):
-		constellations=get_signs(self.target_date,self.observer,\
-					self.nodes,self.admi)
-		self.assembleFromZodiac(constellations)
-
-	def reassembleZodiac(self):
-		zodiac=[]
-		i=QtGui.QTreeWidgetItemIterator(self.tree)
-		i.__iadd__(0)
-		while i.value() != None:
-			row=i.value()
-			planet=str(row.data(0,0).toPyObject())
-			sign=str(row.data(1,0).toPyObject())
-			angle=str(row.data(2,0).toPyObject())
-			longitude=float(row.data(2,32).toPyObject())
-			retro=str(row.data(3,0).toPyObject())
-			house=str(row.data(4,0).toPyObject())
-			zodiac.append([planet, sign, angle, longitude, retro, house])
-			i.__iadd__(1)
-		return zodiac
+		if len(self.z) == 0:
+			self.h,self.z=get_signs(self.target_date,self.observer,\
+						self.nodes,self.admi)
+		else:
+			updatePandC(self.target_date, self.observer, self.h, self.z)
+		self.assembleFromZodiac(self.z)
 
 	def get_constellations(self,date, observer):
 		self.observer=observer
@@ -539,7 +571,7 @@ class MoonCycleList(QtGui.QTreeWidget):
 
 		QtGui.QTreeWidget.__init__(self, *args)
 		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.setRootIsDecorated(True)
+		self.setRootIsDecorated(False)
 		header=QtCore.QStringList()
 		header.append("Time")
 		header.append("Phase")
