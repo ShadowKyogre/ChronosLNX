@@ -32,6 +32,9 @@ LUNAR_MONTH_DAYS=29.53058868
 LMONTH_IN_SYEAR=12.368266591655964
 LMONTH_TO_MONTH=0.9702248824500268
 
+LMONTH_HALF_TD=timedelta(days=14, hours=18, minutes=22, seconds=1, milliseconds=430)
+LMONTH_FULL_TD=LMONTH_HALF_TD*2
+
 SECS_TO_DAYS=86400.0
 
 #http://www.guidingstar.com/Articles/Rulerships.html ? Either this or just mod Uranus, Neptune, and Pluto to have just one sign
@@ -503,7 +506,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 
 def grab_phase(date):
 	day=datetime_to_julian(date)
-	full_m=previous_new_moon(date)
+	full_m=previous_full_moon(date)
 	#next_new=next_new_moon(date)
 	phase=swisseph.pheno_ut(day,swisseph.MOON)[1]*100
 
@@ -518,7 +521,7 @@ def grab_phase(date):
 	else:
 		illumination="Gibbous"
 	status="Waning"
-	if timedelta(days=0) > date - full_m:
+	if LMONTH_HALF_TD < date - full_m < LMONTH_FULL_TD:
 		status = "Waxing"
 	swisseph.close()
 	return status,illumination,"%.3f%%" %(phase)
@@ -581,7 +584,7 @@ def revjul_to_datetime(revjul):
 	return utc_to_timezone(utc)
 
 def get_sunrise_and_sunset(date,observer):
-	day=datetime_to_julian(date)
+	day=datetime_to_julian(date.replace(hour=12))
 
 	sunrise=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
 			swisseph.SUN, observer.long, observer.lat, alt=observer.elevation, \

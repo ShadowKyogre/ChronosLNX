@@ -410,7 +410,7 @@ def aspectsDialog(widget, zodiac, other_table, icons, \
 		caspects.setNodes(nodes)
 		at,compare=create_aspect_table(zodiac,compare=other_table)
 		sado=search_special_aspects(at)
-		sad=search_special_aspects(compare)
+		sad=search_special_aspects(at+compare)
 		caspects.buildTable(compare,sad,comparative=True)
 		aspects.buildTable(at,sado)
 		tabs.addTab(caspects,"Aspects to Natal Chart")
