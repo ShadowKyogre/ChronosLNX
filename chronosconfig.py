@@ -298,21 +298,9 @@ class ChronosLNXConfig:
 
 	def get_available_themes(self):
 		themes=set()
-		#QDir::entryList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
-		app_theme_path="%s/themes" %(str(QtCore.QDir.currentPath()))
-		print app_theme_path
-		config_theme_path=("%s/themes" %(self.__SETDIR, )).replace('//','')
-		ath=QtCore.QDir(app_theme_path)
-		cth=QtCore.QDir(config_theme_path)
+		ath=QtCore.QDir("samples:")
 		for at in ath.entryList():
 			themes.add(str(at))
-		for lt in cth.entryList():
-			themes.add(str(lt))
-				#os.path.exists(path+"/signs") and \
-				#os.path.exists(path+"/planets") and \
-				#os.path.exists(path+"/moonphase") and \
-				#os.path.exists(path+"/misc"):
-				#themes.append(checking)
 		themes.remove(".")
 		themes.remove("..")
 		return tuple(themes)
