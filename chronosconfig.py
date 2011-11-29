@@ -213,10 +213,8 @@ class ChronosLNXConfig:
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()
-		self.schedule.setColumnCount(4)
-		self.schedule.setHorizontalHeaderLabels(["Enabled","Trigger","Event Type","Options"])
-		#True,"Datetime,Planetary Day,0123456,Planetary Hour,0123456","Reminder","Hi"
-		#[int(i) for i in numbers]
+		self.schedule.setColumnCount(5)
+		self.schedule.setHorizontalHeaderLabels(["Enabled","Date","Time","Event Type","Options"])
 		self.todays_schedule=DayEventsModel()
 		self.todays_schedule.setSourceModel(self.schedule)
 		path=''.join([self.__SETDIR, '/schedule.csv']).replace('//', '/')
