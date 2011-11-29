@@ -61,18 +61,21 @@ class GeoLocationWidget(QWidget):
         self.latitudeSpinBox = QDoubleSpinBox()
         self.latitudeSpinBox.setRange(-90.0, 90.0)
         self.latitudeSpinBox.setDecimals(5)
+        self.latitudeSpinBox.setSuffix(" degrees")
         self.latitudeSpinBox.setToolTip("How far north or sourth you are from the equator. Must be between -90 and 90.")
 
         longitudeLabel = QLabel(self.tr("Longitude:"))
         self.longitudeSpinBox = QDoubleSpinBox()
         self.longitudeSpinBox.setRange(-180.0, 180.0)
         self.longitudeSpinBox.setDecimals(5)
+        self.longitudeSpinBox.setSuffix(" degrees")
         self.longitudeSpinBox.setToolTip("How far west or east you are from the meridian. Must be between -180 and 180.")
 
         elevationLabel = QLabel(self.tr("Elevation"))
         self.elevationSpinBox = QDoubleSpinBox()
         self.elevationSpinBox.setRange(-418.0, 8850.0)
         self.elevationSpinBox.setDecimals(5)
+        self.elevationSpinBox.setSuffix(" m")
         self.elevationSpinBox.setToolTip("The distance from sea level in meters. Must be between -418 and 8850.")
 
         self.connect(self.latitudeSpinBox, SIGNAL("valueChanged(double)"),
@@ -84,11 +87,11 @@ class GeoLocationWidget(QWidget):
 
         layout = QGridLayout(self)
         layout.addWidget(latitudeLabel, 0, 0)
-        layout.addWidget(self.latitudeSpinBox, 0, 1)
-        layout.addWidget(longitudeLabel, 1, 0)
+        layout.addWidget(self.latitudeSpinBox, 1, 0)
+        layout.addWidget(longitudeLabel, 0, 1)
         layout.addWidget(self.longitudeSpinBox, 1, 1)
-        layout.addWidget(elevationLabel, 2, 0)
-        layout.addWidget(self.elevationSpinBox, 2, 1)
+        layout.addWidget(elevationLabel, 0, 2)
+        layout.addWidget(self.elevationSpinBox, 1, 2)
 
     # The latitude property is implemented with the latitude() and setLatitude()
     # methods, and contains the latitude of the user.

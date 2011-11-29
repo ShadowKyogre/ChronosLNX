@@ -3,13 +3,15 @@ import swisseph
 from dateutil import tz
 from datetime import datetime, timedelta
 import math
+
 from measurements import *
-from planet import Planet
 from aspects import *
+from planet import Planet
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
 #http://www.astrologyzine.com/what-is-a-house-cusp.shtml
+
 #ascmc[0] =      Ascendant
 #ascmc[1] =     MC
 #ascmc[2] =     ARMC
@@ -31,11 +33,14 @@ LUNAR_DEGREE_NS=1.410966341313947e-10
 LUNAR_MONTH_DAYS=29.53058868
 LMONTH_IN_SYEAR=12.368266591655964
 LMONTH_TO_MONTH=0.9702248824500268
+LAST_NM=2415021.077777778
 
 LMONTH_HALF_TD=timedelta(days=14, hours=18, minutes=22, seconds=1, milliseconds=430)
 LMONTH_FULL_TD=LMONTH_HALF_TD*2
 
 SECS_TO_DAYS=86400.0
+DAY_SEQUENCE=("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn")
+HOUR_SEQUENCE=("Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars")
 
 #http://www.guidingstar.com/Articles/Rulerships.html ? Either this or just mod Uranus, Neptune, and Pluto to have just one sign
 
@@ -58,6 +63,12 @@ SECS_TO_DAYS=86400.0
 
 #http://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
 #http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+
+class Observer:
+	def __init__(self):
+		self.lat=0
+		self.long=0
+		self.elevation=0
 
 def search_special_aspects(aspect_table):
 	yods=set()
@@ -216,19 +227,20 @@ def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
 		return aspect_table,comparison
 	return aspect_table
 
-def solar_return(date,year,data): #data contains the angule, date is for a reasonable baseline
+def solar_return(date,year,data,refinements=2): #data contains the angule, date is for a reasonable baseline
 	day=datetime_to_julian(date)+(SOLAR_YEAR_DAYS*(year-date.year))
 
-	angle=swisseph.calc_ut(day,swisseph.SUN)[0]
-	sec=((data-angle)/SOLAR_DEGREE_SECOND)/SECS_TO_DAYS
-	day=day+sec
-
-	angle=swisseph.calc_ut(day,swisseph.SUN)[0]
-	msec=((data-angle)/SOLAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.SUN)[0]
+		sec=((data-angle)/SOLAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.SUN)[0]
+		msec=((data-angle)/SOLAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 
 	return revjul_to_datetime(swisseph.revjul(day+msec))
 
-def lunar_return(date,month,year,data): #data contains the angle, date is for a reasonable baseline
+def lunar_return(date,month,year,data,refinements=2): #data contains the angle, date is for a reasonable baseline
 	day=datetime_to_julian(date)
 	progress,cycles=math.modf((day/LUNAR_MONTH_DAYS))
 
@@ -237,126 +249,139 @@ def lunar_return(date,month,year,data): #data contains the angle, date is for a 
 
 	day=(cycles)*LUNAR_MONTH_DAYS
 
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	day=day+(data-angle)/360*LUNAR_MONTH_DAYS
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+		day=day+(data-angle)/360*LUNAR_MONTH_DAYS
 
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	day=day+(data-angle)/360*LUNAR_MONTH_DAYS
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+		sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
 
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
-	day=day+sec
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+		msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		day=day+msec
 
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
-	day=day+sec
-
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
-	day=day+msec
-
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
-	day=day+msec
-
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
-	day=day+nsec
-
-	angle=swisseph.calc_ut(day,swisseph.MOON)[0]
-	nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
-	day=day+nsec
+	for i in xrange(refinements):
+		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
+		nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		day=day+nsec
 
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def previous_full_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]-0.2 #get a baseline
-	day=cycles*LUNAR_MONTH_DAYS
-	delta=day
-	while math.fabs(day-delta) <= 2: #don't go too crazy
-		# sun
-		#/-----moon
-		#sun-moon+ indicates that this is before
-		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
-		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
-		swisseph.close()
-		if round(degree2-degree1) > 180: #move forward
-			delta=delta+0.020833334
-		elif round(degree2-degree1) < 180: #move backward
-			delta=delta-0.020833334
-		else:
-			return revjul_to_datetime(swisseph.revjul(delta))
+def get_moon_sun_diff(day):
+	degree1=swisseph.calc_ut(day,swisseph.MOON)[0]
+	degree2=swisseph.calc_ut(day,swisseph.SUN)[0]
+	swisseph.close()
+	#we need some imprecision due to some oddities involving new and full moons
+	diff=round(degree2-degree1)
+	return diff
+
+def previous_full_moon(date,refinements=2):
+	days_since_nm=datetime_to_julian(date)-LAST_NM
+	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)-0.5 #get a baseline
+	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		day=day+(angle-180.0)/360*LUNAR_MONTH_DAYS
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		sec=((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		msec=((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		day=day+msec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		nsec=((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		day=day+nsec
+
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def previous_new_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+0.3
-	day=cycles*LUNAR_MONTH_DAYS
-	delta=day
-	while math.fabs(day-delta) <= 2: #don't go too crazy
-		# sun
-		#/-----moon
-		#sun-moon+ indicates that this is before
-		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
-		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
-		swisseph.close()
-		diff=round(degree2-degree1)
-		if diff > 180:
-			diff=diff-360
-		elif diff < -180:
-			diff=diff+360
-		if diff > 0: #move forward
-			delta=delta+0.020833334/4
-		elif diff < 0: #move backward
-			delta=delta-0.020833334/4
-		else:
-			return revjul_to_datetime(swisseph.revjul(delta))
+def previous_new_moon(date,refinements=2):
+	days_since_nm=datetime_to_julian(date)-LAST_NM
+	cycles=int(days_since_nm/LUNAR_MONTH_DAYS) #get a baseline
+	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		day=day+angle/360*LUNAR_MONTH_DAYS
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		sec=(angle/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		msec=(angle/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		day=day+msec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		nsec=(angle/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		day=day+nsec
+
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def prev_full_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+0.8
-	day=cycles*LUNAR_MONTH_DAYS
-	delta=day
-	while math.fabs(day-delta) <= 2: #don't go too crazy
-		# sun
-		#/-----moon
-		#sun-moon+ indicates that this is before
-		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
-		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
-		swisseph.close()
-		if round(degree2-degree1) > 180: #move forward
-			delta=delta+0.020833334
-		elif round(degree2-degree1) < 180: #move backward
-			delta=delta-0.020833334
-		else:
-			return revjul_to_datetime(swisseph.revjul(delta))
+def next_full_moon(date):
+	days_since_nm=datetime_to_julian(date)-LAST_NM
+	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)+0.5 #get a baseline
+	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		day=day+(angle-180.0)/360*LUNAR_MONTH_DAYS
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		sec=((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		msec=((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		day=day+msec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		nsec=((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		day=day+nsec
+	## sun
+	##/-----moon
+	##sun-moon+ indicates that this is before
+	##sun-moon- indicates that this is after
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def next_new_moon(date):
-	cycles=math.modf((datetime_to_julian(date)/LUNAR_MONTH_DAYS))[1]+1.3
-	day=cycles*LUNAR_MONTH_DAYS
-	delta=day
-	while math.fabs(day-delta) <= 2: #don't go too crazy
-		# sun
-		#/-----moon
-		#sun-moon+ indicates that this is before
-		#sun-moon- indicates that this is after
-		degree1=swisseph.calc_ut(delta,swisseph.MOON)[0]
-		degree2=swisseph.calc_ut(delta,swisseph.SUN)[0]
-		swisseph.close()
-		diff=round(degree2-degree1)
-		if diff > 180:
-			diff=diff-360
-		elif diff < -180:
-			diff=diff+360
-		if diff > 0: #move forward
-			delta=delta+0.020833334/4
-		elif diff < 0: #move backward
-			delta=delta-0.020833334/4
-		else:
-			return revjul_to_datetime(swisseph.revjul(delta))
+def next_new_moon(date,refinements=2):
+	days_since_nm=datetime_to_julian(date)-LAST_NM
+	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)+1 #get a baseline
+	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		day=day+angle/360*LUNAR_MONTH_DAYS
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		sec=(angle/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		day=day+sec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		msec=(angle/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		day=day+msec
+
+	for i in xrange(refinements):
+		angle=get_moon_sun_diff(day)
+		nsec=(angle/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		day=day+nsec
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def get_transit(planet, observer, date):
@@ -504,9 +529,9 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 	swisseph.close()
 	return houses,entries
 
-def grab_phase(date):
+def grab_phase(date,refinements=2):
 	day=datetime_to_julian(date)
-	full_m=previous_full_moon(date)
+	full_m=previous_full_moon(date,refinements=refinements)
 	#next_new=next_new_moon(date)
 	phase=swisseph.pheno_ut(day,swisseph.MOON)[1]*100
 
@@ -562,9 +587,9 @@ def utc_to_timezone(date):
 	datenow=dateutc.astimezone(tz.gettz())
 	return datenow
 
-def get_moon_cycle(date):
-	prev_new=previous_new_moon(date)
-	new_m=next_new_moon(date)
+def get_moon_cycle(date,refinements=2):
+	prev_new=previous_new_moon(date,refinements=refinements)
+	new_m=next_new_moon(date,refinements=refinements)
 	length = (new_m - prev_new) / 29
 	moon_phase=[]
 
@@ -621,16 +646,12 @@ def hours_for_day(date,observer):
 	return hours
 
 def get_planet_day(day_type):
-	day_sequence=["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
-	return day_sequence[day_type]
+	return DAY_SEQUENCE[day_type]
 
 def progression_check(needed_planet, hour):
-	hour_sequence=["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"]
-	offset=hour_sequence.index(needed_planet)
-	progress=(hour % 7) + offset
-	while progress>=7:
-		progress -= 7
-	return hour_sequence[int(math.fabs(progress))]
+	offset=HOUR_SEQUENCE.index(needed_planet)
+	progress=((hour % 7) + offset)%7
+	return HOUR_SEQUENCE[progress]
 
 def get_sun_sign(date, observer):
 	sign=get_house(swisseph.SUN, observer, date)[2][1]

@@ -1,5 +1,3 @@
-import math
-
 ZODIAC =({'name':'Aries',
 'element':'fire',
 'mode':'cardinal',
@@ -61,7 +59,7 @@ ZODIAC =({'name':'Aries',
 'decanates':[11,3,7],})
 
 def format_zodiacal_difference(zodiacal1,zodiacal2):
-	difference=math.fabs(zodiacal1-zodiacal2)
+	difference=abs(zodiacal1-zodiacal2)
 	if difference > 180.0:
 		difference=360.0-difference
 	return difference

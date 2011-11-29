@@ -4,23 +4,19 @@ import os, csv
 from ast import literal_eval
 from eventplanner import *
 import datetime
+from collections import OrderedDict as od
+
 from astro_rewrite import *
-#import dateutil
+from aspects import DEFAULT_ORBS
 from dateutil import tz
 import zonetab
 #from dateutil.parser import *
-
-class Observer:
-	def __init__(self):
-		self.lat=0
-		self.long=0
-		self.elevation=0
 
 class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.7.0"
+		self.APPVERSION="0.9.0"
 		self.AUTHOR="ShadowKyogre"
 		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 		self.YEAR="2011"
@@ -36,37 +32,61 @@ class ChronosLNXConfig:
 		else:
 			self.zt="/usr/share/zoneinfo/zone.tab"
 
+		self.__SETDIR="%s/%s" \
+		%(str(QtGui.QDesktopServices.storageLocation\
+		(QtGui.QDesktopServices.DataLocation)), self.APPNAME)
+		#QtCore.QDir.currentPath()
+
+		app_theme_path="%s/themes" %(str(QtCore.QDir.currentPath()))
+
+		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
+
+		QtCore.QDir.setSearchPaths("samples", [app_theme_path, config_theme_path])
+
 		self.observer=Observer()
 		self.baby=Observer()
 		self.reset_settings()
-
 		self.load_schedule()
 
 
-	def grab_icon_path(self,theme,icon_type,looking):
-		#icon type must be of following: planetss, moonphase, signs
-		return "%s/%s/%s/%s.png" %(os.sys.path[0],theme,icon_type,looking)
+	def grab_icon_path(self,icon_type,looking):
+		#icon type must be of following: planets, moonphase, signs, misc
+		return "skin:%s/%s.png" %(icon_type,looking)
 
-	def prepare_icons(self):
+	def load_theme(self):
+		app_theme_path="%s/themes/%s" %(str(QtCore.\
+		QDir.currentPath()), self.current_theme)
+
+		config_theme_path=("%s/themes/%s" %(self.__SETDIR, \
+		self.current_theme)).replace('//','')
+
+		QtCore.QDir.setSearchPaths("skin", [app_theme_path, config_theme_path])
+
+		css=QtCore.QFile("skin:ui.css")
+		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
+			self.stylesheet=str(QtCore.QString(css.readAll()))
+		else:
+			self.stylesheet=""
+
 		self.main_icons = {
-			'Sun' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","sun")),
-			'Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","moon")),
-			'Mercury' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","mercury")),
-			'Venus' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","venus")),
-			'Mars' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","mars")),
-			'Jupiter' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","jupiter")),
-			'Saturn' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","saturn")),
-			'Uranus' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","uranus")),
-			'Neptune' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","neptune")),
-			'Pluto' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","pluto")),
-			'Pluto 2' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","pluto_2")),
-			'North Node' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","north_node")),
-			'South Node' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"planets","south_node")),
-			'logo' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","chronoslnx")),
-			'daylight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","day")),
-			'nightlight' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","night")),
+			'Sun' : QtGui.QIcon(self.grab_icon_path("planets","sun")),
+			'Moon' : QtGui.QIcon(self.grab_icon_path("planets","moon")),
+			'Mercury' : QtGui.QIcon(self.grab_icon_path("planets","mercury")),
+			'Venus' : QtGui.QIcon(self.grab_icon_path("planets","venus")),
+			'Mars' : QtGui.QIcon(self.grab_icon_path("planets","mars")),
+			'Jupiter' : QtGui.QIcon(self.grab_icon_path("planets","jupiter")),
+			'Saturn' : QtGui.QIcon(self.grab_icon_path("planets","saturn")),
+			'Uranus' : QtGui.QIcon(self.grab_icon_path("planets","uranus")),
+			'Neptune' : QtGui.QIcon(self.grab_icon_path("planets","neptune")),
+			'Pluto' : QtGui.QIcon(self.grab_icon_path("planets","pluto")),
+			'Pluto 2' : QtGui.QIcon(self.grab_icon_path("planets","pluto_2")),
+			'North Node' : QtGui.QIcon(self.grab_icon_path("planets","north_node")),
+			'South Node' : QtGui.QIcon(self.grab_icon_path("planets","south_node")),
+			'logo' :  QtGui.QIcon(self.grab_icon_path("misc","chronoslnx")),
+			'daylight' : QtGui.QIcon(self.grab_icon_path("misc","day")),
+			'nightlight' : QtGui.QIcon(self.grab_icon_path("misc","night")),
 		}
-		#only needed to update lables
+		#only needed to update labels
 		self.main_pixmaps = {
 			'Sun' : self.main_icons['Sun'].pixmap(64,64),
 			'Moon' : self.main_icons['Moon'].pixmap(64,64),
@@ -77,36 +97,36 @@ class ChronosLNXConfig:
 			'Saturn' : self.main_icons['Saturn'].pixmap(64,64),
 		}
 		self.moon_icons = {
-			'New Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","new_moon")),
-			'Waxing Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_crescent_moon")),
-			'First Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","first_quarter_moon")),
-			'Waxing Gibbous Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waxing_gibbous_moon")),
-			'Full Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","full_moon")),
-			'Waning Gibbous Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_gibbous_moon")),
-			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","last_quarter_moon")),
-			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"moonphase","waning_crescent_moon")),
-			'Solar Return' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","solar_return")),
-			'Lunar Return' : QtGui.QIcon(self.grab_icon_path(self.current_theme,"misc","lunar_return")),
+			'New Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","new_moon")),
+			'Waxing Crescent Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waxing_crescent_moon")),
+			'First Quarter Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","first_quarter_moon")),
+			'Waxing Gibbous Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waxing_gibbous_moon")),
+			'Full Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","full_moon")),
+			'Waning Gibbous Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waning_gibbous_moon")),
+			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","last_quarter_moon")),
+			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waning_crescent_moon")),
+			'Solar Return' : QtGui.QIcon(self.grab_icon_path("misc","solar_return")),
+			'Lunar Return' : QtGui.QIcon(self.grab_icon_path("misc","lunar_return")),
 		}
 		self.sign_icons = {
-			'Aries': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aries')),
-			'Taurus': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'taurus')),
-			'Gemini': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'gemini')),
-			'Cancer': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'cancer')),
-			'Leo': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'leo')),
-			'Virgo': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'virgo')),
-			'Libra': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'libra')),
-			'Scorpio': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'scorpio')),
-			'Sagittarius': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'sagittarius')),
-			'Capricorn': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn')),
-			'Capricorn 2': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn_2')),
-			'Capricorn 3': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'capricorn_3')),
-			'Aquarius': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'aquarius')),
-			'Pisces': QtGui.QIcon(self.grab_icon_path(self.current_theme, "signs", 'pisces')),
-			'Ascendant' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","ascendant")),
-			'Descendant' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","descendant")),
-			'IC' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","ic")),
-			'MC' :  QtGui.QIcon(self.grab_icon_path(self.current_theme,"signs","mc")),
+			'Aries': QtGui.QIcon(self.grab_icon_path("signs", 'aries')),
+			'Taurus': QtGui.QIcon(self.grab_icon_path("signs", 'taurus')),
+			'Gemini': QtGui.QIcon(self.grab_icon_path("signs", 'gemini')),
+			'Cancer': QtGui.QIcon(self.grab_icon_path("signs", 'cancer')),
+			'Leo': QtGui.QIcon(self.grab_icon_path("signs", 'leo')),
+			'Virgo': QtGui.QIcon(self.grab_icon_path("signs", 'virgo')),
+			'Libra': QtGui.QIcon(self.grab_icon_path("signs", 'libra')),
+			'Scorpio': QtGui.QIcon(self.grab_icon_path("signs", 'scorpio')),
+			'Sagittarius': QtGui.QIcon(self.grab_icon_path("signs", 'sagittarius')),
+			'Capricorn': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn')),
+			'Capricorn 2': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn_2')),
+			'Capricorn 3': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn_3')),
+			'Aquarius': QtGui.QIcon(self.grab_icon_path("signs", 'aquarius')),
+			'Pisces': QtGui.QIcon(self.grab_icon_path("signs", 'pisces')),
+			'Ascendant' :  QtGui.QIcon(self.grab_icon_path("signs","ascendant")),
+			'Descendant' :  QtGui.QIcon(self.grab_icon_path("signs","descendant")),
+			'IC' :  QtGui.QIcon(self.grab_icon_path("signs","ic")),
+			'MC' :  QtGui.QIcon(self.grab_icon_path("signs","mc")),
 		}
 
 	def generate_timezone(self, birth=False):
@@ -139,8 +159,11 @@ class ChronosLNXConfig:
 		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
 		self.pluto_alt=literal_eval(str(self.settings.value("alternatePluto",
 					QtCore.QString("False")).toPyObject()))
+		self.use_css=literal_eval(str(self.settings.value("useCSS",
+					QtCore.QString("False")).toPyObject()))
 		self.capricorn_alt=str(self.settings.value("alternateCapricorn", \
 				str(QtCore.QString("Capricorn"))).toPyObject())
+		self.load_theme()
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
@@ -162,7 +185,20 @@ class ChronosLNXConfig:
 					QtCore.QString("False")).toPyObject()))
 		self.settings.endGroup()
 
-		self.prepare_icons()
+		self.settings.beginGroup("Calculations")
+		self.settings.beginGroup("refinements")
+		self.refinements={}
+		self.refinements['Solar Return']=self.settings.value("solar",2).toInt()[0]
+		self.refinements['Lunar Return']=self.settings.value("lunar",2).toInt()[0]
+		self.refinements['Moon Phase']=self.settings.value("phase",2).toInt()[0]
+		self.settings.endGroup()
+		self.settings.beginGroup("orbs")
+		self.orbs=od()
+		for i in DEFAULT_ORBS:
+			self.orbs[i]=self.settings.value(i, DEFAULT_ORBS[i]).toDouble()[0]
+		self.settings.endGroup()
+		self.settings.endGroup()
+		self.load_theme()
 		self.load_natal_data()
 
 	def load_natal_data(self):
@@ -177,19 +213,22 @@ class ChronosLNXConfig:
 
 	def load_schedule(self):
 		self.schedule=QtGui.QStandardItemModel()
-		self.schedule.setColumnCount(5)
-		self.schedule.setHorizontalHeaderLabels(["Enabled","Date","Hour","Event Type","Text"])
+		self.schedule.setColumnCount(4)
+		self.schedule.setHorizontalHeaderLabels(["Enabled","Trigger","Event Type","Options"])
+		#True,"Datetime,Planetary Day,0123456,Planetary Hour,0123456","Reminder","Hi"
+		#[int(i) for i in numbers]
 		self.todays_schedule=DayEventsModel()
 		self.todays_schedule.setSourceModel(self.schedule)
-		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
-			self.APPNAME,'/schedule.csv']).replace('//', '/')
+		path=''.join([self.__SETDIR, '/schedule.csv']).replace('//', '/')
 
 		if not os.path.exists(path):
 			if not os.path.exists(path.replace("schedule.csv","")):
 				print "Making directory to store schedule"
-				os.mkdir(path.replace("schedule.csv",""))
+				os.mkdir(self.__SETDIR)
 			from shutil import copyfile
-			copyfile("%s/schedule.csv" %(os.sys.path[0]), path)
+			sch=("%s/schedule.csv" %(str(QtCore.QCoreApplication.\
+			applicationDirPath())), path).replace("//","")
+			copyfile(sch)
 		planner = csv.reader(open(path, "rb"))
 		planner.next()
 
@@ -229,12 +268,8 @@ class ChronosLNXConfig:
 
 	def save_schedule(self):
 		rows=self.schedule.rowCount()
-		path=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
-			self.APPNAME,
-			'/schedule.csv'])
-		temppath=''.join([str(QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DataLocation)),
-			self.APPNAME,
-			'/schedule_modified.csv'])
+		path=''.join([self.__SETDIR, '/schedule.csv'])
+		temppath=''.join([self.__SETDIR, '/schedule_modified.csv'])
 		planner = csv.writer(open(temppath, "wb"))
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
 		for i in xrange(rows):
@@ -243,7 +278,6 @@ class ChronosLNXConfig:
 			else:
 				first_column="False"
 			second_column=self.schedule.item(i,1).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %m/%d/%Y
-
 			if isinstance(second_column,QtCore.QDate):
 				#print second_column
 				second_column=str(second_column.toString("MM/dd/yyyy"))
@@ -258,20 +292,30 @@ class ChronosLNXConfig:
 			fourth_column=str(self.schedule.item(i,3).data(QtCore.Qt.EditRole).toPyObject())
 			fifth_column=str(self.schedule.item(i,4).data(QtCore.Qt.EditRole).toPyObject())
 			planner.writerow([first_column,second_column,third_column,fourth_column,fifth_column])
+		planner.writerow(["True",["opt","opt1","opt2"],"b","a","c"])
 		os.remove(path)
 		os.renames(temppath, path)
 
 	def get_available_themes(self):
-		themes=[]
-		for checking in os.listdir(os.sys.path[0]):
-			path="%s/%s" %(os.sys.path[0], checking)
-			if os.path.isdir(path) is True and \
-				os.path.exists(path+"/signs") and \
-				os.path.exists(path+"/planets") and \
-				os.path.exists(path+"/moonphase") and \
-				os.path.exists(path+"/misc"):
-				themes.append(checking)
-		return themes
+		themes=set()
+		#QDir::entryList ( const QStringList & nameFilters, Filters filters = NoFilter, SortFlags sort = NoSort ) const
+		app_theme_path="%s/themes" %(str(QtCore.QDir.currentPath()))
+		print app_theme_path
+		config_theme_path=("%s/themes" %(self.__SETDIR, )).replace('//','')
+		ath=QtCore.QDir(app_theme_path)
+		cth=QtCore.QDir(config_theme_path)
+		for at in ath.entryList():
+			themes.add(str(at))
+		for lt in cth.entryList():
+			themes.add(str(lt))
+				#os.path.exists(path+"/signs") and \
+				#os.path.exists(path+"/planets") and \
+				#os.path.exists(path+"/moonphase") and \
+				#os.path.exists(path+"/misc"):
+				#themes.append(checking)
+		themes.remove(".")
+		themes.remove("..")
+		return tuple(themes)
 
 	def save_settings(self):
 		self.settings.beginGroup("Location")
@@ -289,6 +333,7 @@ class ChronosLNXConfig:
 
 		self.settings.beginGroup("Appearance")
 		self.settings.setValue("iconTheme", self.current_theme)
+		self.settings.setValue("useCSS", str(self.use_css))
 		self.settings.setValue("alternatePluto",str(self.pluto_alt))
 		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))
 		self.settings.endGroup()
@@ -302,6 +347,18 @@ class ChronosLNXConfig:
 		self.settings.setValue("showMoonOnCal",str(self.show_mcal))
 		self.settings.setValue("showSolarReturnOnCal",str(self.show_lr))
 		self.settings.setValue("showLunarReturnOnCal",str(self.show_sr))
+		self.settings.endGroup()
+
+		self.settings.beginGroup("Calculations")
+		self.settings.beginGroup("refinements")
+		self.settings.setValue("solar", self.refinements['Solar Return'])
+		self.settings.setValue("lunar", self.refinements['Lunar Return'])
+		self.settings.setValue("phase", self.refinements['Moon Phase'])
+		self.settings.endGroup()
+		self.settings.beginGroup("orbs")
+		for i in self.orbs:
+			self.settings.setValue(i, self.orbs[i])
+		self.settings.endGroup()
 		self.settings.endGroup()
 
 		self.settings.sync()

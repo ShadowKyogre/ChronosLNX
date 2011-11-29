@@ -1,30 +1,29 @@
 from measurements import format_zodiacal_difference
+from collections import OrderedDict as od
 
-ASPECTS = { 'conjunction': 0.0,
-'semi-sextile':30.0,
-'semi-square':45.0,
-'sextile':60.0,
-'quintile':72.0,
-'square':90.0,
-'trine':120.0,
-'sesiquadrate':135.0,
-'biquintile':144.0,
-'inconjunct':150.0,
-'opposition':180.0,
-}
+ASPECTS = od([('conjunction', 0.0),
+('semi-sextile', 30.0),
+('semi-square', 45.0),
+('sextile', 60.0),
+('quintile', 72.0),
+('square', 90.0),
+('trine', 120.0),
+('sesiquadrate', 135.0),
+('biquintile', 144.0),
+('inconjunct', 150.0),
+('opposition', 180.0)])
 
-DEFAULT_ORBS = { 'conjunction': 10.0,
-'semi-sextile':3.0,
-'semi-square':3.0,
-'sextile':6.0,
-'quintile':1.0,
-'square':10.0,
-'trine':10.0,
-'sesiquadrate':3.0,
-'biquintile':1.0,
-'inconjunct':3.0,
-'opposition':10.0,
-}
+DEFAULT_ORBS = od([('conjunction', 10.0),
+('semi-sextile', 3.0),
+('semi-square', 3.0),
+('sextile', 6.0),
+('quintile', 1.0),
+('square', 10.0),
+('trine', 10.0),
+('sesiquadrate', 3.0),
+('biquintile', 1.0),
+('inconjunct', 3.0),
+('opposition', 10.0)])
 
 class Aspect:
 	def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
@@ -37,8 +36,8 @@ class Aspect:
 
 	@property
 	def diff(self):
-		return format_zodiacal_difference(self.planet1.m.longitude, \
-		self.planet2.m.longitude)
+		return format_zodiacal_difference(self.planet1.m.projectedLon, \
+		self.planet2.m.projectedLon)
 
 	@property
 	def aspect(self):

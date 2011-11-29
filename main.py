@@ -37,7 +37,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
-		self.setFixedSize(840, 420)
+		#self.setFixedSize(840, 420)
 		self.setWindowTitle(CLNXConfig.APPNAME)
 		self.setWindowIcon(CLNXConfig.main_icons['logo'])
 		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
@@ -52,19 +52,24 @@ class ChronosLNX(QtGui.QWidget):
 
 	def add_widgets(self):
 		##left pane
+
+		self.astroClock=AstroClock(self)
+		self.leftLayout.addWidget(self.astroClock)
+
 		self.calendar=AstroCalendar(self)
 		self.make_calendar_menu()
-		self.leftLayout.addWidget(self.calendar)
+
 
 		buttonbox=QtGui.QHBoxLayout()
 		self.mainLayout.addLayout(self.leftLayout,0,0)
 		self.mainLayout.addLayout(self.rightLayout,0,1)
 		self.mainLayout.addLayout(buttonbox,1,0,1,2)
 
+
 		aspectsButton=QtGui.QPushButton("Aspects for Now",self)
 		aspectsButton.clicked.connect(lambda: aspectsDialog(self, self.zodiac, CLNXConfig.natal_data[1], \
 		CLNXConfig.main_icons, CLNXConfig.sign_icons, \
-		CLNXConfig.pluto_alt, CLNXConfig.show_admi, CLNXConfig.show_nodes))
+		CLNXConfig.pluto_alt, CLNXConfig.show_admi, CLNXConfig.show_nodes, CLNXConfig.orbs))
 		aspectsButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
 		buttonbox.addWidget(aspectsButton)
 
@@ -103,9 +108,11 @@ class ChronosLNX(QtGui.QWidget):
 		dayinfo=QtGui.QHBoxLayout()
 		self.todayPicture=QtGui.QLabel()
 		self.todayOther=QtGui.QLabel()
+
 		self.todayOther.setTextFormat(QtCore.Qt.RichText)
-		dayinfo.addWidget(self.todayPicture)
+		#dayinfo.addWidget(self.todayPicture)
 		dayinfo.addWidget(self.todayOther)
+
 
 		self.hoursToday=PlanetaryHoursList(self)
 
@@ -133,10 +140,27 @@ class ChronosLNX(QtGui.QWidget):
 		dayData.addTab(self.eventsToday,"Events")
 
 		self.rightLayout.addLayout(dayinfo)
+		self.rightLayout.addWidget(self.calendar)
 		self.rightLayout.addWidget(dayData)
+
 		self.update()
 
 	def update_widgets_config(self):
+		app.setStyleSheet(CLNXConfig.stylesheet)
+
+		self.astroClock.setIcons(CLNXConfig.main_icons)
+		self.astroClock.setSignIcons(CLNXConfig.sign_icons)
+		self.astroClock.setNatData(CLNXConfig.natal_data)
+		self.astroClock.setBD(CLNXConfig.birthtime)
+		self.astroClock.setSignData([self.houses,self.zodiac])
+		self.astroClock.setHourSource(self.hoursToday)
+		self.astroClock.setPlutoAlternate(CLNXConfig.pluto_alt)
+		self.astroClock.setCapricornAlternate(CLNXConfig.capricorn_alt)
+		self.astroClock.setOrbs(CLNXConfig.orbs)
+		if not CLNXConfig.use_css:
+			self.astroClock.init_colors()
+
+		self.calendar.setRefinements(CLNXConfig.refinements)
 		self.calendar.setIcons(CLNXConfig.moon_icons)
 		self.calendar.setShowPhase(CLNXConfig.show_mcal)
 		self.calendar.setSolarReturn(CLNXConfig.show_sr)
@@ -144,9 +168,11 @@ class ChronosLNX(QtGui.QWidget):
 		self.calendar.setBirthTime(CLNXConfig.birthtime)
 		self.calendar.setNatalMoon(CLNXConfig.natal_moon)
 		self.calendar.setNatalSun(CLNXConfig.natal_sun)
+		self.calendar.useCSS=CLNXConfig.use_css
 
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
+		self.moonToday.setRefinement(CLNXConfig.refinements['Moon Phase'])
 
 		self.signsToday.setCompareTable(CLNXConfig.natal_data[1])
 		self.signsToday.setIcons(CLNXConfig.main_icons)
@@ -155,6 +181,7 @@ class ChronosLNX(QtGui.QWidget):
 		self.signsToday.setNodes(CLNXConfig.show_nodes)
 		self.signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
 		self.signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
+		self.signsToday.setOrbs(CLNXConfig.orbs)
 ##time related
 
 	def update_hours(self):
@@ -165,18 +192,21 @@ class ChronosLNX(QtGui.QWidget):
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
 
 	def update_moon_cycle(self):
-		if prev_new_moon(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
+		if previous_new_moon(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
 			self.moonToday.clear()
 			self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
 
 	def prepare_hours_for_today(self):
-		self.pday = get_planet_day(int(self.now.strftime('%w')))
+		dayn=self.now.isoweekday()%7
+		self.pday = get_planet_day(dayn)
 		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.observer)
+		self.astroClock.setNextSunrise(self.next_sunrise)
 		if self.now < self.sunrise:
 			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.observer)
+			self.astroClock.setNextSunrise(self.next_sunrise)
 			self.hoursToday.prepareHours(self.now-timedelta(days=1), CLNXConfig.observer)
-			self.pday = get_planet_day(int(self.now.strftime('%w'))-1)
+			self.pday = get_planet_day(dayn-1)
 		else:
 			self.hoursToday.prepareHours(self.now, CLNXConfig.observer)
 			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
@@ -185,9 +215,10 @@ class ChronosLNX(QtGui.QWidget):
 	def show_notification(self, title, text, ptrigger):
 			if pynf:
 				if ptrigger:
-					path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"planets",str(self.phour.toLower()))
+					path=CLNXConfig.grab_icon_path("planets",str(self.phour.toLower()))
 				else:
-					path=CLNXConfig.grab_icon_path(CLNXConfig.current_theme,"misc","chronoslnx")
+					path=CLNXConfig.grab_icon_path("misc","chronoslnx")
+				path=str(QtCore.QFile(path).fileName())
 				n = pynotify.Notification(title, text, path)
 				n.set_timeout(10000)
 				n.show()
@@ -235,6 +266,7 @@ If you want adjust your birth time, go to Settings.""" \
 		hoursToday.setIcons(CLNXConfig.main_icons)
 
 		moonToday=MoonCycleList(info_dialog)
+		moonToday.setRefinement(CLNXConfig.refinements['Moon Phase'])
 		moonToday.setIcons(CLNXConfig.moon_icons)
 
 		signsToday=SignsForDayList(info_dialog)
@@ -265,6 +297,7 @@ If you want adjust your birth time, go to Settings.""" \
 			signsToday.time.setReadOnly(True)
 			signsToday.time.setTime(CLNXConfig.birthtime.time())
 			signsToday.assembleFromZodiac(CLNXConfig.natal_data[1])
+			signsToday.h=CLNXConfig.natal_data[0]
 		else:
 			signsToday.get_constellations(date, ob)
 
@@ -516,6 +549,7 @@ If you want adjust your birth time, go to Settings.""" \
 		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
 		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
+		self.settings_dialog.css_check.setChecked(CLNXConfig.use_css)
 
 		self.settings_dialog.date.setDateTime(CLNXConfig.birthtime)
 		self.settings_dialog.birth_widget.setLatitude(CLNXConfig.baby.lat)
@@ -539,8 +573,14 @@ If you want adjust your birth time, go to Settings.""" \
 		idx2=self.settings_dialog.c_check.findText(CLNXConfig.capricorn_alt)
 		self.settings_dialog.c_check.setCurrentIndex(idx2)
 
-	def settings_change(self):
+		self.settings_dialog.solar.setValue(CLNXConfig.refinements['Solar Return'])
+		self.settings_dialog.lunar.setValue(CLNXConfig.refinements['Lunar Return'])
+		self.settings_dialog.phase.setValue(CLNXConfig.refinements['Moon Phase'])
 
+		for i in self.settings_dialog.orbs:
+			self.settings_dialog.orbs[i].setValue(CLNXConfig.orbs[i])
+
+	def settings_change(self):
 		lat=float(self.settings_dialog.location_widget.latitude)
 		lng=float(self.settings_dialog.location_widget.longitude)
 		elv=float(self.settings_dialog.location_widget.elevation)
@@ -573,8 +613,16 @@ If you want adjust your birth time, go to Settings.""" \
 		CLNXConfig.show_lr=self.settings_dialog.lr_check.isChecked()
 		CLNXConfig.pluto_alt=self.settings_dialog.p_check.isChecked()
 		CLNXConfig.capricorn_alt=cp
+		CLNXConfig.use_css=self.settings_dialog.css_check.isChecked()
 
-		CLNXConfig.prepare_icons()
+		CLNXConfig.refinements['Solar Return']=self.settings_dialog.solar.value()
+		CLNXConfig.refinements['Lunar Return']=self.settings_dialog.lunar.value()
+		CLNXConfig.refinements['Moon Phase']=self.settings_dialog.phase.value()
+
+		for i in self.settings_dialog.orbs:
+			CLNXConfig.orbs[i]=self.settings_dialog.orbs[i].value()
+
+		CLNXConfig.load_theme()
 		CLNXConfig.load_natal_data()
 
 		self.update_widgets_config()
@@ -599,30 +647,36 @@ If you want adjust your birth time, go to Settings.""" \
 		self.settings_dialog=ReusableDialog(self)
 		self.settings_dialog.setWindowTitle("Settings")
 		tabs=QtGui.QTabWidget(self.settings_dialog)
-		self.settings_dialog.setFixedSize(500,400)
+		self.settings_dialog.setFixedSize(500,580)
 
 		location_page=QtGui.QFrame()
-		user_info_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
 		events_page=QtGui.QFrame()
 		tweaks_page=QtGui.QFrame()
+		calculations_page=QtGui.QFrame()
 
-		tabs.addTab(location_page,"Location")
-		tabs.addTab(user_info_page,"Birth Information")
+		tabs.addTab(location_page,"Your Info")
 		tabs.addTab(appearance_page,"Appearance")
 		tabs.addTab(events_page,"Events")
 		tabs.addTab(tweaks_page,"Tweaks")
+		tabs.addTab(calculations_page,"Calculations")
 
-		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(location_page)
+		groupbox=QtGui.QGroupBox("Current Location",location_page)
+		groupbox2=QtGui.QGroupBox("Birth Information",location_page)
+		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(groupbox)
 		vbox=QtGui.QVBoxLayout(location_page)
-		vbox.addWidget(self.settings_dialog.location_widget)
+		gvbox=QtGui.QVBoxLayout(groupbox)
+		gvbox.addWidget(self.settings_dialog.location_widget)
 
-		self.settings_dialog.birth_widget = geolocationwidget.GeoLocationWidget(user_info_page)
-		self.settings_dialog.date = QtGui.QDateTimeEdit(user_info_page)
+		vbox.addWidget(groupbox)
+		vbox.addWidget(groupbox2)
+
+		self.settings_dialog.birth_widget = geolocationwidget.GeoLocationWidget(groupbox2)
+		self.settings_dialog.date = QtGui.QDateTimeEdit(groupbox2)
 		self.settings_dialog.date.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
 		self.settings_dialog.date.setDisplayFormat("MM/dd/yyyy - HH:mm:ss")
 
-		tgrid=QtGui.QGridLayout(user_info_page)
+		tgrid=QtGui.QGridLayout(groupbox2)
 		tgrid.addWidget(self.settings_dialog.birth_widget,0,0,3,2)
 		tgrid.addWidget(QtGui.QLabel("Birth time"),3,0)
 		tgrid.addWidget(self.settings_dialog.date,3,1)
@@ -634,23 +688,25 @@ If you want adjust your birth time, go to Settings.""" \
 		appearance_label=QtGui.QLabel("Icon theme")
 		self.settings_dialog.appearance_icons=QtGui.QComboBox()
 		self.settings_dialog.appearance_icons.addItem("None")
+		self.settings_dialog.css_check=QtGui.QCheckBox("Use the custom UI styling in the theme",appearance_page)
 		for theme in CLNXConfig.get_available_themes():
-			icon=QtGui.QIcon(CLNXConfig.grab_icon_path(theme,"misc","chronoslnx"))
+			path="samples:%s/misc/chronoslnx.png" %(theme)
+			icon=QtGui.QIcon(path)
 			self.settings_dialog.appearance_icons.addItem(icon,theme)
 
 		grid.addWidget(appearance_label,0,0)
 		grid.addWidget(self.settings_dialog.appearance_icons,0,1)
-
-		grid.addWidget(QtGui.QLabel("Change the following for signs information"),1,0,1,2)
+		grid.addWidget(self.settings_dialog.css_check,1,0,1,2)
+		grid.addWidget(QtGui.QLabel("Change the following for signs information"),2,0,1,2)
 		self.settings_dialog.c_check=QtGui.QComboBox(appearance_page)
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn"],"Capricorn")
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 2"],"Capricorn 2")
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 3"],"Capricorn 3")
 		self.settings_dialog.p_check=QtGui.QCheckBox("Use the P-looking Pluto icon",appearance_page)
-		grid.addWidget(self.settings_dialog.p_check,2,1)
-		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"),3,0)
-		grid.addWidget(self.settings_dialog.c_check,3,1)
-		grid.addWidget(QtGui.QLabel("Solar/lunar return highlights"),4,0,1,2)
+		grid.addWidget(self.settings_dialog.p_check,3,1)
+		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"),4,0)
+		grid.addWidget(self.settings_dialog.c_check,4,1)
+
 
 		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
 		resetbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
@@ -691,6 +747,33 @@ If you want adjust your birth time, go to Settings.""" \
 		tweak_grid.addWidget(self.settings_dialog.mp_check,8,1)
 		tweak_grid.addWidget(self.settings_dialog.sr_check,9,1)
 		tweak_grid.addWidget(self.settings_dialog.lr_check,10,1)
+
+		another_vbox=QtGui.QVBoxLayout(calculations_page)
+		gbox1=QtGui.QGroupBox("Refinements")
+		another_vbox.addWidget(gbox1)
+		ggbox=QtGui.QGridLayout(gbox1)
+		gbox2=QtGui.QGroupBox("Orbs")
+		another_vbox.addWidget(gbox2)
+		ggbox2=QtGui.QGridLayout(gbox2)
+
+		self.settings_dialog.solar=QtGui.QSpinBox(calculations_page)
+		self.settings_dialog.lunar=QtGui.QSpinBox(calculations_page)
+		self.settings_dialog.phase=QtGui.QSpinBox(calculations_page)
+		ggbox.addWidget(QtGui.QLabel(("Adjust the number of refinements to perform\n"
+		"for each of these calculations")),0,0,1,2)
+		ggbox.addWidget(QtGui.QLabel("Solar Return"),1,0,1,2)
+		ggbox.addWidget(self.settings_dialog.solar,1,2)
+		ggbox.addWidget(QtGui.QLabel("Lunar Return"),2,0,1,2)
+		ggbox.addWidget(self.settings_dialog.lunar,2,2)
+		ggbox.addWidget(QtGui.QLabel("Moon Phase"),3,0,1,2)
+		ggbox.addWidget(self.settings_dialog.phase,3,2)
+		self.settings_dialog.orbs={}
+
+		for x,i in enumerate(CLNXConfig.orbs.keys()):
+			self.settings_dialog.orbs[i]=QtGui.QDoubleSpinBox(calculations_page)
+			self.settings_dialog.orbs[i].setRange(0,10)
+			ggbox2.addWidget(QtGui.QLabel(i.title()),x,0,1,5)
+			ggbox2.addWidget(self.settings_dialog.orbs[i],x,5,1,1)
 
 		self.update_settings_widgets()
 
@@ -741,13 +824,11 @@ If you want adjust your birth time, go to Settings.""" \
 	def show_help(self):
 		print "Stubbing out"
 
-# house of moment == sun is in == #number of that hour in day or night
-# so basically
-
 	def update(self):
-		self.now = datetime.now().replace(tzinfo=tz.gettz())
+		self.now = datetime.now(tz.gettz())
 		updatePandC(self.now, CLNXConfig.observer, self.houses, self.zodiac)
-		if self.now > self.next_sunrise:
+		self.astroClock.setSignData([self.houses,self.zodiac])
+		if self.now >= self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
@@ -781,7 +862,7 @@ If you want adjust your birth time, go to Settings.""" \
 		total_string="%s%s%s%s" %(planets_string, sign_string, moon_phase, house_of_moment_string)
 
 		if CLNXConfig.current_theme == "None":
-			sysicon=QtGui.QIcon(CLNXConfig.grab_icon_path("DarkGlyphs","misc","chronoslnx"))
+			sysicon=QtGui.QIcon(CLNXConfig.grab_icon_path("misc","chronoslnx"))
 		else:
 			sysicon=CLNXConfig.main_icons[str(self.phour)]
 		self.trayIcon.setToolTip("%s - %s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"),

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from PyQt4 import QtCore,QtGui
 from astro_rewrite import *
+from timedeltawidget import TimeDeltaWidget
 ##Custom Widgets for both normal and planetary sensitive data
 
 class PlanetDateEditor(QtGui.QWidget):
@@ -150,6 +151,35 @@ class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
 	def updateEditorGeometry(self, editor, option, index):
 		editor.setGeometry(option.rect)
 
+class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
+	def __init__(self, parent=None, *args):
+		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
+
+	def createEditor(self, parent, option, index):
+		p=TriggerEditor(parent)
+		p.setAutoFillBackground(True)
+		return p
+
+	def setEditorData(self, editor, index):
+		value = index.model().data(index, QtCore.Qt.UserRole)
+		if isinstance(value.toPyObject(), QtCore.QDate):
+			editor.setText("Custom")
+			editor.setDate(value.toPyObject())
+			editor.dateplanned.show()
+		else:
+			editor.setText(value.toString())
+
+	def setModelData(self, editor, model, index):
+		if not editor.dateplanned.isHidden():
+				model.setData(index, editor.curDate(), QtCore.Qt.UserRole)
+				model.setData(index, editor.curDate().toString("MM/dd/yyyy"), QtCore.Qt.EditRole)
+		else:
+				model.setData(index, editor.text(), QtCore.Qt.UserRole)
+				model.setData(index, editor.text(), QtCore.Qt.EditRole)
+
+	def updateEditorGeometry(self, editor, option, index):
+		editor.setGeometry(option.rect)
+
 class DateEditorDelegate(QtGui.QStyledItemDelegate):
 
 	def __init__(self, parent=None, *args):
@@ -244,38 +274,36 @@ class EventsList(QtGui.QWidget):
 	def __init__(self, *args):
 
 		QtGui.QWidget.__init__(self, *args)
-		#add some filters to view events for specific
-		#self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
 		a_vbox=QtGui.QVBoxLayout(self)
 		editbuttons=QtGui.QHBoxLayout()
+
 		newbutton=QtGui.QPushButton("New",self)
 		newbutton.clicked.connect(self.add)
+
 		deletebutton=QtGui.QPushButton("Delete",self)
 		deletebutton.clicked.connect(self.delete)
+
 		editbuttons.addWidget(newbutton)
 		editbuttons.addWidget(deletebutton)
-		#settings_dialog.scheduler.itemSelectionChanged.connect(lambda: self.test_look(settings_dialog))
-		#inputstuff=EventList(events_page)
+
 		a_vbox.addLayout(editbuttons)
 
 		self.tree=QtGui.QTableView(self)
+		self.tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
 		dateeditor=DateEditorDelegate(self.tree)
 		timeeditor=TimeEditorDelegate(self.tree)
 		eventtypeeditor=EventTypeEditorDelegate(self.tree)
 		eventparameditor=EventParamEditorDelegate(self.tree)
-		#self.setRootIsDecorated(True)
 
 		self.tree.setSortingEnabled(True)
+
 		self.tree.setItemDelegateForColumn(1,dateeditor)
 		self.tree.setItemDelegateForColumn(2,timeeditor)
 		self.tree.setItemDelegateForColumn(3,eventtypeeditor)
 		self.tree.setItemDelegateForColumn(4,eventparameditor)
 		a_vbox.addWidget(self.tree)
-
-	# def test_look(self,dialog):
-		# print self.tree.selectedItems()
 
 	def add(self):
 		item=QtGui.QStandardItem()
@@ -285,6 +313,7 @@ class EventsList(QtGui.QWidget):
 		item3=QtGui.QStandardItem("Sun")
 		item4=QtGui.QStandardItem("Textual reminder")
 		item5=QtGui.QStandardItem("This is filler text")
+
 		if isinstance(self.tree.model(), DayEventsModel):
 			self.tree.model().sourceModel().appendRow([item,item2,item3,item4,item5])
 			self.tree.model().invalidateFilter()

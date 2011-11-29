@@ -1,0 +1,252 @@
+QWidget
+{
+    color: #0064FF;
+    background: qlineargradient(spread:pad,
+				x1:0, y1:0, x2:0, y2:1,
+				stop:0 #520000, stop:1 #000000);
+}
+
+QCheckBox, QLabel, QGroupBox
+{
+  background: transparent;
+}
+
+QTabBar::tab
+{
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    padding: 2px;
+}
+
+QTabBar::tab:!selected {
+  margin-top: 2px; /* make non-selected tabs look smaller */
+}
+
+QTabBar QToolButton { /* the width of the scroll buttons */
+  width: 16px;
+}
+
+QToolButton::menu-indicator {
+  width: 8px;
+  height: 8px;
+}
+
+QPushButton, QToolButton
+{
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  padding: 3px;
+}
+
+QScrollBar
+{
+  background: qlineargradient(spread:pad,
+			      x1:0, y1:0, x2:0, y2:1,
+			      stop:0 #520000, stop:1 #000000);
+}
+
+QScrollBar:horizontal {
+  height: 15px;
+  margin: 0px 20px 0 20px;
+}
+
+QScrollBar:vertical
+{
+  width: 15px;
+  margin: 20px 0px 20 0px;
+}
+
+QScrollBar::handle, QScrollBar::sub-line, QScrollBar::add-line,
+QComboBox::down-arrow {
+  background: qlineargradient(spread:pad,
+			      x1:0, y1:0, x2:0, y2:1,
+			      stop:0 #DBB800, stop:1 #473500);
+}
+
+QScrollBar::handle:horizontal
+{
+  min-width: 20px;
+}
+
+QScrollBar::handle:vertical
+{
+  min-height: 20px;
+}
+
+QScrollBar::sub-line:horizontal
+{
+  width: 20px;
+  subcontrol-position: left;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:horizontal {
+  width: 20px;
+  subcontrol-position: right;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical
+{
+  height: 20px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical
+{
+  height: 20px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+QScrollBar::left-arrow:horizontal,
+QToolButton::left-arrow
+{
+  image: url(skin:gui/left_arrow.png);
+}
+
+QScrollBar::right-arrow:horizontal,
+QToolButton::right-arrow
+{
+  image: url(skin:gui/right_arrow.png);
+}
+
+QSpinBox::down-button,QDoubleSpinBox::down-button,QDateTimeEdit::down-button,
+QScrollBar::down-arrow:vertical,
+QToolButton::menu-button,
+QToolButton::menu-indicator
+{
+  image: url(skin:gui/down_arrow.png);
+}
+
+QSpinBox::up-button,QDoubleSpinBox::up-button,QDateTimeEdit::up-button,
+QScrollBar::up-arrow:vertical
+{
+  image: url(skin:gui/up_arrow.png);
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical{
+  background: none;
+}
+/**/
+
+QAbstractScrollArea, ChronosLNX,
+QComboBox:!editable, QComboBox::drop-down:editable,
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal,
+QScrollBar::down-arrow:vertical, QScrollBar::up-arrow:vertical
+{
+  background: qlineargradient(spread:pad,
+		x1:0, y1:0, x2:0, y2:1,
+		stop:0 #520000, stop:1 #000000);
+}
+
+QCheckBox::indicator
+{
+  width: 13px;
+  height: 13px;
+}
+
+QCheckBox::indicator::checked
+{
+  image:url(skin:gui/checkmark.png);
+}
+
+QComboBox, QComboBox::drop-down,
+QSpinBox,QDoubleSpinBox,QDateTimeEdit,QAbstractSpinBox,
+QSpinBox::up-button,QDoubleSpinBox::up-button,QDateTimeEdit::up-button,
+QSpinBox::down-button,QDoubleSpinBox::down-button,QDateTimeEdit::down-button,
+QTabBar::tab, QTabWidget::pane,
+QScrollBar, QPushButton, QToolButton,  QCheckBox::indicator
+{
+  border-bottom: 2px solid #473500;
+  border-top: 2px solid #DBB800;
+  border-left: 2px solid qlineargradient(spread:repeat,
+					 x1:0, y1:0, x2:0, y2:1,
+					 stop:0 #DBB800, stop:1 #473500);
+  border-right: 2px solid qlineargradient(spread:repeat,
+					  x1:0, y1:0, x2:0, y2:1,
+					  stop:0 #DBB800, stop:1 #473500);
+}
+/*GeoLocationWidget { qproperty-longitude: 46.0; }*/
+QComboBox {
+  border-radius: 3px;
+  padding: 1px 18px 1px 3px;
+  min-width: 6em;
+}
+
+QComboBox::down-arrow
+{
+  image:url(skin:gui/down_arrow.png);
+}
+
+QAbstractItemView::item:selected
+{
+  color: white;
+}
+
+AstroClock
+{
+  qproperty-outerFill: qradialgradient(cx:0.5, cy:0.63333333, radius: 0.3333333333,
+		fx:0.5, fy:0.58333333, stop:0 #DBB800, stop:1 #473500);
+  qproperty-outerFG: #DBB800;
+  qproperty-outerHouses: #0064FF;
+
+  qproperty-innerFill: qradialgradient(cx:0.5, cy:0.68333333, radius: 0.5,
+		fx:0.5, fy:0.58333333, stop:0 #520000, stop:1 #000000);
+  qproperty-innerFG: #520000;
+  qproperty-innerHouses: #0064FF;
+
+  qproperty-conjunction: #9900EE;
+  qproperty-semiSextile: #FFB300;
+  qproperty-semiSquare: #99FF00;
+  qproperty-sextile: #04FF00;
+  qproperty-quintile: #00FFE2;
+  qproperty-square: #FF0000;
+  qproperty-trine: #E600FF;
+  qproperty-sesiquadrate: #FFFFFF;
+  qproperty-biquintile: #1971FF;
+  qproperty-inconjunct: #FFF010;
+  qproperty-opposition: #8000FF;
+}
+
+AstroCalendar > QTableView
+{
+  selection-background-color:  qlineargradient(spread:pad,
+					       x1:0, y1:0, x2:0, y2:1,
+					       stop:0 #520000, stop:1 #000000);
+  selection-color: white;
+  background-color: #520000;
+}
+
+AstroCalendar
+{
+  qproperty-sundayFill: black;
+  qproperty-sundayFG: yellow;
+
+  qproperty-mondayFill: black;
+  qproperty-mondayFG: silver;
+
+  qproperty-tuesdayFill: black;
+  qproperty-tuesdayFG: orange;
+
+  qproperty-wednesdayFill: black;
+  qproperty-wednesdayFG: blue;
+
+  qproperty-thursdayFill: black;
+  qproperty-thursdayFG: indigo;
+
+  qproperty-fridayFill: black;
+  qproperty-fridayFG: green;
+
+  qproperty-saturdayFill: black;
+  qproperty-saturdayFG: red;
+
+  qproperty-weekNFill: black;
+  qproperty-weekNFG: red;
+
+  qproperty-lunarReturnFill: black;
+  qproperty-lunarReturnFG: grey;
+
+  qproperty-solarReturnFill: black;
+  qproperty-solarReturnFG: gold;
+}
