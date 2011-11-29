@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from PyQt4 import QtCore,QtGui
 from astro_rewrite import *
-from timedeltawidget import TimeDeltaWidget
 ##Custom Widgets for both normal and planetary sensitive data
 
 class PlanetDateEditor(QtGui.QWidget):
