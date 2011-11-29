@@ -37,7 +37,7 @@ class ChronosLNXConfig:
 		(QtGui.QDesktopServices.DataLocation)), self.APPNAME)
 		#QtCore.QDir.currentPath()
 
-		app_theme_path="%s/themes" %(str(QtCore.QDir.currentPath()))
+		app_theme_path="%s/themes" %(os.sys.path[0])
 
 		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
 
