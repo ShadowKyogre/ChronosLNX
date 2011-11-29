@@ -38,6 +38,7 @@ class ChronosLNXConfig:
 		#QtCore.QDir.currentPath()
 
 		app_theme_path="%s/themes" %(os.sys.path[0])
+		print app_theme_path
 
 		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
 
@@ -54,8 +55,7 @@ class ChronosLNXConfig:
 		return "skin:%s/%s.png" %(icon_type,looking)
 
 	def load_theme(self):
-		app_theme_path="%s/themes/%s" %(str(QtCore.\
-		QDir.currentPath()), self.current_theme)
+		app_theme_path="%s/themes/%s" %(os.sys.path[0], self.current_theme)
 
 		config_theme_path=("%s/themes/%s" %(self.__SETDIR, \
 		self.current_theme)).replace('//','')
