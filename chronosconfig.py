@@ -224,9 +224,8 @@ class ChronosLNXConfig:
 				print "Making directory to store schedule"
 				os.mkdir(self.__SETDIR)
 			from shutil import copyfile
-			sch=("%s/schedule.csv" %(str(QtCore.QCoreApplication.\
-			applicationDirPath())), path).replace("//","")
-			copyfile(sch)
+			sch="%s/schedule.csv" %(os.sys.path[0])
+			copyfile(sch, path)
 		planner = csv.reader(open(path, "rb"))
 		planner.next()
 
