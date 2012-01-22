@@ -225,11 +225,11 @@ class ChronosLNX(QtGui.QWidget):
 			else:
 				if self.trayIcon.supportsMessages():
 					if ptrigger:
-						self.trayIcon.showMessage(title, text, \
-						      CLNXConfig.main_icons[self.phour],msecs=10000)
+						self.trayIcon.showMessage(title, text, msecs=10000)
+						      #CLNXConfig.main_icons[self.phour],msecs=10000)
 					else:
-						self.trayIcon.showMessage(title, text, \
-						      CLNXConfig.main_icons['logo'],msecs=10000)
+						self.trayIcon.showMessage(title, text, msecs=10000)
+						      #CLNXConfig.main_icons['logo'],msecs=10000)
 				else:
 					#last resort, as popup dialogs are annoying
 					if ptrigger:
