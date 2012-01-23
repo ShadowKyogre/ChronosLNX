@@ -315,9 +315,9 @@ If you want adjust your birth time, go to Settings.""" \
 		self.save_for_range_dialog.setWindowTitle("Save Data for Dates")
 		grid=QtGui.QGridLayout(self.save_for_range_dialog)
 
-		self.save_for_range_dialog.date_start=QtGui.QDateEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_start=QtGui.QDateTimeEdit(self.save_for_range_dialog)
 		self.save_for_range_dialog.date_start.setDisplayFormat("MM/dd/yyyy")
-		self.save_for_range_dialog.date_end=QtGui.QDateEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_end=QtGui.QDateTimeEdit(self.save_for_range_dialog)
 		self.save_for_range_dialog.date_end.setDisplayFormat("MM/dd/yyyy")
 
 		grid.addWidget(QtGui.QLabel("Save from"),0,0)
@@ -385,14 +385,12 @@ If you want adjust your birth time, go to Settings.""" \
 						os.mkdir("%s/%s" %(self.save_for_range_dialog.filename.text(), \
 						str(j.text()).replace(" ", "_")))
 			for i in xrange(day_numbers+1):
-				date=self.save_for_range_dialog.date_start.date().toPyDate()+timedelta(days=i)
+				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=tz.gettz())+timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
 					if j.isChecked():
 						filename=str(self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
 							%(str(j.text()).replace(" ", "_"),date.strftime("%m-%d-%Y")))
-						self.print_to_file(j.text(), date,filename=filename,suppress_notification=False)
-						if j.text() == "All":
-							break
+						self.print_to_file(j.text(), date,filename=filename,suppress_notification=True)
 
 	def make_calendar_menu(self):
 		self.calendar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -406,7 +404,8 @@ If you want adjust your birth time, go to Settings.""" \
 		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date, CLNXConfig.observer)
+			text=prepare_sign_info(date, CLNXConfig.observer, \
+			CLNXConfig.show_nodes, CLNXConfig.show_admi)
 		elif option == "Planetary Hours":
 			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else: #option == "Events"
@@ -427,7 +426,8 @@ If you want adjust your birth time, go to Settings.""" \
 		elif option == "Moon Phase":
 			text=prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date, CLNXConfig.observer)
+			text=prepare_sign_info(date, CLNXConfig.observer, \
+			CLNXConfig.show_nodes, CLNXConfig.show_admi)
 		elif option == "Planetary Hours":
 			text=prepare_planetary_info(date, CLNXConfig.observer)
 		else:  #option == "Events"
