@@ -20,6 +20,7 @@ def prepare_planetary_info(date,observer):
 def prepare_sign_info(date,observer,nodes,admi):
 	houses,signs=get_signs(date,observer,nodes,admi)
 	sinfo=[]
+	header="Sign info for %s\n" % date.strftime("%m/%d/%Y")
 	for hour in xrange(0,24):
 		sinfo.append("Info at %s:00" %(hour))
 		for i in signs:
@@ -32,10 +33,10 @@ def prepare_sign_info(date,observer,nodes,admi):
 				"House %s" %(i.num), i.natRulerData['name'], \
 				i.cusp.signData['name'], i.cusp.only_degs(), \
 				i.end.signData['name'], i.end.only_degs()))
-		date=date+timedelta(days=1)
+		date=date+timedelta(hours=1)
 		updatePandC(date, observer, houses, signs)
 			#sinfo.append("\n")
-	return "Sign info for "+date.strftime("%m/%d/%Y")+"\n"+"\n".join(sinfo)
+	return header+"\n".join(sinfo)
 
 def prepare_events(date, source):
 	model=DayEventsModel()

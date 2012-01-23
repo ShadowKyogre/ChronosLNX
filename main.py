@@ -378,12 +378,13 @@ If you want adjust your birth time, go to Settings.""" \
 	def mass_print(self):
 		day_numbers=(self.save_for_range_dialog.date_end.date().toPyDate() - \
 			self.save_for_range_dialog.date_start.date().toPyDate()).days
-		if self.save_for_range_dialog.filename != "" or \
-		self.save_for_range_dialog.filename != None:
+		if str(self.save_for_range_dialog.filename.text()) > "":
 			for j in self.save_for_range_dialog.checkboxes.buttons():
-					if j.isChecked():
-						os.mkdir("%s/%s" %(self.save_for_range_dialog.filename.text(), \
-						str(j.text()).replace(" ", "_")))
+				if j.isChecked():
+					store_here="%s/%s" %(self.save_for_range_dialog.filename.text(), \
+						str(j.text()).replace(" ", "_"))
+					if not os.path.exists(store_here):
+						os.mkdir(store_here)
 			for i in xrange(day_numbers+1):
 				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=tz.gettz())+timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
