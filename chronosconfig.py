@@ -273,7 +273,8 @@ class ChronosLNXConfig:
 		rows=self.schedule.rowCount()
 		path=''.join([self.__SETDIR, '/schedule.csv'])
 		temppath=''.join([self.__SETDIR, '/schedule_modified.csv'])
-		planner = csv.writer(open(temppath, "wb"))
+		f=open(temppath, "wb")
+		planner = csv.writer(f)
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
 		for i in xrange(rows):
 			if self.schedule.item(i,0).checkState()==QtCore.Qt.Checked:
@@ -295,7 +296,7 @@ class ChronosLNXConfig:
 			fourth_column=str(self.schedule.item(i,3).data(QtCore.Qt.EditRole).toPyObject())
 			fifth_column=str(self.schedule.item(i,4).data(QtCore.Qt.EditRole).toPyObject())
 			planner.writerow([first_column,second_column,third_column,fourth_column,fifth_column])
-		planner.writerow(["True",["opt","opt1","opt2"],"b","a","c"])
+		f.close()
 		os.remove(path)
 		os.renames(temppath, path)
 
