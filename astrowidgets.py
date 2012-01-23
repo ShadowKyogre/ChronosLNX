@@ -632,6 +632,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 	def clear(self):
 		model=self.tree.model().sourceModel()
 		model.removeRows(0,24)
+		self.last_index=0
 
 	def get_planet(self,idx):
 		return self.tree.model().sourceModel().item(idx, 1).data(0).toPyObject()

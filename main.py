@@ -463,7 +463,7 @@ If you want adjust your birth time, go to Settings.""" \
 							day=day, hour=12,\
 							minute=0, second=0, \
 							tzinfo=tz.gettz())
-			elif (idx.row() is 6 or idx.row() is 5) and day < 24:
+			elif (idx.row() is 6 or idx.row() is 5) and day < 22:
 				replace_month=(month+1)%12
 				if replace_month == 1:
 					date=datetime(year=year+1,\
