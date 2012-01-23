@@ -442,6 +442,7 @@ If you want adjust your birth time, go to Settings.""" \
 			f.write(text)
 			if not suppress_notification:
 				self.show_notification("Saved", "%s has the %s you saved." %(filename, option), False)
+			f.close()
 
 	def get_cal_menu(self, qpoint):
 		table=self.calendar.findChild(QtGui.QTableView)
