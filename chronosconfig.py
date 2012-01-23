@@ -16,10 +16,10 @@ class ChronosLNXConfig:
 
  	def __init__(self):
  		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.9.0"
+		self.APPVERSION="0.9.1"
 		self.AUTHOR="ShadowKyogre"
 		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
-		self.YEAR="2011"
+		self.YEAR="2012"
 		self.PAGE="http://shadowkyogre.github.com/ChronosLNX/"
 
 		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,
@@ -43,7 +43,7 @@ class ChronosLNXConfig:
 		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
 
 		QtCore.QDir.setSearchPaths("samples", [app_theme_path, config_theme_path])
-
+		self.sys_icotheme=QtGui.QIcon.themeName()
 		self.observer=Observer()
 		self.baby=Observer()
 		self.reset_settings()
@@ -67,6 +67,11 @@ class ChronosLNXConfig:
 			self.stylesheet=str(QtCore.QString(css.readAll()))
 		else:
 			self.stylesheet=""
+		
+		if self.current_icon_override > "":
+			QtGui.QIcon.setThemeName(self.current_icon_override)
+		else:
+			QtGui.QIcon.setThemeName(self.sys_icotheme)
 
 		self.main_icons = {
 			'Sun' : QtGui.QIcon(self.grab_icon_path("planets","sun")),
@@ -157,6 +162,7 @@ class ChronosLNXConfig:
 
 		self.settings.beginGroup("Appearance")
 		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
+		self.current_icon_override=str(self.settings.value("stIconTheme", QtCore.QString("")).toPyObject())
 		self.pluto_alt=literal_eval(str(self.settings.value("alternatePluto",
 					QtCore.QString("False")).toPyObject()))
 		self.use_css=literal_eval(str(self.settings.value("useCSS",
@@ -318,6 +324,7 @@ class ChronosLNXConfig:
 
 		self.settings.beginGroup("Appearance")
 		self.settings.setValue("iconTheme", self.current_theme)
+		self.settings.setValue("stIconTheme", self.current_icon_override)
 		self.settings.setValue("useCSS", str(self.use_css))
 		self.settings.setValue("alternatePluto",str(self.pluto_alt))
 		self.settings.setValue("alternateCapricorn",str(self.capricorn_alt))

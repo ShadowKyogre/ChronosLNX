@@ -552,6 +552,7 @@ If you want adjust your birth time, go to Settings.""" \
 		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 		self.settings_dialog.css_check.setChecked(CLNXConfig.use_css)
+		self.settings_dialog.override_ui_icon.setText(CLNXConfig.current_icon_override)
 
 		self.settings_dialog.date.setDateTime(CLNXConfig.birthtime)
 		self.settings_dialog.birth_widget.setLatitude(CLNXConfig.baby.lat)
@@ -593,6 +594,7 @@ If you want adjust your birth time, go to Settings.""" \
 
 		thm=str(self.settings_dialog.appearance_icons.currentText())
 		cp=str(self.settings_dialog.c_check.currentText())
+		iothm=str(self.settings_dialog.override_ui_icon.text())
 
 		CLNXConfig.observer.lat=lat
 		CLNXConfig.observer.long=lng
@@ -605,6 +607,7 @@ If you want adjust your birth time, go to Settings.""" \
 		CLNXConfig.birthtime=date.replace(tzinfo=CLNXConfig.generate_timezone()).astimezone(tz.gettz())
 
 		CLNXConfig.current_theme=thm
+		CLNXConfig.current_icon_override=iothm
 		CLNXConfig.show_sign=self.settings_dialog.s_check.isChecked()
 		CLNXConfig.show_moon=self.settings_dialog.m_check.isChecked()
 		CLNXConfig.show_house_of_moment=self.settings_dialog.h_check.isChecked()
@@ -698,16 +701,23 @@ If you want adjust your birth time, go to Settings.""" \
 
 		grid.addWidget(appearance_label,0,0)
 		grid.addWidget(self.settings_dialog.appearance_icons,0,1)
-		grid.addWidget(self.settings_dialog.css_check,1,0,1,2)
-		grid.addWidget(QtGui.QLabel("Change the following for signs information"),2,0,1,2)
+		self.settings_dialog.override_ui_icon=QtGui.QLineEdit(appearance_page)
+		self.settings_dialog.override_ui_icon.setToolTip(("You should only set this if"
+			"standard icons, like Quit, are not showing.\n"
+			"This will take effect after a restart of ChronosLNX.\n"
+			"Currently detected icon theme by system: %s") % CLNXConfig.sys_icotheme)
+		grid.addWidget(QtGui.QLabel("UI Icon theme: "),1,0)
+		grid.addWidget(self.settings_dialog.override_ui_icon,1,1)
+		grid.addWidget(self.settings_dialog.css_check,2,0,1,2)
+		grid.addWidget(QtGui.QLabel("Change the following for signs information"),3,0,1,2)
 		self.settings_dialog.c_check=QtGui.QComboBox(appearance_page)
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn"],"Capricorn")
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 2"],"Capricorn 2")
 		self.settings_dialog.c_check.addItem(CLNXConfig.sign_icons["Capricorn 3"],"Capricorn 3")
 		self.settings_dialog.p_check=QtGui.QCheckBox("Use the P-looking Pluto icon",appearance_page)
-		grid.addWidget(self.settings_dialog.p_check,3,1)
-		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"),4,0)
-		grid.addWidget(self.settings_dialog.c_check,4,1)
+		grid.addWidget(self.settings_dialog.p_check,4,1)
+		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"),5,0)
+		grid.addWidget(self.settings_dialog.c_check,5,1)
 
 
 		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
