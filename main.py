@@ -371,7 +371,8 @@ If you want adjust your birth time, go to Settings.""" \
 		grid.addWidget(buttonbox,4,0,1,2)
 
 	def get_folder_name(self):
-		text=QtGui.QFileDialog.getExistingDirectory(caption="Save in folder...")
+		text=QtGui.QFileDialog.getExistingDirectory(caption="Save in folder...", \
+			options=QtGui.QFileDialog.ShowDirsOnly|QtGui.QFileDialog.DontUseNativeDialog)
 		self.save_for_range_dialog.filename.setText(text)
 
 	def mass_print(self):
@@ -434,7 +435,7 @@ If you want adjust your birth time, go to Settings.""" \
 		if filename == None:
 			filename=QtGui.QFileDialog.getSaveFileName(self, caption="Saving %s for %s" \
 					%(option, date.strftime("%m/%d/%Y")),
-					filter="*.txt")
+					filter="*.txt",options=QtGui.QFileDialog.DontUseNativeDialog)
 		if filename is not None and filename != "":
 			f=open(filename,"w")
 			f.write(text)
