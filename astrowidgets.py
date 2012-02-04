@@ -836,7 +836,7 @@ def aspectsDialog(widget, zodiac, other_table, icons, \
 	vbox=QtGui.QVBoxLayout(info_dialog)
 	tabs.addTab(aspects,"Aspects for this table")
 	vbox.addWidget(tabs)
-	if other_table is not None and len(other_table) > 0:
+	if other_table:
 		caspects=AspectTableDisplay(info_dialog)
 		caspects.setIcons(icons)
 		caspects.setSignIcons(sign_icons)

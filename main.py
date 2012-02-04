@@ -276,6 +276,7 @@ If you want adjust your birth time, go to Settings.""" \
 		signsToday.setADMI(CLNXConfig.show_admi)
 		signsToday.setNodes(CLNXConfig.show_nodes)
 		signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
+		signsToday.setOrbs(CLNXConfig.orbs)
 		if not birth:
 			signsToday.setCompareTable(CLNXConfig.natal_data[1])
 
