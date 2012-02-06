@@ -445,7 +445,8 @@ def updatePandC(date, observer, houses, entries):
 		#do some trickery to display the South Node
 		reverse=swisseph.degnorm(calcs[0]-180.0)
 		revhouse=(int(hom)+6)%12
-		revprogress=1-hom%1.0
+		#revprogress=1-hom%1.0
+		revprogress=hom%1.0
 		entries[11].retrograde=retrograde
 		entries[11].m.longitude=reverse
 		entries[11].m.latitude=calcs[1]
@@ -497,7 +498,8 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 		#do some trickery to display the South Node
 		reverse=swisseph.degnorm(calcs[0]+180.0)
 		revhouse=(int(hom)+6)%12
-		revprogress=1-hom%1.0
+		#revprogress=1-hom%1.0
+		revprogress=hom%1.0
 		zm=ActiveZodiacalMeasurement(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
 		planet=Planet("South Node",prefix=prefix,m=zm,retrograde=retrograde)
 		entries.append(planet)
