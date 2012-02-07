@@ -24,6 +24,7 @@ pynf=True
 #http://pastebin.com/BvNx9wdk
 
 class ReusableDialog(QtGui.QDialog):
+	#because some dialogs are better if they're made and just re-used instead of completely reconstructed
 	def __init__(self, *args):
 		QtGui.QDialog.__init__(self, *args)
 
@@ -820,8 +821,9 @@ If you want adjust your birth time, go to Settings.""" \
 				self.hide()
 
 	def closeEvent(self, event):
-		self.hide()
-		event.ignore()
+		if self.trayIcon.isVisible():
+			self.hide()
+			event.ignore()
 
 ##misc
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
@@ -982,6 +984,7 @@ If you want adjust your birth time, go to Settings.""" \
 						self.event_trigger(event_type_item,txt,pt)
 
 app = QtGui.QApplication(sys.argv)
+app.setQuitOnLastWindowClosed(False)
 CLNXConfig = chronosconfig.ChronosLNXConfig()
 try:
 	import pynotify
