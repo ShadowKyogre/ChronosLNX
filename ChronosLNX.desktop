@@ -1,5 +1,5 @@
 [Desktop Entry]
-Exec=/usr/share/chronoslnx/main.py
+Exec=chronoslnx
 GenericName[en_US]=Simple Planetary Hour Clock
 GenericName=Simple Planetary Hour Clock
 Icon=/usr/share/chronoslnx/themes/DarkGlyphs/misc/chronoslnx.png
