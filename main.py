@@ -29,8 +29,10 @@ class ReusableDialog(QtGui.QDialog):
 		QtGui.QDialog.__init__(self, *args)
 
 	def closeEvent(self, event):
-		self.hide()
-		event.ignore()
+		if hasattr(self.parent(),"trayIcon") and \
+		self.parent().trayIcon.isVisible():
+			self.hide()
+			event.ignore()
 
 class ChronosLNX(QtGui.QWidget):
 	def __init__(self, parent=None):
