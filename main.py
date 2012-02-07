@@ -21,6 +21,8 @@ from chronostext import *
 import chronosconfig
 pynf=True
 
+#http://pastebin.com/BvNx9wdk
+
 class ReusableDialog(QtGui.QDialog):
 	def __init__(self, *args):
 		QtGui.QDialog.__init__(self, *args)
@@ -490,7 +492,7 @@ If you want adjust your birth time, go to Settings.""" \
 					date3=self.calendar.solarReturnTime
 
 			#self.calendar.setGridVisible(True)
-			menu=QtGui.QMenu()
+			menu=QtGui.QMenu(self.calendar)
 			if date2:
 				lritem=menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
 				lritem.triggered.connect(lambda: self.get_info_for_date(date2))
