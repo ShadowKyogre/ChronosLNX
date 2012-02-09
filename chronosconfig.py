@@ -42,7 +42,7 @@ class ChronosLNXConfig:
 
 		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
 
-		QtCore.QDir.setSearchPaths("samples", [app_theme_path, config_theme_path])
+		QtCore.QDir.setSearchPaths("skins", [app_theme_path, config_theme_path])
 		self.sys_icotheme=QtGui.QIcon.themeName()
 		self.observer=Observer()
 		self.baby=Observer()
@@ -55,19 +55,20 @@ class ChronosLNXConfig:
 		return "skin:%s/%s.png" %(icon_type,looking)
 
 	def load_theme(self):
-		app_theme_path="%s/themes/%s" %(os.sys.path[0], self.current_theme)
+		#app_theme_path="%s/themes/%s" %(os.sys.path[0], self.current_theme)
 
-		config_theme_path=("%s/themes/%s" %(self.__SETDIR, \
-		self.current_theme)).replace('//','')
+		#config_theme_path=("%s/themes/%s" %(self.__SETDIR, \
+		#self.current_theme)).replace('//','')
 
-		QtCore.QDir.setSearchPaths("skin", [app_theme_path, config_theme_path])
+		#QtCore.QDir.setSearchPaths("skin", [app_theme_path, config_theme_path])
+		QtCore.QDir.setSearchPaths("skin", ["skins:%s" %(self.current_theme)])
 
 		css=QtCore.QFile("skin:ui.css")
 		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
 			self.stylesheet=str(QtCore.QString(css.readAll()))
 		else:
 			self.stylesheet=""
-		
+
 		if self.current_icon_override > "":
 			QtGui.QIcon.setThemeName(self.current_icon_override)
 		else:
@@ -302,7 +303,7 @@ class ChronosLNXConfig:
 
 	def get_available_themes(self):
 		themes=set()
-		ath=QtCore.QDir("samples:")
+		ath=QtCore.QDir("skins:")
 		for at in ath.entryList():
 			themes.add(str(at))
 		themes.remove(".")

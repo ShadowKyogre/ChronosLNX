@@ -702,7 +702,7 @@ If you want adjust your birth time, go to Settings.""" \
 		self.settings_dialog.appearance_icons.addItem("None")
 		self.settings_dialog.css_check=QtGui.QCheckBox("Use the custom UI styling in the theme",appearance_page)
 		for theme in CLNXConfig.get_available_themes():
-			path="samples:%s/misc/chronoslnx.png" %(theme)
+			path="skins:%s/misc/chronoslnx.png" %(theme)
 			icon=QtGui.QIcon(path)
 			self.settings_dialog.appearance_icons.addItem(icon,theme)
 
