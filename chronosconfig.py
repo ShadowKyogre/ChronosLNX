@@ -42,7 +42,7 @@ class ChronosLNXConfig:
 
 		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
 
-		QtCore.QDir.setSearchPaths("skins", [app_theme_path, config_theme_path])
+		QtCore.QDir.setSearchPaths("skins", [config_theme_path,app_theme_path])
 		self.sys_icotheme=QtGui.QIcon.themeName()
 		self.observer=Observer()
 		self.baby=Observer()
@@ -55,12 +55,6 @@ class ChronosLNXConfig:
 		return "skin:%s/%s.png" %(icon_type,looking)
 
 	def load_theme(self):
-		#app_theme_path="%s/themes/%s" %(os.sys.path[0], self.current_theme)
-
-		#config_theme_path=("%s/themes/%s" %(self.__SETDIR, \
-		#self.current_theme)).replace('//','')
-
-		#QtCore.QDir.setSearchPaths("skin", [app_theme_path, config_theme_path])
 		QtCore.QDir.setSearchPaths("skin", ["skins:%s" %(self.current_theme)])
 
 		css=QtCore.QFile("skin:ui.css")
