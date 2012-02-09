@@ -18,7 +18,7 @@ from astro_rewrite import *
 from astrowidgets import *
 from eventplanner import *
 from chronostext import *
-import chronosconfig
+from chronosconfig import ChronosLNXConfig
 pynf=True
 
 #http://pastebin.com/BvNx9wdk
@@ -831,15 +831,12 @@ If you want adjust your birth time, go to Settings.""" \
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
 
 	def show_about(self):
-		QtGui.QMessageBox.about (self, "About %s" % CLNXConfig.APPNAME,
-		"<center><big><b>%s %s</b></big><br />%s<br />(C) %s %s<br /><a href=\"%s\">%s Homepage</a></center>" \
-		%(CLNXConfig.APPNAME, \
-		CLNXConfig.APPVERSION, \
-		CLNXConfig.DESCRIPTION, \
-		CLNXConfig.AUTHOR, \
-		CLNXConfig.YEAR, \
-		CLNXConfig.PAGE, \
-		CLNXConfig.APPNAME))
+		QtGui.QMessageBox.about (self, "About {APPNAME}"\
+		.format(**vars(ChronosLNXConfig)),
+		("<center><big><b>{APPNAME} {APPVERSION}</b></big>"
+		"<br />{DESCRIPTION}<br />(C) {AUTHOR} {YEAR}<br />"
+		"<a href=\"{PAGE}\">{APPNAME} Homepage</a></center>")\
+		.format(**vars(ChronosLNXConfig)))
 
 	def show_help(self):
 		print "Stubbing out"
@@ -986,8 +983,10 @@ If you want adjust your birth time, go to Settings.""" \
 						self.event_trigger(event_type_item,txt,pt)
 
 app = QtGui.QApplication(sys.argv)
+app.setApplicationName(ChronosLNXConfig.APPNAME)
+app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
 app.setQuitOnLastWindowClosed(False)
-CLNXConfig = chronosconfig.ChronosLNXConfig()
+CLNXConfig = ChronosLNXConfig()
 try:
 	import pynotify
 	pynotify.init(CLNXConfig.APPNAME)

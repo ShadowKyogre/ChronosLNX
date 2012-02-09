@@ -14,33 +14,30 @@ import zonetab
 
 class ChronosLNXConfig:
 
- 	def __init__(self):
- 		self.APPNAME="ChronosLNX"
-		self.APPVERSION="0.9.1"
-		self.AUTHOR="ShadowKyogre"
-		self.DESCRIPTION="A simple tool for checking planetary hours and moon phases."
-		self.YEAR="2012"
-		self.PAGE="http://shadowkyogre.github.com/ChronosLNX/"
+	APPNAME="ChronosLNX"
+	APPVERSION="0.9.1"
+	AUTHOR="ShadowKyogre"
+	DESCRIPTION="A simple tool for checking planetary hours and moon phases."
+	YEAR="2012"
+	PAGE="http://shadowkyogre.github.com/ChronosLNX/"
 
+	def __init__(self):
 		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,
 						QtCore.QSettings.UserScope,
-						self.AUTHOR,
-						self.APPNAME)
+						ChronosLNXConfig.AUTHOR,
+						ChronosLNXConfig.APPNAME)
 
 		if os.uname()[0] != 'Linux':
 			self.zt=os.sys.path[0]+"/zone.tab" #use the local copy if this isn't a Linux
 		else:
 			self.zt="/usr/share/zoneinfo/zone.tab"
 
-		self.__SETDIR="%s/%s" \
-		%(str(QtGui.QDesktopServices.storageLocation\
-		(QtGui.QDesktopServices.DataLocation)), self.APPNAME)
+		self.userconfdir=str(QtGui.QDesktopServices.storageLocation\
+		(QtGui.QDesktopServices.DataLocation)).replace("//","/")
 		#QtCore.QDir.currentPath()
 
 		app_theme_path="%s/themes" %(os.sys.path[0])
-		print app_theme_path
-
-		config_theme_path=("%s/themes" %(self.__SETDIR)).replace('//','')
+		config_theme_path=("%s/themes" %(self.userconfdir))
 
 		QtCore.QDir.setSearchPaths("skins", [config_theme_path,app_theme_path])
 		self.sys_icotheme=QtGui.QIcon.themeName()
@@ -218,14 +215,14 @@ class ChronosLNXConfig:
 		self.schedule.setHorizontalHeaderLabels(["Enabled","Date","Time","Event Type","Options"])
 		self.todays_schedule=DayEventsModel()
 		self.todays_schedule.setSourceModel(self.schedule)
-		path=''.join([self.__SETDIR, '/schedule.csv']).replace('//', '/')
+		path=os.path.join(self.userconfdir, 'schedule.csv')
 
 		if not os.path.exists(path):
 			if not os.path.exists(path.replace("schedule.csv","")):
 				print "Making directory to store schedule"
-				os.mkdir(self.__SETDIR)
+				os.makedirs(self.userconfdir)
 			from shutil import copyfile
-			sch="%s/schedule.csv" %(os.sys.path[0])
+			sch=os.path.join(os.sys.path[0],"schedule.csv")
 			copyfile(sch, path)
 		planner = csv.reader(open(path, "rb"))
 		planner.next()
@@ -266,8 +263,8 @@ class ChronosLNXConfig:
 
 	def save_schedule(self):
 		rows=self.schedule.rowCount()
-		path=''.join([self.__SETDIR, '/schedule.csv'])
-		temppath=''.join([self.__SETDIR, '/schedule_modified.csv'])
+		path=''.join([self.userconfdir, '/schedule.csv'])
+		temppath=''.join([self.userconfdir, '/schedule_modified.csv'])
 		f=open(temppath, "wb")
 		planner = csv.writer(f)
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
