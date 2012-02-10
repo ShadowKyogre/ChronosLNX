@@ -826,6 +826,7 @@ class AspectTableDisplay(QtGui.QWidget):
 def aspectsDialog(widget, zodiac, other_table, icons, \
 	sign_icons, pluto_alternate, admi, nodes, orbs):
 	info_dialog=QtGui.QDialog(widget)
+	info_dialog.setWindowTitle("Aspectarian")
 	tabs=QtGui.QTabWidget(info_dialog)
 	aspects=AspectTableDisplay(info_dialog)
 	aspects.setIcons(icons)
@@ -855,6 +856,7 @@ def aspectsDialog(widget, zodiac, other_table, icons, \
 
 def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 	info_dialog=QtGui.QDialog(widget)
+	info_dialog.setWindowTitle("Houses Overview")
 	tree=QtGui.QTreeWidget(info_dialog)
 	tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 	tree.setRootIsDecorated(False)

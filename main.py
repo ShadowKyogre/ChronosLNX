@@ -42,9 +42,9 @@ class ChronosLNX(QtGui.QWidget):
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
-		#self.setFixedSize(840, 420)
 		self.setWindowTitle(CLNXConfig.APPNAME)
-		self.setWindowIcon(CLNXConfig.main_icons['logo'])
+		#self.setFixedSize(840, 420)
+
 		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
 		CLNXConfig.show_nodes,CLNXConfig.show_admi)
 		self.mainLayout=QtGui.QGridLayout(self)
@@ -985,8 +985,10 @@ If you want adjust your birth time, go to Settings.""" \
 app = QtGui.QApplication(sys.argv)
 app.setApplicationName(ChronosLNXConfig.APPNAME)
 app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
+
 app.setQuitOnLastWindowClosed(False)
 CLNXConfig = ChronosLNXConfig()
+app.setWindowIcon(CLNXConfig.main_icons['logo'])
 try:
 	import pynotify
 	pynotify.init(CLNXConfig.APPNAME)
