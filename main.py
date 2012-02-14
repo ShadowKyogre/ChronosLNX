@@ -46,10 +46,58 @@ class ChronosLNX(QtGui.QMainWindow):
 
 		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
 		CLNXConfig.show_nodes,CLNXConfig.show_admi)
+		#self.setDocumentMode (True)
 		self.add_widgets()
 		self.timer.timeout.connect(self.update)
 		self.setDockNestingEnabled(True)
 		self.timer.start(1000)
+
+	def createPopupMenu (self):
+		menu=QtGui.QMenu(self)
+		tabgroups=[]
+		alone=[]
+		toolbars=False
+		tabgroupsFound=False
+		aloneFound=False
+
+		for i in self.findChildren(QtGui.QToolBar):
+			menu.addAction(i.toggleViewAction())
+			if not toolbars:
+				toolbars=True
+		if toolbars:
+			menu.addSeparator()
+
+		for i in self.findChildren(QtGui.QDockWidget):
+			tabgroup=set(self.tabifiedDockWidgets(i))
+			tabgroup.add(i)
+			if tabgroup not in tabgroups and len(tabgroup) > 1:
+				tabgroups.append(tabgroup)
+				if not tabgroupsFound:
+					tabgroupsFound=True
+			elif i not in alone and len(tabgroup) == 1:
+				alone.append(i)
+				if not aloneFound:
+					aloneFound=True
+
+		if aloneFound:
+			menu.addSeparator()
+		for i in alone:
+			menu.addAction(i.toggleViewAction())
+
+		if tabgroupsFound:
+			menu.addSeparator()
+		for n,group in enumerate(tabgroups):
+			submenu=menu.addMenu("Tab group {} ({} items)".format(n+1,len(group)))
+			closeall=submenu.addAction("Close this tabgroup")
+			closeall.setProperty('tabgroup',group)
+			closeall.triggered.connect(self.closeTabs)
+			for dw in group:
+				submenu.addAction(dw.toggleViewAction())
+		return menu
+
+	def closeTabs(self):
+		for dw in self.sender().property('tabgroup').toPyObject():
+			dw.toggleViewAction().trigger()
 
 	def add_widgets(self):
 		##left pane
@@ -928,19 +976,19 @@ class ChronosLNX(QtGui.QMainWindow):
 		args=len(findall("%\(prev\)s|%\(next\)s", string))
 		model=self.hoursToday.tree.model().sourceModel()
 		if args == 2:
-			if lidx > 0:
-				idx=lidx - 1
+			if model.last_index > 0:
+				idx=model.last_index - 1
 			else:
-				idx=lidx + 6
-			prev_hour=model.get_planet(model.last_index)
+				idx=model.last_index + 6
+			prev_hour=model.get_planet(idx)
 			alist={'prev': prev_hour, "next": self.phour}
 		elif args == 1:
 			if match("%\(prev\)s"):
-				if lidx > 0:
-					idx=lidx - 1
+				if model.last_index > 0:
+					idx=model.last_index - 1
 				else:
-					idx=lidx + 6
-				prev_hour=model.get_planet(model.last_index)
+					idx=model.last_index + 6
+				prev_hour=model.get_planet(idx)
 				alist={"prev": prev_hour}
 			else:
 				alist={"next": self.phour}
