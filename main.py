@@ -68,7 +68,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,docktlabel)
 
 		dockcalendar=QtGui.QDockWidget(self)
-		dockcalendar.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.calendar=AstroCalendar(dockcalendar)
 		dockcalendar.setWidget(self.calendar)
 		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockcalendar)
@@ -117,28 +116,24 @@ class ChronosLNX(QtGui.QMainWindow):
 
 
 		dockhours=QtGui.QDockWidget(self)
-		dockhours.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.hoursToday=PlanetaryHoursList(self)
 		dockhours.setWindowTitle("Planetary Hours")
 		dockhours.setWidget(self.hoursToday)
 		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockhours)
 
 		dockmoon=QtGui.QDockWidget(self)
-		dockmoon.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.moonToday=MoonCycleList(self)
 		dockmoon.setWindowTitle("Moon Phases")
 		dockmoon.setWidget(self.moonToday)
 		self.tabifyDockWidget(dockhours, dockmoon)
 
 		docksigns=QtGui.QDockWidget(self)
-		docksigns.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.signsToday=SignsForDayList(self)
 		docksigns.setWindowTitle("Signs")
 		docksigns.setWidget(self.signsToday)
 		self.tabifyDockWidget(dockmoon, docksigns)
 
 		dockevents=QtGui.QDockWidget(self)
-		dockevents.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.eventsToday=EventsList(self)
 		dockevents.setWindowTitle("Events")
 		dockevents.setWidget(self.eventsToday)
@@ -263,15 +258,10 @@ class ChronosLNX(QtGui.QMainWindow):
 			text=("\nNote: This is for the birth timezone %s and this time."
 			"\nIf you want adjust your birth time, go to Settings.") \
 			% CLNXConfig.birthtime.tzname()
-			#vbox.addWidget(QtGui.QLabel(text))
 		else:
 			ob=CLNXConfig.observer
 			text=""
 		infotext="{dateinfo}{text}".format(**locals())
-		#infobox=QtGui.QDockWidget(self)
-		#infobox.setWidget(QtGui.QLabel(infotext))
-		#infobox.setWindowTitle("Date")
-		#self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,infobox)
 
 		dockhours=QtGui.QDockWidget(self)
 		dockmoon=QtGui.QDockWidget(self)
@@ -319,21 +309,27 @@ class ChronosLNX(QtGui.QMainWindow):
 		dockhours.setWidget(hoursToday)
 		self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,dockhours)
 		dockhours.setToolTip(infotext)
+		dockhours.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
 
 		dockmoon.setWindowTitle("Moon Phases")
 		dockmoon.setWidget(moonToday)
 		self.tabifyDockWidget(dockhours, dockmoon)
 		dockmoon.setToolTip(infotext)
+		dockmoon.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
 
 		docksigns.setWindowTitle("Signs")
 		docksigns.setWidget(signsToday)
 		self.tabifyDockWidget(dockmoon, docksigns)
 		docksigns.setToolTip(infotext)
+		docksigns.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
 
 		dockevents.setWindowTitle("Events")
 		dockevents.setWidget(eventsToday)
 		self.tabifyDockWidget(docksigns, dockevents)
 		dockevents.setToolTip(infotext)
+		dockevents.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
+
+		#http://www.qtcentre.org/threads/27925-QDockWidget-Close-instead-of-Collapse
 
 	def make_save_for_date_range(self):
 		#self.save_for_range_dialog=QtGui.QDialog(self)
