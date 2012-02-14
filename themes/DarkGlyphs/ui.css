@@ -1,4 +1,4 @@
-QWidget
+QWidget, QDockWidget::title
 {
     color: #0064FF;
     background: qlineargradient(spread:pad,
@@ -6,9 +6,20 @@ QWidget
 				stop:0 #520000, stop:1 #000000);
 }
 
-QCheckBox, QLabel, QGroupBox
+QToolBar
 {
   background: transparent;
+}
+
+QCheckBox, QLabel, QGroupBox, QDockWidget::close-button, QDockWidget::float-button
+{
+  background: transparent;
+}
+
+QDockWidget
+{
+  titlebar-close-icon: url(skin:gui/close.png);
+  titlebar-normal-icon: url(skin:gui/float.png);
 }
 
 QTabBar::tab

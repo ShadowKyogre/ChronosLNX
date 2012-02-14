@@ -20,6 +20,8 @@ LEVELS=(('Sun','Moon','Venus','Mercury'),\
 ('North Node','South Node'),\
 ('Ascendant','Descendant','MC','IC'))
 
+### CSS Themable Custom Widgets
+
 class AstroClock(QtGui.QWidget):
 	def __init__(self, *args):
 		QtGui.QWidget.__init__(self, *args)
@@ -295,23 +297,24 @@ class AstroClock(QtGui.QWidget):
 		trans=QtGui.QColor("#000000")
 		trans.setAlpha(0)
 		painter.setBrush(trans)
-		off=datetime.now(tz.gettz())-self.hours.get_date(0)
-		overall=self.nexts-self.hours.get_date(0)
+		phm=self.hours.tree.model().sourceModel()
+		off=datetime.now(tz.gettz())-phm.get_date(0)
+		overall=self.nexts-phm.get_date(0)
 		for i in xrange(24):
-			top=self.hours.get_date(i)-self.hours.get_date(0)
+			top=phm.get_date(i)-phm.get_date(0)
 			offp=off.total_seconds()/overall.total_seconds()
 			percent=top.total_seconds()/overall.total_seconds()
 			if i == 23:
-				width=self.nexts-self.hours.get_date(i)
+				width=self.nexts-phm.get_date(i)
 			else:
-				width=self.hours.get_date(i+1)-self.hours.get_date(i)
+				width=phm.get_date(i+1)-phm.get_date(i)
 			w=width.total_seconds()/overall.total_seconds()*360
 			angle=(360*(percent-offp)+self.signData[1][0].m.projectedLon)%360.0
 			put=(angle+w/2)%360
 			painter.drawPie(circle, angle*16, w*16)
 			p=self.getPointAt(circle,put)
 			self.adjustPoint(p,put)
-			icon=self.icons[str(self.hours.get_planet(i))]
+			icon=self.icons[str(phm.get_planet(i))]
 			icon.paint(painter,QtCore.QRect(p.x(),p.y(),20,20))
 		painter.restore()
 
@@ -385,7 +388,7 @@ class AstroClock(QtGui.QWidget):
 		self.drawPlanets(painter, self.signData[1], self.outer_circle)
 		self.drawPlanets(painter, self.natData[1], self.inner_circle)
 
-		dt=self.hours.get_planet(0)
+		dt=self.hours.tree.model().sourceModel().get_planet(0)
 		ic=self.icons[str(dt)]
 		ic.paint(painter,self.centerRect.toRect())
 
@@ -582,95 +585,39 @@ class AstroCalendar(CSSCalendar):
 			icon=self.icons[phase]
 			icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
 
+# Special Models for planetary and moon phase stuff
+
 #http://doc.qt.nokia.com/stable/qhelpcontentwidget.html
 #http://www.riverbankcomputing.com/static/Docs/PyQt4/html/qthelp.html
 #http://ubuntuforums.org/showthread.php?t=1110989
 #http://www.commandprompt.com/community/pyqt/x6082
-
-class PlanetaryHoursList(QtGui.QWidget):
-	def __init__(self, parent = None):
-
-		QtGui.QWidget.__init__(self, parent)
-		hbox=QtGui.QVBoxLayout(self)
-		self.tree=QtGui.QTreeView(self)
-		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-		self.tree.setRootIsDecorated(False)
-		color=self.palette().color(QtGui.QPalette.Midlight)
+class BookMarkedModel(QtGui.QStandardItemModel):
+	def __init__(self,  rows = 0, columns = 0, parent = None):
+		QtGui.QStandardItemModel.__init__(self, rows, columns, parent)
+		color=QtGui.QPalette().color(QtGui.QPalette.Midlight)
 		color.setAlpha(64)
 		self.color=QtGui.QBrush(color)
-		c2=self.palette().color(QtGui.QPalette.Base)
+		c2=QtGui.QPalette().color(QtGui.QPalette.Base)
 		c2.setAlpha(0)
 		self.base=QtGui.QBrush(c2)
-
-		inputstuff=QtGui.QGridLayout()
-		inputstuff.addWidget(QtGui.QLabel("Hour type to filter"),0,0)
-		self.filter_hour=QtGui.QComboBox(self)
-		self.filter_hour.addItem("All")
-		self.filter_hour.addItem("Sun")
-		self.filter_hour.addItem("Moon")
-		self.filter_hour.addItem("Mars")
-		self.filter_hour.addItem("Mercury")
-		self.filter_hour.addItem("Jupiter")
-		self.filter_hour.addItem("Venus")
-		self.filter_hour.addItem("Saturn")
-		self.filter_hour.setCurrentIndex(0)
-		inputstuff.addWidget(self.filter_hour,0,1)
-		hbox.addLayout(inputstuff)
-		hbox.addWidget(self.tree)
-		model=QtGui.QStandardItemModel()
-		model.setColumnCount(2)
-		model.setHorizontalHeaderLabels(["Time","Planet"])
-		filter_model=QtGui.QSortFilterProxyModel()
-		filter_model.setSourceModel(model)
-		filter_model.setFilterKeyColumn(1)
-		self.tree.setModel(filter_model)
-		self.filter_hour.activated.connect(self.filter_hours)
-		self.filter_hour.setToolTip("Select the hour type you want to show.")
 		self.last_index=0
 
 	def clear(self):
-		model=self.tree.model().sourceModel()
-		model.removeRows(0,24)
+		self.removeRows(0,self.rowCount())
 		self.last_index=0
 
-	def get_planet(self,idx):
-		return self.tree.model().sourceModel().item(idx, 1).data(0).toPyObject()
-
-	def get_date(self,idx):
-		return self.tree.model().sourceModel().item(idx, 0).data(32).toPyObject()
-
-	def setIcons(self, icon_list):
-		self.icons=icon_list
-
-	def prepareHours(self,date,observer):
-		planetary_hours = hours_for_day(date,observer)
-		model=self.tree.model().sourceModel()
-		for i in xrange(0,24):
-			icon=self.icons[planetary_hours[i][1]]
-
-			if planetary_hours[i][2] is True:
-				status_icon=self.icons['daylight']
-			else:
-				status_icon=self.icons['nightlight']
-			newhouritem=QtGui.QStandardItem(status_icon,planetary_hours[i][0].strftime("%H:%M:%S - %m/%d/%Y"))
-			newhouritem.setData(QtCore.QVariant(planetary_hours[i][0]),32)
-			newplanetitem=QtGui.QStandardItem(icon,planetary_hours[i][1])
-			model.insertRow(i,[newhouritem,newplanetitem])
-
 	def _highlight_row(self, idx):
-		self.tree.model().sourceModel().item(idx, 0).setBackground(self.color)
-		self.tree.model().sourceModel().item(idx, 1).setBackground(self.color)
+		for i in xrange(self.columnCount()):
+			self.item(idx, i).setBackground(self.color)
 
 	def _unhighlight_row(self, idx):
-		self.tree.model().sourceModel().item(idx, 0).setBackground(self.base)
-		self.tree.model().sourceModel().item(idx, 1).setBackground(self.base)
+		for i in xrange(self.columnCount()):
+			self.item(idx, i).setBackground(self.base)
 
-	def filter_hours(self,idx):
-		if 0 == idx:
-			self.tree.model().setFilterFixedString("")
-		else:
-			self.tree.model().setFilterFixedString(self.filter_hour.itemText(idx)) #set filter based on planet name
+class PHModel(BookMarkedModel):
+	def __init__(self, parent = None):
+		BookMarkedModel.__init__(self, parent=parent,columns=2)
+		self.setHorizontalHeaderLabels(["Time","Planet"])
 
 	def grab_nearest_hour(self,date):
 		for i in xrange(self.last_index,24):
@@ -692,11 +639,154 @@ class PlanetaryHoursList(QtGui.QWidget):
 					return self.get_planet(i)
 		return "-Error-"
 
+	def get_planet(self,idx):
+		return self.item(idx, 1).data(0).toPyObject()
+
+	def get_date(self,idx):
+		return self.item(idx, 0).data(32).toPyObject()
+
+	@classmethod
+	def prepareHours(cls,date,observer,icon_source):
+		planetary_hours = hours_for_day(date,observer)
+		model=cls()
+		for ph in planetary_hours:
+			icon=icon_source[ph[1]]
+			if ph[2] is True:
+				status_icon=icon_source['daylight']
+			else:
+				status_icon=icon_source['nightlight']
+			newhouritem=QtGui.QStandardItem(status_icon,ph[0].strftime("%H:%M:%S - %m/%d/%Y"))
+			newhouritem.setData(QtCore.QVariant(ph[0]),32)
+			newplanetitem=QtGui.QStandardItem(icon,ph[1])
+			model.appendRow([newhouritem,newplanetitem])
+		return model
+
+class MPModel(BookMarkedModel):
+	def __init__(self, parent = None):
+		BookMarkedModel.__init__(self, columns=3, parent=parent)
+		self.setHorizontalHeaderLabels(["Time","Phase","Illumination"])
+
+	def highlight_cycle_phase(self,date):
+		for i in xrange(self.last_index,29):
+			self._unhighlight_row(i)
+			if i <= 27:
+				cycling=self.get_date(i)
+				cycling2=self.get_date(i+1)
+				if cycling.timetuple().tm_yday <= \
+				date.timetuple().tm_yday \
+				< cycling2.timetuple().tm_yday:
+					self._highlight_row(i)
+					self.last_index=i
+					break
+			else:
+				cycling=self.get_date(i)
+				if cycling.timetuple().tm_yday == date.timetuple().tm_yday:
+					self._highlight_row(i)
+					self.last_index=i
+					break
+
+	def get_date(self,idx):
+		return self.item(idx, 0).data(32).toPyObject()
+
+	@classmethod
+	def getMoonCycle(cls,date,icon_source,refinements=2):
+		moon_cycle=get_moon_cycle(date,refinements=refinements)
+		model=cls()
+		for mc in moon_cycle:
+			mptitem = QtGui.QStandardItem(icon_source[mc[1]],mc[0].strftime("%H:%M:%S - %m/%d/%Y"))
+			mppitem = QtGui.QStandardItem(mc[1])
+			mplitem = QtGui.QStandardItem(mc[2])
+
+			mptitem.setData(mc[0],32)
+			mppitem.setText(mc[1])
+			mplitem.setText(mc[2])
+			model.appendRow([mptitem,mppitem,mplitem])
+		return model
+
+### Planetary Hours and Moon Phase Widgets
+
+class MoonCycleList(QtGui.QTreeView):
+	def __init__(self, *args):
+
+		QtGui.QTreeView.__init__(self, *args)
+		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.setRootIsDecorated(False)
+		self.setModel(MPModel())
+
+	def setIcons(self, icon_list):
+		self.icons=icon_list
+
+	def setRefinement(self, ref):
+		self.refinement=ref
+
+	def clear(self):
+		self.model().clear()
+
+	def highlight_cycle_phase(self,date):
+		self.model().highlight_cycle_phase(date)
+
+	def get_moon_cycle(self,date):
+		self.setModel(MPModel.getMoonCycle(date,self.icons,self.refinement))
+
+class PlanetaryHoursList(QtGui.QWidget):
+	def __init__(self, parent = None):
+
+		QtGui.QWidget.__init__(self, parent)
+		hbox=QtGui.QVBoxLayout(self)
+		self.tree=QtGui.QTreeView(self)
+		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+		self.tree.setRootIsDecorated(False)
+
+		inputstuff=QtGui.QGridLayout()
+		inputstuff.addWidget(QtGui.QLabel("Hour type to filter"),0,0)
+		self.filter_hour=QtGui.QComboBox(self)
+		self.filter_hour.addItem("All")
+		self.filter_hour.addItem("Sun")
+		self.filter_hour.addItem("Moon")
+		self.filter_hour.addItem("Mars")
+		self.filter_hour.addItem("Mercury")
+		self.filter_hour.addItem("Jupiter")
+		self.filter_hour.addItem("Venus")
+		self.filter_hour.addItem("Saturn")
+		self.filter_hour.setCurrentIndex(0)
+		inputstuff.addWidget(self.filter_hour,0,1)
+		hbox.addLayout(inputstuff)
+		hbox.addWidget(self.tree)
+		model=PHModel()
+		filter_model=QtGui.QSortFilterProxyModel()
+		filter_model.setSourceModel(model)
+		filter_model.setFilterKeyColumn(1)
+		self.tree.setModel(filter_model)
+		self.filter_hour.activated.connect(self.filter_hours)
+		self.filter_hour.setToolTip("Select the hour type you want to show.")
+
+	def clear(self):
+		self.tree.model().sourceModel().clear()
+
+	def setIcons(self, icon_list):
+		self.icons=icon_list
+
+	def prepareHours(self,date,observer):
+		planetary_hours = hours_for_day(date,observer)
+		self.tree.model().setSourceModel(PHModel.prepareHours(date,observer,self.icons))
+
+	def filter_hours(self,idx):
+		if 0 == idx:
+			self.tree.model().setFilterFixedString("")
+		else:
+			self.tree.model().setFilterFixedString(self.filter_hour.itemText(idx)) #set filter based on planet name
+
+	def grab_nearest_hour(self,date):
+		return self.tree.model().sourceModel().grab_nearest_hour(date)
+
+### Sign stuff
+
 class AspectTableDisplay(QtGui.QWidget):
 	def __init__(self, *args):
 		QtGui.QWidget.__init__(self, *args)
 		vbox=QtGui.QVBoxLayout(self)
-#orbs = { 'conjunction': 10.0,
+		#orbs = { 'conjunction': 10.0,
 		#'semi-sextile':3.0,
 		#'semi-square':3.0,
 		#'sextile':6.0,
@@ -754,27 +844,27 @@ class AspectTableDisplay(QtGui.QWidget):
 		for yod in sad[0]:
 			c=QtGui.QStandardItem(str(yod))
 			self.tableSpecial.setItem(i,0,c)
-			i=i+1
+			i+=1
 		i=0
 		for gt in sad[1]:
 			d=QtGui.QStandardItem(str(gt))
 			self.tableSpecial.setItem(i,1,d)
-			i=i+1
+			i+=1
 		i=0
 		for gc in sad[2]:
 			e=QtGui.QStandardItem(str(gc))
 			self.tableSpecial.setItem(i,2,e)
-			i=i+1
+			i+=1
 		i=0
 		for tsq in sad[3]:
 			f=QtGui.QStandardItem(str(tsq))
 			self.tableSpecial.setItem(i,4,f)
-			i=i+1
+			i+=1
 		i=0
 		for stellium in sad[4]:
 			g=QtGui.QStandardItem(str(stellium))
 			self.tableSpecial.setItem(i,3,g)
-			i=i+1
+			i+=1
 		self.guiAspects.resizeRowsToContents()
 		self.guiAspects.resizeColumnsToContents()
 		self.guiSpecial.resizeRowsToContents()
@@ -827,6 +917,8 @@ def aspectsDialog(widget, zodiac, other_table, icons, \
 	sign_icons, pluto_alternate, admi, nodes, orbs):
 	info_dialog=QtGui.QDialog(widget)
 	info_dialog.setWindowTitle("Aspectarian")
+	print widget.parent()
+	print widget.parent().parent()
 	tabs=QtGui.QTabWidget(info_dialog)
 	aspects=AspectTableDisplay(info_dialog)
 	aspects.setIcons(icons)
@@ -1008,68 +1100,4 @@ class SignsForDayList(QtGui.QWidget):
 		self.observer=observer
 		self.target_date=date
 		self.time.setTime(self.target_date.time())
-
-class MoonCycleList(QtGui.QTreeWidget):
-	def __init__(self, *args):
-
-		QtGui.QTreeWidget.__init__(self, *args)
-		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-		self.setRootIsDecorated(False)
-		header=QtCore.QStringList()
-		header.append("Time")
-		header.append("Phase")
-		header.append("Illumination")
-		self.setHeaderLabels(header)
-		self.setColumnCount(3)
-		self.color=self.palette().color(QtGui.QPalette.Midlight)
-		self.color.setAlpha(64)
-		self.last_index=0
-		c2=self.palette().color(QtGui.QPalette.Base)
-		c2.setAlpha(0)
-		self.base=QtGui.QBrush(c2)
-
-	def setIcons(self, icon_list):
-		self.icons=icon_list
-
-	def setRefinement(self, ref):
-		self.refinement=ref
-
-	def _highlight_row(self, idx):
-		self.topLevelItem(idx).setBackground(0,self.color)
-		self.topLevelItem(idx).setBackground(1,self.color)
-		self.topLevelItem(idx).setBackground(2,self.color)
-
-	def _unhighlight_row(self, idx):
-		self.topLevelItem(idx).setBackground(0,self.base)
-		self.topLevelItem(idx).setBackground(1,self.base)
-		self.topLevelItem(idx).setBackground(2,self.base)
-
-	def highlight_cycle_phase(self,date):
-		for i in xrange(self.last_index,29):
-			self._unhighlight_row(i)
-			if i <= 27:
-				cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
-				cycling2=self.topLevelItem(i+1).data(0,32).toPyObject().toPyDateTime()
-				if cycling.timetuple().tm_yday <= \
-				date.timetuple().tm_yday \
-				< cycling2.timetuple().tm_yday:
-					self._highlight_row(i)
-					self.last_index=i
-					break
-			else:
-				cycling=self.topLevelItem(i).data(0,32).toPyObject().toPyDateTime()
-				if cycling.timetuple().tm_yday == date.timetuple().tm_yday:
-					self._highlight_row(i)
-					self.last_index=i
-					break
-	def get_moon_cycle(self,date):
-		moon_cycle=get_moon_cycle(date,refinements=self.refinement)
-		for i in xrange (29):
-			newmooncycleitem = QtGui.QTreeWidgetItem()
-			newmooncycleitem.setData(0,32,QtCore.QVariant(QtCore.QDateTime(moon_cycle[i][0])))
-			newmooncycleitem.setIcon(0,self.icons[moon_cycle[i][1]])
-			newmooncycleitem.setText(0,moon_cycle[i][0].strftime("%H:%M:%S - %m/%d/%Y"))
-			newmooncycleitem.setText(1,moon_cycle[i][1])
-			newmooncycleitem.setText(2,moon_cycle[i][2])
-			self.addTopLevelItem(newmooncycleitem)
 

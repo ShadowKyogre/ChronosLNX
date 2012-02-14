@@ -34,100 +34,115 @@ class ReusableDialog(QtGui.QDialog):
 			self.hide()
 			event.ignore()
 
-class ChronosLNX(QtGui.QWidget):
+class ChronosLNX(QtGui.QMainWindow):
 	def __init__(self, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtGui.QMainWindow.__init__(self, parent)
 		self.timer = QtCore.QTimer(self)
 		self.now = datetime.now().replace(tzinfo=tz.gettz())
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
 		self.setWindowTitle(CLNXConfig.APPNAME)
-		#self.setFixedSize(840, 420)
 
 		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
 		CLNXConfig.show_nodes,CLNXConfig.show_admi)
-		self.mainLayout=QtGui.QGridLayout(self)
-		self.leftLayout=QtGui.QVBoxLayout()
-		self.rightLayout=QtGui.QVBoxLayout()
 		self.add_widgets()
 		self.timer.timeout.connect(self.update)
-		#self.setWindowFlags(QtGui.Qt.WA_Window)
+		self.setDockNestingEnabled(True)
 		self.timer.start(1000)
 
 	def add_widgets(self):
 		##left pane
 
 		self.astroClock=AstroClock(self)
-		self.leftLayout.addWidget(self.astroClock)
+		self.setCentralWidget(self.astroClock)
 
-		self.calendar=AstroCalendar(self)
-		self.make_calendar_menu()
-
-
-		buttonbox=QtGui.QHBoxLayout()
-		self.mainLayout.addLayout(self.leftLayout,0,0)
-		self.mainLayout.addLayout(self.rightLayout,0,1)
-		self.mainLayout.addLayout(buttonbox,1,0,1,2)
-
-
-		aspectsButton=QtGui.QPushButton("Aspects for Now",self)
-		aspectsButton.clicked.connect(lambda: aspectsDialog(self, self.zodiac, CLNXConfig.natal_data[1], \
-		CLNXConfig.main_icons, CLNXConfig.sign_icons, \
-		CLNXConfig.pluto_alt, CLNXConfig.show_admi, CLNXConfig.show_nodes, CLNXConfig.orbs))
-		aspectsButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
-		buttonbox.addWidget(aspectsButton)
-
-		housesButton=QtGui.QPushButton("Houses for Now",self)
-		housesButton.clicked.connect(lambda: housesDialog(self, self.houses, \
-		CLNXConfig.capricorn_alt,CLNXConfig.sign_icons))
-		housesButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
-		buttonbox.addWidget(housesButton)
-
-		natalButton=QtGui.QPushButton("&View Natal Data",self)
-		natalButton.clicked.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime, birth=True))
-		natalButton.setIcon(QtGui.QIcon.fromTheme("view-calendar-list"))
-		buttonbox.addWidget(natalButton)
-
-		saveRangeButton=QtGui.QPushButton("Save data from dates",self)
-		saveRangeButton.clicked.connect(self.save_for_range_dialog.open)
-		saveRangeButton.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
-		buttonbox.addWidget(saveRangeButton)
-
-		settingsButton=QtGui.QPushButton("Settings",self)
-		settingsButton.clicked.connect(self.settings_dialog.open)
-		settingsButton.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
-		buttonbox.addWidget(settingsButton)
-
-		helpButton=QtGui.QPushButton("Help",self)
-		helpButton.clicked.connect(self.show_help)
-		helpButton.setIcon(QtGui.QIcon.fromTheme("help-contents"))
-		buttonbox.addWidget(helpButton)
-
-		aboutButton=QtGui.QPushButton("About",self)
-		aboutButton.clicked.connect(self.show_about)
-		aboutButton.setIcon(QtGui.QIcon.fromTheme("help-about"))
-		buttonbox.addWidget(aboutButton)
-
-		##right pane
-		dayinfo=QtGui.QHBoxLayout()
-		self.todayPicture=QtGui.QLabel()
 		self.todayOther=QtGui.QLabel()
 
 		self.todayOther.setTextFormat(QtCore.Qt.RichText)
+
+		docktlabel=QtGui.QDockWidget(self)
+		docktlabel.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+		docktlabel.setWidget(self.todayOther)
+		docktlabel.setWindowTitle("Info for Today")
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,docktlabel)
+
+		dockcalendar=QtGui.QDockWidget(self)
+		dockcalendar.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
+		self.calendar=AstroCalendar(dockcalendar)
+		dockcalendar.setWidget(self.calendar)
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockcalendar)
+		dockcalendar.setWindowTitle("Calendar")
+		self.make_calendar_menu()
+
+		aspectsAction=QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-list"), 'Aspects for Now', self)
+		aspectsAction.triggered.connect(lambda: aspectsDialog(self, self.zodiac, CLNXConfig.natal_data[1], \
+		CLNXConfig.main_icons, CLNXConfig.sign_icons, \
+		CLNXConfig.pluto_alt, CLNXConfig.show_admi, CLNXConfig.show_nodes, CLNXConfig.orbs))
+
+		housesAction=QtGui.QAction(QtGui.QIcon.fromTheme("measure"), 'Houses for Now', self)
+		housesAction.triggered.connect(lambda: housesDialog(self, self.houses, \
+		CLNXConfig.capricorn_alt,CLNXConfig.sign_icons))
+
+		natalAction=QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-birthday"), '&View Natal Data', self)
+		natalAction.triggered.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime, birth=True))
+
+		saveRangeAction=QtGui.QAction(QtGui.QIcon.fromTheme("document-save-as"), 'Save data from dates', self)
+		saveRangeAction.triggered.connect(self.save_for_range_dialog.open)
+
+		settingsAction=QtGui.QAction(QtGui.QIcon.fromTheme('preferences-other'), 'Settings', self)
+		settingsAction.triggered.connect(self.settings_dialog.open)
+
+		helpAction=QtGui.QAction(QtGui.QIcon.fromTheme('help-contents'), 'Help', self)
+		helpAction.triggered.connect(self.show_help)
+
+		aboutAction=QtGui.QAction(QtGui.QIcon.fromTheme('help-about'), 'About', self)
+		aboutAction.triggered.connect(self.show_about)
+
+		toolbar = self.addToolBar('Main')
+		toolbar.addAction(aspectsAction)
+		toolbar.addAction(housesAction)
+		toolbar.addAction(natalAction)
+		toolbar.addAction(saveRangeAction)
+		toolbar.addAction(settingsAction)
+		toolbar.addAction(helpAction)
+		toolbar.addAction(aboutAction)
+
+		##right pane
+		#dayinfo=QtGui.QHBoxLayout()
+		#self.todayPicture=QtGui.QLabel()
+
 		#dayinfo.addWidget(self.todayPicture)
-		dayinfo.addWidget(self.todayOther)
+		#dayinfo.addWidget(self.todayOther)
 
 
+		dockhours=QtGui.QDockWidget(self)
+		dockhours.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.hoursToday=PlanetaryHoursList(self)
+		dockhours.setWindowTitle("Planetary Hours")
+		dockhours.setWidget(self.hoursToday)
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockhours)
 
+		dockmoon=QtGui.QDockWidget(self)
+		dockmoon.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.moonToday=MoonCycleList(self)
+		dockmoon.setWindowTitle("Moon Phases")
+		dockmoon.setWidget(self.moonToday)
+		self.tabifyDockWidget(dockhours, dockmoon)
 
+		docksigns=QtGui.QDockWidget(self)
+		docksigns.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.signsToday=SignsForDayList(self)
+		docksigns.setWindowTitle("Signs")
+		docksigns.setWidget(self.signsToday)
+		self.tabifyDockWidget(dockmoon, docksigns)
 
+		dockevents=QtGui.QDockWidget(self)
+		dockevents.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
 		self.eventsToday=EventsList(self)
-
-		dayData=QtGui.QTabWidget()
+		dockevents.setWindowTitle("Events")
+		dockevents.setWidget(self.eventsToday)
+		self.tabifyDockWidget(docksigns, dockevents)
 
 		self.update_widgets_config()
 
@@ -138,15 +153,6 @@ class ChronosLNX(QtGui.QWidget):
 
 		CLNXConfig.todays_schedule.setDate(self.now.date())
 		self.eventsToday.tree.setModel(CLNXConfig.todays_schedule)
-
-		dayData.addTab(self.hoursToday,"Planetary Hours")
-		dayData.addTab(self.moonToday,"Moon Phases")
-		dayData.addTab(self.signsToday,"Signs")
-		dayData.addTab(self.eventsToday,"Events")
-
-		self.rightLayout.addLayout(dayinfo)
-		self.rightLayout.addWidget(self.calendar)
-		self.rightLayout.addWidget(dayData)
 
 		self.update()
 
@@ -251,30 +257,35 @@ class ChronosLNX(QtGui.QWidget):
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
 	def get_info_for_date(self, date, birth=False):
-		info_dialog=QtGui.QDialog(self)
-		info_dialog.setFixedSize(400,400)
-		info_dialog.setWindowTitle("Info for %s" %(date.strftime("%m/%d/%Y")))
-		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-		vbox=QtGui.QVBoxLayout(info_dialog)
-
+		dateinfo="Info for %s" %(date.strftime("%m/%d/%Y"))
 		if birth:
 			ob=CLNXConfig.baby
-			text="""Note: This is for the birth timezone %s and this time.
-If you want adjust your birth time, go to Settings.""" \
+			text=("\nNote: This is for the birth timezone %s and this time."
+			"\nIf you want adjust your birth time, go to Settings.") \
 			% CLNXConfig.birthtime.tzname()
-			vbox.addWidget(QtGui.QLabel(text))
+			#vbox.addWidget(QtGui.QLabel(text))
 		else:
 			ob=CLNXConfig.observer
-		#info_dialog.setFlags(QtCore.Qt.WA_DeleteOnClose)
+			text=""
+		infotext="{dateinfo}{text}".format(**locals())
+		#infobox=QtGui.QDockWidget(self)
+		#infobox.setWidget(QtGui.QLabel(infotext))
+		#infobox.setWindowTitle("Date")
+		#self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,infobox)
 
-		hoursToday=PlanetaryHoursList(info_dialog)
+		dockhours=QtGui.QDockWidget(self)
+		dockmoon=QtGui.QDockWidget(self)
+		docksigns=QtGui.QDockWidget(self)
+		dockevents=QtGui.QDockWidget(self)
+
+		hoursToday=PlanetaryHoursList(dockhours)
 		hoursToday.setIcons(CLNXConfig.main_icons)
 
-		moonToday=MoonCycleList(info_dialog)
+		moonToday=MoonCycleList(dockmoon)
 		moonToday.setRefinement(CLNXConfig.refinements['Moon Phase'])
 		moonToday.setIcons(CLNXConfig.moon_icons)
 
-		signsToday=SignsForDayList(info_dialog)
+		signsToday=SignsForDayList(docksigns)
 		signsToday.setIcons(CLNXConfig.main_icons)
 		signsToday.setSignIcons(CLNXConfig.sign_icons)
 		signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
@@ -285,14 +296,11 @@ If you want adjust your birth time, go to Settings.""" \
 		if not birth:
 			signsToday.setCompareTable(CLNXConfig.natal_data[1])
 
-		eventsToday=EventsList(info_dialog)
+		eventsToday=EventsList(dockevents)
 		model=DayEventsModel()
 		model.setSourceModel(CLNXConfig.schedule)
 		model.setDate(date)
 		eventsToday.tree.setModel(model)
-		eventsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-
-		dayData=QtGui.QTabWidget(info_dialog)
 
 		hoursToday.prepareHours(date,ob)
 		moonToday.get_moon_cycle(date)
@@ -307,12 +315,25 @@ If you want adjust your birth time, go to Settings.""" \
 		else:
 			signsToday.get_constellations(date, ob)
 
-		dayData.addTab(hoursToday,"Planetary Hours")
-		dayData.addTab(moonToday,"Moon Phases")
-		dayData.addTab(signsToday,"Signs")
-		dayData.addTab(eventsToday,"Events")
-		vbox.addWidget(dayData)
-		info_dialog.show()
+		dockhours.setWindowTitle("Planetary Hours")
+		dockhours.setWidget(hoursToday)
+		self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,dockhours)
+		dockhours.setToolTip(infotext)
+
+		dockmoon.setWindowTitle("Moon Phases")
+		dockmoon.setWidget(moonToday)
+		self.tabifyDockWidget(dockhours, dockmoon)
+		dockmoon.setToolTip(infotext)
+
+		docksigns.setWindowTitle("Signs")
+		docksigns.setWidget(signsToday)
+		self.tabifyDockWidget(dockmoon, docksigns)
+		docksigns.setToolTip(infotext)
+
+		dockevents.setWindowTitle("Events")
+		dockevents.setWidget(eventsToday)
+		self.tabifyDockWidget(docksigns, dockevents)
+		dockevents.setToolTip(infotext)
 
 	def make_save_for_date_range(self):
 		#self.save_for_range_dialog=QtGui.QDialog(self)
@@ -452,7 +473,7 @@ If you want adjust your birth time, go to Settings.""" \
 
 	def get_cal_menu(self, qpoint):
 		table=self.calendar.findChild(QtGui.QTableView)
-		idx=table.indexAt(qpoint)
+		idx=table.indexAt(table.mapFromParent(qpoint))
 		mdl=table.model()
 		if idx.column() > 0 and idx.row() > 0:
 			month=self.calendar.monthShown()
@@ -477,11 +498,21 @@ If you want adjust your birth time, go to Settings.""" \
 				if replace_month == 1:
 					date=datetime(year=year+1,\
 						      month=replace_month,\
-						      day=day, tzinfo=tz.gettz())
+						      day=day, hour=12, \
+						      minute=0, second=0, \
+						      tzinfo=tz.gettz())
 				else:
-					date=datetime(year=year,\
+					if replace_month == 0:
+						date=datetime(year=year,month=12,\
+							day=day, hour=12, \
+							minute=0, second=0, \
+							tzinfo=tz.gettz())
+					else:
+						date=datetime(year=year,\
 							month=replace_month,\
-							day=day, tzinfo=tz.gettz())
+							day=day, hour=12, \
+							minute=0, second=0, \
+							tzinfo=tz.gettz())
 			else:
 				date=datetime(year=year,month=month,day=day,\
 				hour=12,minute=0, second=0, tzinfo=tz.gettz())
@@ -885,7 +916,7 @@ If you want adjust your birth time, go to Settings.""" \
 		self.trayIcon.setToolTip("%s - %s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"),
 			total_string.replace("<br />","\n").replace("<sup>","").replace("</sup>","")))
 		self.trayIcon.setIcon(sysicon)
-		self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
+		#self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))
 
 	def event_trigger(self, event_type, text, planet_trigger):
@@ -900,20 +931,21 @@ If you want adjust your birth time, go to Settings.""" \
 	def parse_phour_args(self,string):
 		alist=None
 		args=len(findall("%\(prev\)s|%\(next\)s", string))
+		model=self.hoursToday.tree.model().sourceModel()
 		if args == 2:
-			if self.hoursToday.last_index > 0:
-				idx=self.hoursToday.last_index - 1
+			if lidx > 0:
+				idx=lidx - 1
 			else:
-				idx=self.hoursToday.last_index + 6
-			prev_hour=self.hoursToday.get_planet(idx)
+				idx=lidx + 6
+			prev_hour=model.get_planet(model.last_index)
 			alist={'prev': prev_hour, "next": self.phour}
 		elif args == 1:
 			if match("%\(prev\)s"):
-				if self.hoursToday.last_index > 0:
-					idx=self.hoursToday.last_index - 1
+				if lidx > 0:
+					idx=lidx - 1
 				else:
-					idx=self.hoursToday.last_index + 6
-				prev_hour=self.hoursToday.get_planet(idx)
+					idx=lidx + 6
+				prev_hour=model.get_planet(model.last_index)
 				alist={"prev": prev_hour}
 			else:
 				alist={"next": self.phour}
@@ -955,7 +987,8 @@ If you want adjust your birth time, go to Settings.""" \
 								hour_item.minute(), 0)
 				else:
 					if hour_item == "Every planetary hour":
-						dt = self.hoursToday.get_date(self.hoursToday.last_index)
+						phm=self.hoursToday.tree.model().sourceModel()
+						dt = phm.get_date(phm.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						if hour_trigger:
 							pt=True

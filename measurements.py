@@ -110,7 +110,8 @@ class HouseMeasurement:
 		"\nStarts at %s"
 		"\nEnds at %s") %(self.num, self.cusp, self.end)
 
-class ZodiacalMeasurement:
+class ZodiacalMeasurement (object):
+	__slots__ = ('latitude','longitude')
 	def __init__(self, l, a):
 		self.longitude=l%360.0
 		self.latitude=a
@@ -183,6 +184,7 @@ class ZodiacalMeasurement:
 		return self.longitude==zm.longitude
 
 class ActiveZodiacalMeasurement(ZodiacalMeasurement):
+	__slots__ = ('house_info','progress')
 	def __init__(self, l, a, house_info, progress=None):
 		ZodiacalMeasurement.__init__(self,l,a)
 		self.house_info=house_info
