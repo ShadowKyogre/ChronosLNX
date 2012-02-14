@@ -994,7 +994,8 @@ class ChronosLNX(QtGui.QMainWindow):
 							pt=True
 							alist,args=self.parse_phour_args(txt)
 					elif self.phour == str(hour_item):
-						dt = self.hoursToday.get_date(self.hoursToday.last_index)
+						phm=self.hoursToday.tree.model().sourceModel()
+						dt = phm.get_date(phm.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						pt=True
 					elif hour_item == "When the sun rises":
