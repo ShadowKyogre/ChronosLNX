@@ -62,7 +62,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.todayOther.setTextFormat(QtCore.Qt.RichText)
 
 		docktlabel=QtGui.QDockWidget(self)
-		docktlabel.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
 		docktlabel.setWidget(self.todayOther)
 		docktlabel.setWindowTitle("Info for Today")
 		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,docktlabel)
