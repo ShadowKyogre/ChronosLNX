@@ -917,8 +917,6 @@ def aspectsDialog(widget, zodiac, other_table, icons, \
 	sign_icons, pluto_alternate, admi, nodes, orbs):
 	info_dialog=QtGui.QDialog(widget)
 	info_dialog.setWindowTitle("Aspectarian")
-	print widget.parent()
-	print widget.parent().parent()
 	tabs=QtGui.QTabWidget(info_dialog)
 	aspects=AspectTableDisplay(info_dialog)
 	aspects.setIcons(icons)
