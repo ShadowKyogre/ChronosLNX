@@ -73,7 +73,7 @@ class HouseMeasurement:
 
 	def encompassedSigns(self):
 		signs=[]
-		for i in xrange(int(self.width/30.0)):
+		for i in range(int(self.width/30.0)):
 			signs.append(ZODIAC[(self.cusp.sign+i)%12])
 		return signs
 
@@ -142,7 +142,7 @@ class ZodiacalMeasurement (object):
 
 	@property
 	def decanate(self):
-		return self.signData['decanates'][self.dn]
+		return self.signData['decanates'][int(self.dn)]
 
 	@property
 	def signData(self):

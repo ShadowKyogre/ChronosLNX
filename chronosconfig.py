@@ -15,7 +15,7 @@ import zonetab
 class ChronosLNXConfig:
 
 	APPNAME="ChronosLNX"
-	APPVERSION="0.9.2"
+	APPVERSION="0.9.3"
 	AUTHOR="ShadowKyogre"
 	DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 	YEAR="2012"
@@ -56,7 +56,7 @@ class ChronosLNXConfig:
 
 		css=QtCore.QFile("skin:ui.css")
 		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
-			self.stylesheet=str(QtCore.QString(css.readAll()))
+			self.stylesheet=str(css.readAll())
 		else:
 			self.stylesheet=""
 
@@ -130,77 +130,68 @@ class ChronosLNXConfig:
 		timezone=zonetab.nearest_tz(self.baby.lat, \
 					    self.baby.long, \
 					    zonetab.timezones(zonetab=self.zt))[2]
-		print "Detected natal timezone to be %s" % timezone
+		print("Detected natal timezone to be %s" % timezone)
 		return tz.gettz(timezone)
 
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
+		import sip
+		sip.setapi('QVariant', 2)
 		self.settings.beginGroup("Location")
-		self.observer.lat=float(self.settings.value("latitude", 0.0).toPyObject())
-		self.observer.long=float(self.settings.value("longitude", 0.0).toPyObject())
-		self.observer.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.observer.lat=float(self.settings.value("latitude", 0.0))
+		self.observer.long=float(self.settings.value("longitude", 0.0))
+		self.observer.elevation=float(self.settings.value("elevation", 0.0))
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Birth")
-		self.birthzone=self.settings.value("birthZone",QtCore.QVariant())
-		self.baby.lat=float(self.settings.value("latitude", 0.0).toPyObject())
-		self.baby.long=float(self.settings.value("longitude", 0.0).toPyObject())
-		self.baby.elevation=float(self.settings.value("elevation", 0.0).toPyObject())
+		self.birthzone=self.settings.value("birthZone",None)
+		self.baby.lat=float(self.settings.value("latitude", 0.0))
+		self.baby.long=float(self.settings.value("longitude", 0.0))
+		self.baby.elevation=float(self.settings.value("elevation", 0.0))
 		tzo=self.generate_timezone()
-		self.birthtime=self.settings.value("birthTime", \
-			QtCore.QVariant(datetime(2000,1,1,tzinfo=tzo))).toPyObject()
+		self.birthtime=self.settings.value("birthTime", datetime(2000,1,1,tzinfo=tzo))
+		#self.birthtime=datetime(2000,1,1,tzinfo=tzo)
 		#add bday
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Appearance")
-		self.current_theme=str(self.settings.value("iconTheme", QtCore.QString("DarkGlyphs")).toPyObject())
-		self.current_icon_override=str(self.settings.value("stIconTheme", QtCore.QString("")).toPyObject())
-		self.pluto_alt=literal_eval(str(self.settings.value("alternatePluto",
-					QtCore.QString("False")).toPyObject()))
-		self.use_css=literal_eval(str(self.settings.value("useCSS",
-					QtCore.QString("False")).toPyObject()))
-		self.capricorn_alt=str(self.settings.value("alternateCapricorn", \
-				str(QtCore.QString("Capricorn"))).toPyObject())
+		self.current_theme=self.settings.value("iconTheme", "DarkGlyphs")
+		self.current_icon_override=self.settings.value("stIconTheme", "")
+		self.pluto_alt=literal_eval(self.settings.value("alternatePluto", "False"))
+		self.use_css=literal_eval(self.settings.value("useCSS", "False"))
+		self.capricorn_alt=self.settings.value("alternateCapricorn", "Capricorn")
 		self.load_theme()
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
-		self.show_sign=literal_eval(str(self.settings.value("showSign",\
-			QtCore.QString("True")).toPyObject()))
-		self.show_moon=literal_eval(str(self.settings.value("showMoonPhase",\
-			QtCore.QString("True")).toPyObject()))
-		self.show_house_of_moment=literal_eval(str(self.settings.value("showHouseOfMoment",\
-			QtCore.QString("True")).toPyObject()))
-		self.show_nodes=literal_eval(str(self.settings.value("showNodes",
-					QtCore.QString("True")).toPyObject()))
-		self.show_admi=literal_eval(str(self.settings.value("showADMI",
-					QtCore.QString("False")).toPyObject()))
-		self.show_mcal=literal_eval(str(self.settings.value("showMoonOnCal",
-					QtCore.QString("False")).toPyObject()))
-		self.show_sr=literal_eval(str(self.settings.value("showSolarReturnOnCal",
-					QtCore.QString("False")).toPyObject()))
-		self.show_lr=literal_eval(str(self.settings.value("showLunarReturnOnCal",
-					QtCore.QString("False")).toPyObject()))
+		self.show_sign=literal_eval(self.settings.value("showSign","True"))
+		self.show_moon=literal_eval(self.settings.value("showMoonPhase","True"))
+		self.show_house_of_moment=literal_eval(self.settings.value("showHouseOfMoment","True"))
+		self.show_nodes=literal_eval(self.settings.value("showNodes", "True"))
+		self.show_admi=literal_eval(self.settings.value("showADMI", "False"))
+		self.show_mcal=literal_eval(self.settings.value("showMoonOnCal", "False"))
+		self.show_sr=literal_eval(self.settings.value("showSolarReturnOnCal", "False"))
+		self.show_lr=literal_eval(self.settings.value("showLunarReturnOnCal", "False"))
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Calculations")
 		self.settings.beginGroup("refinements")
 		self.refinements={}
-		self.refinements['Solar Return']=self.settings.value("solar",2).toInt()[0]
-		self.refinements['Lunar Return']=self.settings.value("lunar",2).toInt()[0]
-		self.refinements['Moon Phase']=self.settings.value("phase",2).toInt()[0]
+		self.refinements['Solar Return']=int(self.settings.value("solar",2))
+		self.refinements['Lunar Return']=int(self.settings.value("lunar",2))
+		self.refinements['Moon Phase']=int(self.settings.value("phase",2))
 		self.settings.endGroup()
 		self.settings.beginGroup("orbs")
 		self.orbs=od()
 		for i in DEFAULT_ORBS:
-			self.orbs[i]=self.settings.value(i, DEFAULT_ORBS[i]).toDouble()[0]
+			self.orbs[i]=float(self.settings.value(i, DEFAULT_ORBS[i]))
 		self.settings.endGroup()
 		self.settings.endGroup()
 		self.load_theme()
 		self.load_natal_data()
 
 	def load_natal_data(self):
-		print "Loading natal data..."
+		print("Loading natal data...")
 		self.natal_data=get_signs(self.birthtime,self.baby,\
 					  self.show_nodes,\
 					  self.show_admi,prefix="Natal")
@@ -219,13 +210,13 @@ class ChronosLNXConfig:
 
 		if not os.path.exists(path):
 			if not os.path.exists(path.replace("schedule.csv","")):
-				print "Making directory to store schedule"
+				print("Making directory to store schedule")
 				os.makedirs(self.userconfdir)
 			from shutil import copyfile
 			sch=os.path.join(os.sys.path[0],"schedule.csv")
 			copyfile(sch, path)
-		planner = csv.reader(open(path, "rb"))
-		planner.next()
+		planner = csv.reader(open(path, "r"))
+		next(planner)
 
 		for entry in planner:
 			first_column=QtGui.QStandardItem()
@@ -265,28 +256,28 @@ class ChronosLNXConfig:
 		rows=self.schedule.rowCount()
 		path=''.join([self.userconfdir, '/schedule.csv'])
 		temppath=''.join([self.userconfdir, '/schedule_modified.csv'])
-		f=open(temppath, "wb")
+		f=open(temppath, "w")
 		planner = csv.writer(f)
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
-		for i in xrange(rows):
+		for i in range(rows):
 			if self.schedule.item(i,0).checkState()==QtCore.Qt.Checked:
 				first_column="True"
 			else:
 				first_column="False"
-			second_column=self.schedule.item(i,1).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %m/%d/%Y
+			second_column=self.schedule.item(i,1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
 			if isinstance(second_column,QtCore.QDate):
 				#print second_column
 				second_column=str(second_column.toString("MM/dd/yyyy"))
 			else:
-				second_column=str(self.schedule.item(i,1).data(QtCore.Qt.EditRole).toPyObject())
-			third_column=self.schedule.item(i,2).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %H:%M
+				second_column=str(self.schedule.item(i,1).data(QtCore.Qt.EditRole))
+			third_column=self.schedule.item(i,2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
 			if isinstance(third_column,QtCore.QTime):
 				third_column=str(third_column.toString("HH:mm"))
 			else:
-				third_column=str(self.schedule.item(i,2).data(QtCore.Qt.EditRole).toPyObject())
-			fourth_column=str(self.schedule.item(i,3).data(QtCore.Qt.EditRole).toPyObject())
-			fifth_column=str(self.schedule.item(i,4).data(QtCore.Qt.EditRole).toPyObject())
+				third_column=str(self.schedule.item(i,2).data(QtCore.Qt.EditRole))
+			fourth_column=str(self.schedule.item(i,3).data(QtCore.Qt.EditRole))
+			fifth_column=str(self.schedule.item(i,4).data(QtCore.Qt.EditRole))
 			planner.writerow([first_column,second_column,third_column,fourth_column,fifth_column])
 		f.close()
 		os.remove(path)

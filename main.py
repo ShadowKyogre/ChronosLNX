@@ -255,6 +255,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.pday = get_planet_day(dayn)
 		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.observer)
 		self.astroClock.setNextSunrise(self.next_sunrise)
+		self.show_notification("Preparing hours","Yes",False)
+		#self.show_notification("Preparing hours","Yes",True)
 		if self.now < self.sunrise:
 			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.observer)
 			self.astroClock.setNextSunrise(self.next_sunrise)
@@ -267,14 +269,14 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def show_notification(self, title, text, ptrigger):
 			if pynf:
+				fldr=QtCore.QDir("skin:/")
 				if ptrigger:
 					path=CLNXConfig.grab_icon_path("planets",str(self.phour.toLower()))
 				else:
 					path=CLNXConfig.grab_icon_path("misc","chronoslnx")
-				path=str(QtCore.QFile(path).fileName())
-				n = pynotify.Notification(title, text, path)
-				n.set_timeout(10000)
-				n.show()
+				path=fldr.absoluteFilePath(path.replace("skin:",""))
+				call(['notify-send','-t','10000','-a',CLNXConfig.APPNAME,
+					'-i',path,title,text])
 			else:
 				if self.trayIcon.supportsMessages():
 					if ptrigger:
@@ -343,7 +345,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
 		if birth:
-			print "Using already available birth data instead of recalculating it"
+			print("Using already available birth data instead of recalculating it")
 			signsToday.time.timeChanged.disconnect()
 			signsToday.time.setReadOnly(True)
 			signsToday.time.setTime(CLNXConfig.birthtime.time())
@@ -455,7 +457,7 @@ class ChronosLNX(QtGui.QMainWindow):
 						str(j.text()).replace(" ", "_"))
 					if not os.path.exists(store_here):
 						os.mkdir(store_here)
-			for i in xrange(day_numbers+1):
+			for i in range(day_numbers+1):
 				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=tz.gettz())+timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
 					if j.isChecked():
@@ -521,7 +523,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		if idx.column() > 0 and idx.row() > 0:
 			month=self.calendar.monthShown()
 			year=self.calendar.yearShown()
-			day=mdl.data(idx,0).toPyObject()
+			day=mdl.data(idx,0)
 			date2=None
 			date3=None
 			if idx.row() is 1 and day > 7:
@@ -862,7 +864,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		ggbox.addWidget(self.settings_dialog.phase,3,2)
 		self.settings_dialog.orbs={}
 
-		for x,i in enumerate(CLNXConfig.orbs.keys()):
+		for x,i in enumerate(list(CLNXConfig.orbs.keys())):
 			self.settings_dialog.orbs[i]=QtGui.QDoubleSpinBox(calculations_page)
 			self.settings_dialog.orbs[i].setRange(0,10)
 			ggbox2.addWidget(QtGui.QLabel(i.title()),x,0,1,5)
@@ -913,7 +915,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		.format(**vars(ChronosLNXConfig)))
 
 	def show_help(self):
-		print "Stubbing out"
+		print("Stubbing out")
 
 	def update(self):
 		self.now = datetime.now(tz.gettz())
@@ -1015,15 +1017,15 @@ class ChronosLNX(QtGui.QMainWindow):
 		return alist,args
 
 	def check_alarm(self):
-		for i in xrange(CLNXConfig.todays_schedule.rowCount()):
+		for i in range(CLNXConfig.todays_schedule.rowCount()):
 			hour_trigger=False
 			pt=False
 			real_row = CLNXConfig.todays_schedule.mapToSource(CLNXConfig.todays_schedule.index(i,0)).row()
 
 			enabled_item=CLNXConfig.schedule.item(real_row,0)
 			if enabled_item.checkState() == QtCore.Qt.Checked:
-				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole).toPyObject()
-				txt=str(CLNXConfig.schedule.item(real_row, 4).data(QtCore.Qt.EditRole).toPyObject())
+				hour_item=CLNXConfig.schedule.item(real_row,2).data(QtCore.Qt.UserRole)
+				txt=CLNXConfig.schedule.item(real_row, 4).data(QtCore.Qt.EditRole)
 				args=0
 				if isinstance(hour_item,QtCore.QTime):
 					hour_trigger = compare_to_the_second(self.now ,hour_item.hour(), \
@@ -1066,12 +1068,10 @@ app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
 app.setQuitOnLastWindowClosed(False)
 CLNXConfig = ChronosLNXConfig()
 app.setWindowIcon(CLNXConfig.main_icons['logo'])
-try:
-	import pynotify
-	pynotify.init(CLNXConfig.APPNAME)
-except ImportError:
-	print "Warning, couldn't import pynotify! On Linux systems, the notifications might look ugly."
-	pynf=False
+retcode=call(['which','notify-send'])
+pynf=True if retcode == 0 else False
+if not pynf:
+	print("Warning, couldn't find notify-send! On Linux systems, the notifications might look ugly.")
 chronoslnx = ChronosLNX()
 chronoslnx.show()
 sys.exit(app.exec_())

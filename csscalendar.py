@@ -11,7 +11,7 @@ class CSSCalendar(QtGui.QCalendarWidget):
 
 	def setUseCSS(self, css):
 		self.__useCSS=css
-		print self.__useCSS
+		print(self.__useCSS)
 		self.__updateAppearance()
 
 	def __updateAppearance(self):
@@ -27,7 +27,7 @@ class CSSCalendar(QtGui.QCalendarWidget):
 			emptyFormat=QtGui.QTextCharFormat()
 			wendFormat=QtGui.QTextCharFormat()
 			wendFormat.setForeground(QtGui.QColor("red"))
-			for i in xrange(1,8):
+			for i in range(1,8):
 				if i <= 5:
 					self.setWeekdayTextFormat(i,emptyFormat)
 				else:

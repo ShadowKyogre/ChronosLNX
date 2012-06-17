@@ -77,7 +77,7 @@ def search_special_aspects(aspect_table):
 	stel=set()
 	tsq=set()
 
-	for i in xrange(10):
+	for i in range(10):
 		pn=swisseph.get_planet_name(i)
 
 		trine_entries=[y for y in aspect_table \
@@ -105,7 +105,7 @@ def search_special_aspects(aspect_table):
 		intersection_entries5=[]
 
 		if len(trine_entries) > 2:
-			for i in xrange(len(trine_entries)-1):
+			for i in range(len(trine_entries)-1):
 				otherp=trine_entries[i].partnerPlanet(pn)
 				otherp2=trine_entries[i+1].partnerPlanet(pn)
 				minitrines=[y for y in aspect_table \
@@ -121,7 +121,7 @@ def search_special_aspects(aspect_table):
 					break
 
 		if len(opposition_entries) > 0:
-			for i in xrange(len(square_entries)-1):
+			for i in range(len(square_entries)-1):
 				otherp=square_entries[i].partnerPlanet(pn)
 				otherp2=square_entries[i+1].partnerPlanet(pn)
 				miniopposition=[y for y in aspect_table \
@@ -141,7 +141,7 @@ def search_special_aspects(aspect_table):
 						break
 
 		if len(square_entries) > 2:
-			for i in xrange(len(square_entries)-1):
+			for i in range(len(square_entries)-1):
 				otherp=square_entries[i].partnerPlanet(pn)
 				otherp2=square_entries[i+1].partnerPlanet(pn)
 				miniopposition=[y for y in aspect_table \
@@ -176,7 +176,7 @@ def search_special_aspects(aspect_table):
 						break
 
 		if len(inconjunct_entries) > 1:
-			for i in xrange(len(inconjunct_entries)-1):
+			for i in range(len(inconjunct_entries)-1):
 				otherp=inconjunct_entries[i].partnerPlanet(pn)
 				otherp2=inconjunct_entries[i+1].partnerPlanet(pn)
 				minisextiles=[y for y in aspect_table \
@@ -230,11 +230,11 @@ def create_aspect_table(zodiac,orbs=DEFAULT_ORBS,compare=None):
 def solar_return(date,year,data,refinements=2): #data contains the angule, date is for a reasonable baseline
 	day=datetime_to_julian(date)+(SOLAR_YEAR_DAYS*(year-date.year))
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.SUN)[0]
 		sec=((data-angle)/SOLAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.SUN)[0]
 		msec=((data-angle)/SOLAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 
@@ -249,21 +249,21 @@ def lunar_return(date,month,year,data,refinements=2): #data contains the angle, 
 
 	day=(cycles)*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
 		day=day+(data-angle)/360*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
 		sec=((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
 		msec=((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 		day=day+msec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=swisseph.calc_ut(day,swisseph.MOON)[0]
 		nsec=((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
 		day=day+nsec
@@ -283,21 +283,21 @@ def previous_full_moon(date,refinements=2):
 	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)-0.5 #get a baseline
 	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		day=day+(angle-180.0)/360*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		sec=((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		msec=((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 		day=day+msec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		nsec=((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
 		day=day+nsec
@@ -309,21 +309,21 @@ def previous_new_moon(date,refinements=2):
 	cycles=int(days_since_nm/LUNAR_MONTH_DAYS) #get a baseline
 	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		day=day+angle/360*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		sec=(angle/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		msec=(angle/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 		day=day+msec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		nsec=(angle/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
 		day=day+nsec
@@ -335,21 +335,21 @@ def next_full_moon(date):
 	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)+0.5 #get a baseline
 	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		day=day+(angle-180.0)/360*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		sec=((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		msec=((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 		day=day+msec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		nsec=((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
 		day=day+nsec
@@ -364,21 +364,21 @@ def next_new_moon(date,refinements=2):
 	cycles=int(days_since_nm/LUNAR_MONTH_DAYS)+1 #get a baseline
 	day=cycles*LUNAR_MONTH_DAYS+LAST_NM
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		day=day+angle/360*LUNAR_MONTH_DAYS
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		sec=(angle/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
 		day=day+sec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		msec=(angle/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
 		day=day+msec
 
-	for i in xrange(refinements):
+	for i in range(refinements):
 		angle=get_moon_sun_diff(day)
 		nsec=(angle/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
 		day=day+nsec
@@ -404,12 +404,12 @@ def fill_houses(date, observer, houses=None,data=None):
 		data=swisseph.houses(day, observer.lat, observer.long)[0]
 	if houses == None:
 		houses=[]
-		for i in xrange(12):
+		for i in range(12):
 			houses.append(HouseMeasurement(data[i],data[(i+1)%12],num=i+1))
 		swisseph.close()
 		return houses
 	else:
-		for i in xrange(12):
+		for i in range(12):
 			houses[i].cusp.longitude=data[i]
 			houses[i].end.longitude=data[(i+1)%12]
 		swisseph.close()
@@ -419,7 +419,7 @@ def updatePandC(date, observer, houses, entries):
 	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
 	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
 	fill_houses(date, observer, houses=houses, data=cusps)
-	for i in xrange(10):
+	for i in range(10):
 		calcs=swisseph.calc_ut(day,i)
 		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
 		if i == swisseph.SUN or i == swisseph.MOON:
@@ -477,7 +477,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 
 	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
 
-	for i in xrange(10):
+	for i in range(10):
 		calcs=swisseph.calc_ut(day,i)
 		hom=swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
 		zm=ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
@@ -595,7 +595,7 @@ def get_moon_cycle(date,refinements=2):
 	length = (new_m - prev_new) / 29
 	moon_phase=[]
 
-	for i in xrange (30):
+	for i in range (30):
 		cycling=prev_new + length * i
 		state_line=grab_phase(cycling)
 		state=state_to_string(state_line, swisseph.MOON)

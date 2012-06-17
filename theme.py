@@ -6,7 +6,7 @@ def parseBG(themecfg):
 	fill=QtGui.QBrush()
 	if bg_type == "radial":
 		fill=QtGui.QRadialGradient()
-		print list(themecfg.childKeys())
+		print(list(themecfg.childKeys()))
 		x=themecfg.value("start/x").toDouble()[0]
 		y=themecfg.value("start/y").toDouble()[0]
 		ex=themecfg.value("end/x").toDouble()[0]
@@ -17,7 +17,7 @@ def parseBG(themecfg):
 		fill.setFocalPoint(ex,ey)
 		fill.setRadius(length)
 		stuff=themecfg.beginReadArray("colors")
-		for i in xrange(stuff):
+		for i in range(stuff):
 			themecfg.setArrayIndex(i)
 			pos=themecfg.value("pos").toInt()[0]
 			col=QtGui.QColor(themecfg.value("value").toString())
@@ -32,7 +32,7 @@ def parseBG(themecfg):
 		fill.setCenter(x,y)
 		fill.setAngle(length)
 		stuff=themecfg.beginReadArray("colors")
-		for i in xrange(stuff):
+		for i in range(stuff):
 			themecfg.setArrayIndex(i)
 			pos=themecfg.value("pos").toInt()[0]
 			col=QtGui.QColor(themecfg.value("value").toString())
@@ -48,7 +48,7 @@ def parseBG(themecfg):
 		fill.setStart(x,y)
 		fill.setFinalStop(ex,ey)
 		stuff=themecfg.beginReadArray("colors")
-		for i in xrange(stuff):
+		for i in range(stuff):
 			themecfg.setArrayIndex(i)
 			pos=themecfg.value("pos").toInt()[0]
 			col=QtGui.QColor(themecfg.value("value").toString())

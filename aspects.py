@@ -29,7 +29,7 @@ class Aspect:
 	def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
 		if not hasattr(p1, 'm') or \
 		not hasattr(p2, 'm'):
-			raise ValueError, "Cannot form a relationship without measurements"
+			raise ValueError("Cannot form a relationship without measurements")
 		self.planet1=p1
 		self.planet2=p2
 		self.orbs=orbs

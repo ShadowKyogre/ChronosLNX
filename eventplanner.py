@@ -250,10 +250,10 @@ class DayEventsModel(QtGui.QSortFilterProxyModel):
 			return True
 		index1=self.sourceModel().index(sourceRow,1)
 		data=self.sourceModel().data(index1, QtCore.Qt.UserRole)
-		if data.typeName() == "QDate":
-			return data.toPyObject() == self.date
+		if isinstance(data, QtCore.QDate):
+			return data.toPyDate() == self.date
 		else:
-			data=self.sourceModel().data(index1, QtCore.Qt.EditRole).toString()
+			data=self.sourceModel().data(index1, QtCore.Qt.EditRole)
 			if data == "Everyday":
 				return True
 			elif data == "Weekends":

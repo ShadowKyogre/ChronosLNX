@@ -95,7 +95,7 @@ class AstroClock(QtGui.QWidget):
 		return self.__outerF
 
 	def __setOuterFG(self, fill):
-		print fill.color().name()
+		print(fill.color().name())
 		self.__outerF=fill
 
 	def __outerHouses(self):
@@ -269,7 +269,7 @@ class AstroClock(QtGui.QWidget):
 
 	def drawZodiac(self, painter, circle):
 		painter.save()
-		for i in xrange(12):
+		for i in range(12):
 			n=((12-i)+4)%12
 			angle=n*30+15
 			p=self.getPointAt(self.outer_circle,angle,offset=-20)
@@ -279,7 +279,7 @@ class AstroClock(QtGui.QWidget):
 			else:
 				icon=self.sign_icons[ZODIAC[n]['name']]
 			icon.paint(painter,QtCore.QRect(p.x(),p.y(),20,20))
-			for j in xrange(1,30):
+			for j in range(1,30):
 				tick=angle/30*30+j
 				if tick % 5 == 0:
 					off=10
@@ -300,7 +300,7 @@ class AstroClock(QtGui.QWidget):
 		phm=self.hours.tree.model().sourceModel()
 		off=datetime.now(tz.gettz())-phm.get_date(0)
 		overall=self.nexts-phm.get_date(0)
-		for i in xrange(24):
+		for i in range(24):
 			top=phm.get_date(i)-phm.get_date(0)
 			offp=off.total_seconds()/overall.total_seconds()
 			percent=top.total_seconds()/overall.total_seconds()
@@ -324,7 +324,7 @@ class AstroClock(QtGui.QWidget):
 		trans=QtGui.QColor("#000000")
 		trans.setAlpha(0)
 		painter.setBrush(trans)
-		for i in xrange(5760/width):
+		for i in range(int(5760/width)):
 			start=i*width
 			painter.drawPie (circle, start+offset, width)
 		painter.restore()
@@ -340,7 +340,7 @@ class AstroClock(QtGui.QWidget):
 		trans.setAlpha(0)
 		painter.setBrush(trans)
 
-		for i in xrange(12):
+		for i in range(12):
 			h=houses[i]
 			start=h.cusp.longitude
 			end=h.end.longitude
@@ -406,21 +406,27 @@ class AstroClock(QtGui.QWidget):
 			painter.drawPath(path)
 
 		years=int((datetime.now(tz.gettz())-self.bd).days/365.25)
-		yearly_profection=ZODIAC[(years+self.natData[1][12].m.signData['decanates'][0])%12]['name']
-		icon=self.sign_icons[yearly_profection]
-		painter.setPen(penifiedOFG)
-		#self.theme.outer['houses'].setBrush(self.inner['fill'])
-		painter.drawText(0,12,"Yearly Profection")
-		icon.paint(painter,QtCore.QRect(20,12,60,60))
-		#painter.save()
-		#minirect=QtCore.QRect(self.size/2+4+10,self.size/2+4+10,20,20)
-		#self.protate(painter,self.signData[1][0].m.projectedLon)
-		##painter.drawEllipse(minirect)
-		#painter.drawConvexPolygon(QtCore.QPoint(10,self.center.y()-2),\
-		#QtCore.QPoint(40,self.center.y()),\
-		#QtCore.QPoint(10,self.center.y()+2),\
-		#QtCore.QPoint(-5,self.center.y()))
-		#painter.restore()
+		need_idx=0
+		if len(self.natData[1]) == 14:
+			need_idx=12
+		elif len(self.natData[1]) == 16:
+			need_idx=10
+		if need_idx > 0:
+			yearly_profection=ZODIAC[(years+self.natData[1][12].m.signData['decanates'][0])%12]['name']
+			icon=self.sign_icons[yearly_profection]
+			painter.setPen(penifiedOFG)
+			#self.theme.outer['houses'].setBrush(self.inner['fill'])
+			painter.drawText(0,12,"Yearly Profection")
+			icon.paint(painter,QtCore.QRect(20,12,60,60))
+			#painter.save()
+			#minirect=QtCore.QRect(self.size/2+4+10,self.size/2+4+10,20,20)
+			#self.protate(painter,self.signData[1][0].m.projectedLon)
+			##painter.drawEllipse(minirect)
+			#painter.drawConvexPolygon(QtCore.QPoint(10,self.center.y()-2),\
+			#QtCore.QPoint(40,self.center.y()),\
+			#QtCore.QPoint(10,self.center.y()+2),\
+			#QtCore.QPoint(-5,self.center.y()))
+			#painter.restore()
 
 class AstroCalendar(CSSCalendar):
 
@@ -464,14 +470,14 @@ class AstroCalendar(CSSCalendar):
 
 	def setNatalMoon(self, zodiacal_data):
 		if not self.birthtime:
-			raise RuntimeError, "Cannot update natal moon without a birthtime!"
+			raise RuntimeError("Cannot update natal moon without a birthtime!")
 		self.natal_moon=zodiacal_data
 		if self.lunarReturn:
 			self.updateMoon()
 
 	def setNatalSun(self, zodiacal_data):
 		if not self.birthtime:
-			raise RuntimeError, "Cannot update natal sun without a birthtime!"
+			raise RuntimeError("Cannot update natal sun without a birthtime!")
 		self.natal_sun=zodiacal_data
 		if self.solarReturn:
 			self.updateSun()
@@ -479,11 +485,11 @@ class AstroCalendar(CSSCalendar):
 	def checkInternals(self, year, month):
 		if self.solarReturn:
 			if not self.isSolarReturnValid():
-				print "Updating solar return..."
+				print("Updating solar return...")
 				self.updateSun()
 		if self.lunarReturn:
 			if not self.isLunarReturnsValid():
-				print "Updating lunar returns..."
+				print("Updating lunar returns...")
 				self.updateMoon()
 		#self.listidx=self.isLunarReturnsValid()
 
@@ -494,7 +500,7 @@ class AstroCalendar(CSSCalendar):
 
 	def updateMoon(self):
 		self.lunarReturns=[]
-		for m in xrange(1,13):
+		for m in range(1,13):
 			self.lunarReturns.append(lunar_return(self.birthtime,\
 				m,self.yearShown(),self.natal_moon,refinements=self.refinements['Lunar Return']))
 
@@ -503,7 +509,7 @@ class AstroCalendar(CSSCalendar):
 
 	def isLunarReturnsValid(self):
 		stillInYear=False
-		for i in xrange(len(self.lunarReturns)):
+		for i in range(len(self.lunarReturns)):
 			t=self.lunarReturns[i]
 			if t.year == self.yearShown() and \
 				t.month == self.monthShown():
@@ -513,7 +519,7 @@ class AstroCalendar(CSSCalendar):
 		return stillInYear
 
 	def fetchLunarReturn(self,date):
-		for i in xrange(len(self.lunarReturns)):
+		for i in range(len(self.lunarReturns)):
 			t=self.lunarReturns[i]
 			if t.year == date.year and \
 				t.month == date.month and \
@@ -607,11 +613,11 @@ class BookMarkedModel(QtGui.QStandardItemModel):
 		self.last_index=0
 
 	def _highlight_row(self, idx):
-		for i in xrange(self.columnCount()):
+		for i in range(self.columnCount()):
 			self.item(idx, i).setBackground(self.color)
 
 	def _unhighlight_row(self, idx):
-		for i in xrange(self.columnCount()):
+		for i in range(self.columnCount()):
 			self.item(idx, i).setBackground(self.base)
 
 class PHModel(BookMarkedModel):
@@ -620,7 +626,7 @@ class PHModel(BookMarkedModel):
 		self.setHorizontalHeaderLabels(["Time","Planet"])
 
 	def grab_nearest_hour(self,date):
-		for i in xrange(self.last_index,24):
+		for i in range(self.last_index,24):
 			if i+1 > 23:
 				looking_behind = self.get_date(i)
 				if looking_behind <= date:
@@ -640,10 +646,10 @@ class PHModel(BookMarkedModel):
 		return "-Error-"
 
 	def get_planet(self,idx):
-		return self.item(idx, 1).data(0).toPyObject()
+		return self.item(idx, 1).data(0)
 
 	def get_date(self,idx):
-		return self.item(idx, 0).data(32).toPyObject()
+		return self.item(idx, 0).data(32)
 
 	@classmethod
 	def prepareHours(cls,date,observer,icon_source):
@@ -656,7 +662,7 @@ class PHModel(BookMarkedModel):
 			else:
 				status_icon=icon_source['nightlight']
 			newhouritem=QtGui.QStandardItem(status_icon,ph[0].strftime("%H:%M:%S - %m/%d/%Y"))
-			newhouritem.setData(QtCore.QVariant(ph[0]),32)
+			newhouritem.setData(ph[0],32)
 			newplanetitem=QtGui.QStandardItem(icon,ph[1])
 			model.appendRow([newhouritem,newplanetitem])
 		return model
@@ -667,7 +673,7 @@ class MPModel(BookMarkedModel):
 		self.setHorizontalHeaderLabels(["Time","Phase","Illumination"])
 
 	def highlight_cycle_phase(self,date):
-		for i in xrange(self.last_index,29):
+		for i in range(self.last_index,29):
 			self._unhighlight_row(i)
 			if i <= 27:
 				cycling=self.get_date(i)
@@ -686,7 +692,7 @@ class MPModel(BookMarkedModel):
 					break
 
 	def get_date(self,idx):
-		return self.item(idx, 0).data(32).toPyObject()
+		return self.item(idx, 0).data(32)
 
 	@classmethod
 	def getMoonCycle(cls,date,icon_source,refinements=2):
@@ -996,7 +1002,7 @@ class SignsForDayList(QtGui.QWidget):
 		self.tree=QtGui.QTreeWidget(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self.tree.setRootIsDecorated(False)
-		header=QtCore.QStringList()
+		header=[]
 		header.append("Planet")
 		header.append("Constellation")
 		header.append("Angle")

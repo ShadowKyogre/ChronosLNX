@@ -21,7 +21,7 @@ def prepare_sign_info(date,observer,nodes,admi):
 	houses,signs=get_signs(date,observer,nodes,admi)
 	sinfo=[]
 	header="Sign info for %s\n" % date.strftime("%m/%d/%Y")
-	for hour in xrange(0,24):
+	for hour in range(0,24):
 		sinfo.append("Info at %s:00" %(hour))
 		for i in signs:
 			sinfo.append("%s - %s - %s - %s - %s" %(
@@ -44,28 +44,28 @@ def prepare_events(date, source):
 	model.setDate(date)
 	rows = model.rowCount()
 	sevents=[]
-	for j in xrange(rows):
+	for j in range(rows):
 		idx=model.index(j,0,QtCore.QModelIndex())
 		i=model.mapToSource(idx).row()
 		if source.item(i,0).checkState()==QtCore.Qt.Checked:
 			first_column="True"
 		else:
 			first_column="False"
-		second_column=source.item(i,1).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %m/%d/%Y
+		second_column=source.item(i,1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
 
 		if isinstance(second_column,QtCore.QDate):
 			#print second_column
 			second_column=str(second_column.toString("MM/dd/yyyy"))
 		else:
-			second_column=str(source.item(i,1).data(QtCore.Qt.EditRole).toPyObject())
-		third_column=source.item(i,2).data(QtCore.Qt.UserRole).toPyObject() #need format like this: %H:%M
+			second_column=source.item(i,1).data(QtCore.Qt.EditRole)
+		third_column=source.item(i,2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
 		if isinstance(third_column,QtCore.QTime):
 			third_column=str(third_column.toString("HH:mm"))
 		else:
-			third_column=str(source.item(i,2).data(QtCore.Qt.EditRole).toPyObject())
-		fourth_column=str(source.item(i,3).data(QtCore.Qt.EditRole).toPyObject())
-		fifth_column=str(source.item(i,4).data(QtCore.Qt.EditRole).toPyObject())
+			third_column=source.item(i,2).data(QtCore.Qt.EditRole)
+		fourth_column=source.item(i,3).data(QtCore.Qt.EditRole)
+		fifth_column=source.item(i,4).data(QtCore.Qt.EditRole)
 		sevents.append(','.join([first_column,second_column,third_column,fourth_column,fifth_column]))
 	return "Events for %s\n%s"%(date.strftime("%m/%d/%Y"),"\n".join(sevents))
 
