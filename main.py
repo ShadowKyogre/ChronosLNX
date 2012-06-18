@@ -255,8 +255,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.pday = get_planet_day(dayn)
 		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, CLNXConfig.observer)
 		self.astroClock.setNextSunrise(self.next_sunrise)
-		self.show_notification("Preparing hours","Yes",False)
-		#self.show_notification("Preparing hours","Yes",True)
 		if self.now < self.sunrise:
 			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), CLNXConfig.observer)
 			self.astroClock.setNextSunrise(self.next_sunrise)
