@@ -1052,8 +1052,8 @@ class ChronosLNX(QtGui.QMainWindow):
 						alist,args=self.parse_hour_args(txt)
 
 				if hour_trigger:
-					event_type_item=str(CLNXConfig.schedule.item(real_row, \
-					3).data(QtCore.Qt.EditRole).toPyObject())
+					event_type_item=CLNXConfig.schedule.item(real_row, 
+					3).data(QtCore.Qt.EditRole)
 					if args > 0:
 						self.event_trigger(event_type_item,txt % alist,pt)
 					else:
