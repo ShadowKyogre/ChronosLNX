@@ -269,7 +269,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			if pynf:
 				fldr=QtCore.QDir("skin:/")
 				if ptrigger:
-					path=CLNXConfig.grab_icon_path("planets",str(self.phour.toLower()))
+					path=CLNXConfig.grab_icon_path("planets",str(self.phour.lower()))
 				else:
 					path=CLNXConfig.grab_icon_path("misc","chronoslnx")
 				path=fldr.absoluteFilePath(path.replace("skin:",""))
