@@ -56,7 +56,8 @@ class ChronosLNXConfig:
 
 		css=QtCore.QFile("skin:ui.css")
 		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
-			self.stylesheet=str(css.readAll())
+			self.stylesheet=str(css.readAll(),
+					encoding=os.sys.getdefaultencoding())
 		else:
 			self.stylesheet=""
 
