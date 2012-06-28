@@ -178,7 +178,6 @@ QScrollBar, QPushButton, QToolButton,  QCheckBox::indicator
 					  x1:0, y1:0, x2:0, y2:1,
 					  stop:0 #DBB800, stop:1 #473500);
 }
-/*GeoLocationWidget { qproperty-longitude: 46.0; }*/
 QComboBox {
   border-radius: 3px;
   padding: 1px 18px 1px 3px;
