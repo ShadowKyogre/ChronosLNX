@@ -215,6 +215,8 @@ class ChronosLNXConfig:
 		next(planner)
 
 		for entry in planner:
+			if len(entry) == 0:
+				continue
 			first_column=QtGui.QStandardItem()
 			second_column=QtGui.QStandardItem()
 			third_column=QtGui.QStandardItem()
