@@ -9,15 +9,24 @@ see http://www.twinsun.com/tz/tz-link.htm ,
 import re, struct, math
 from datetime import datetime
 from dateutil.tz import tzfile
+from dateutil import zoneinfo
+from os import path
+import sys
+
+def get_zonetab(p):
+	if path.exists(p):
+		return p
+	else:
+		return path.join(sys.path[0],'zone.tab')
 
 def nearest_tz(lat, lon, zones):
     """
     >>> nearest_tz(39.2975, -94.7139, timezones())[2]
     'America/Indiana/Vincennes'
-
+    
     >>> nearest_tz(39.2975, -94.7139, timezones(exclude=["Indiana"]))[2]
     'America/Chicago'
-
+    
     """
     def d(tzrec):
         return distance(lat, lon, tzrec[1][0], tzrec[1][1])
@@ -37,7 +46,7 @@ def optimize(seq, metric):
 def distance(lat_1, long_1, lat_2, long_2):
     # thanks http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/393241
     # Submitter: Kevin Ryan (other recipes)
-    # Last Updated: 2006/04/25
+    # Last Updated: 2006/04/25 
     lat_1, long_1, lat_2, long_2 = [ v * math.pi / 180.0
                                      for v in (lat_1, long_1, lat_2, long_2)]
     dlong = long_2 - long_1
@@ -45,8 +54,8 @@ def distance(lat_1, long_1, lat_2, long_2):
     a = (math.sin(dlat / 2))**2 + math.cos(lat_1) * math.cos(lat_2) \
         * (math.sin(dlong / 2))**2
     return 2 * math.asin(min(1, math.sqrt(a)))
-
-def timezones(zonetab="/usr/share/zoneinfo/zone.tab",
+        
+def timezones(zonetab=get_zonetab("/usr/share/zoneinfo/zone.tab"),
               exclude=[]):
     """iterate over timezones in zone.tab; yield (country, (lat, lon), name)
 
@@ -66,23 +75,21 @@ def timezones(zonetab="/usr/share/zoneinfo/zone.tab",
                 yield country, latlong(coords), tz
 
 
-def stdtime(tz, year, month, day, hour, min, sec ,
-	    zoneinfo="/usr/share/zoneinfo"
-	    ):
+def stdtime(tz, year, month, day, hour, min, sec):
     """Use /usr/share/zoneinfo to interpret a time in a timezone.
-
+    
     >>> stdtime("America/Chicago", "2007-04-02T21:53:27")
     '2007-04-02T21:53:27-05:00'
     """
     return datetime(year, month, day, hour, min, sec,
-                    tzinfo=tzfile("%s/%s" % (zoneinfo, tz))
+                    tzinfo=zoneinfo.gettz("%s" % (tz))
                     )
-
+    
 
 
 def latlong(coords):
     """decode ISO 6709. ugh.
-
+    
     >>> latlong("-1247+04514")
     (-12.783333333333333, 45.233333333333334)
 
