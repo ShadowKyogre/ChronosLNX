@@ -27,11 +27,6 @@ class ChronosLNXConfig:
 						ChronosLNXConfig.AUTHOR,
 						ChronosLNXConfig.APPNAME)
 
-		if os.uname()[0] != 'Linux':
-			self.zt=os.sys.path[0]+"/zone.tab" #use the local copy if this isn't a Linux
-		else:
-			self.zt="/usr/share/zoneinfo/zone.tab"
-
 		self.userconfdir=str(QtGui.QDesktopServices.storageLocation\
 		(QtGui.QDesktopServices.DataLocation)).replace("//","/")
 		#QtCore.QDir.currentPath()
@@ -130,7 +125,7 @@ class ChronosLNXConfig:
 	def generate_timezone(self, birth=False):
 		timezone=zonetab.nearest_tz(self.baby.lat, \
 					    self.baby.long, \
-					    zonetab.timezones(zonetab=self.zt))[2]
+					    zonetab.timezones())[2]
 		print("Detected natal timezone to be %s" % timezone)
 		return tz.gettz(timezone)
 

@@ -1066,8 +1066,11 @@ app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
 app.setQuitOnLastWindowClosed(False)
 CLNXConfig = ChronosLNXConfig()
 app.setWindowIcon(CLNXConfig.main_icons['logo'])
-retcode=call(['which','notify-send'])
-pynf=True if retcode == 0 else False
+try:
+	retcode=call(['which','notify-send'])
+	pynf=True if retcode == 0 else False
+except Exception as e:
+	pynf=False
 if not pynf:
 	print("Warning, couldn't find notify-send! On Linux systems, the notifications might look ugly.")
 chronoslnx = ChronosLNX()

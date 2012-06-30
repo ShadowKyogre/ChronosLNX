@@ -161,12 +161,12 @@ class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
 
 	def setEditorData(self, editor, index):
 		value = index.model().data(index, QtCore.Qt.UserRole)
-		if isinstance(value.toPyObject(), QtCore.QDate):
+		if isinstance(value, QtCore.QDate):
 			editor.setText("Custom")
-			editor.setDate(value.toPyObject())
+			editor.setDate(value)
 			editor.dateplanned.show()
 		else:
-			editor.setText(value.toString())
+			editor.setText(value)
 
 	def setModelData(self, editor, model, index):
 		if not editor.dateplanned.isHidden():
@@ -191,12 +191,12 @@ class DateEditorDelegate(QtGui.QStyledItemDelegate):
 
 	def setEditorData(self, editor, index):
 		value = index.model().data(index, QtCore.Qt.UserRole)
-		if isinstance(value.toPyObject(), QtCore.QDate):
+		if isinstance(value, QtCore.QDate):
 			editor.setText("Custom")
-			editor.setDate(value.toPyObject())
+			editor.setDate(value)
 			editor.dateplanned.show()
 		else:
-			editor.setText(value.toString())
+			editor.setText(value)
 
 	def setModelData(self, editor, model, index):
 		if not editor.dateplanned.isHidden():
@@ -218,12 +218,12 @@ class TimeEditorDelegate(QtGui.QStyledItemDelegate):
 
 	def setEditorData(self, editor, index):
 		value = index.model().data(index, QtCore.Qt.UserRole)
-		if isinstance(value.toPyObject(), QtCore.QTime):
+		if isinstance(value, QtCore.QTime):
 			editor.setText("Custom")
-			editor.setTime(value.toPyObject())
+			editor.setTime(value)
 			editor.timeplanned.show()
 		else:
-			editor.setText(value.toString())
+			editor.setText(value)
 
 	def setModelData(self, editor, model, index):
 		if not editor.timeplanned.isHidden():
