@@ -109,7 +109,7 @@ class EventTypeEditorDelegate(QtGui.QStyledItemDelegate):
 
 	def setEditorData(self, editor, index):
 		value = index.model().data(index, QtCore.Qt.EditRole)
-		editor.setCurrentIndex(editor.findText(value.toString()))
+		editor.setCurrentIndex(editor.findText(value))
 
 	def setModelData(self, editor, model, index):
 		model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
@@ -137,9 +137,9 @@ class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
 	def setEditorData(self, editor, index):
 		value = index.model().data(index, QtCore.Qt.EditRole)
 		if isinstance(editor,QtGui.QComboBox):
-			editor.setCurrentIndex(editor.findText(value.toString()))
+			editor.setCurrentIndex(editor.findText(value))
 		else:
-			editor.insert(value.toString())
+			editor.insert(value)
 
 	def setModelData(self, editor, model, index):
 		if isinstance(editor,QtGui.QComboBox):
