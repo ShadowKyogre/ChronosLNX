@@ -95,7 +95,6 @@ class AstroClock(QtGui.QWidget):
 		return self.__outerF
 
 	def __setOuterFG(self, fill):
-		print(fill.color().name())
 		self.__outerF=fill
 
 	def __outerHouses(self):
@@ -442,6 +441,7 @@ class AstroCalendar(CSSCalendar):
 		self.lunarReturn=False
 		self.showPhase=False
 		self.birthtime=None
+		self.observer=None
 		children=self.findChildren (QtGui.QToolButton)
 		children[0].setArrowType(QtCore.Qt.LeftArrow)
 		children[1].setArrowType(QtCore.Qt.RightArrow)
@@ -494,15 +494,17 @@ class AstroCalendar(CSSCalendar):
 		#self.listidx=self.isLunarReturnsValid()
 
 	def updateSun(self):
-		self.solarReturnTime=solar_return(self.birthtime, \
-						  self.yearShown(), \
-						  self.natal_sun,refinements=self.refinements['Solar Return'])
+		self.solarReturnTime=solar_return(self.birthtime, 
+						  self.yearShown(), 
+						  self.natal_sun,
+						  refinements=self.refinements['Solar Return'])
 
 	def updateMoon(self):
 		self.lunarReturns=[]
 		for m in range(1,13):
-			self.lunarReturns.append(lunar_return(self.birthtime,\
-				m,self.yearShown(),self.natal_moon,refinements=self.refinements['Lunar Return']))
+			self.lunarReturns.append(lunar_return(self.birthtime,
+				m,self.yearShown(),self.natal_moon,
+				refinements=self.refinements['Lunar Return']))
 
 	def isSolarReturnValid(self):
 		return self.solarReturnTime.year == self.yearShown()
@@ -561,8 +563,12 @@ class AstroCalendar(CSSCalendar):
 
 	def paintCell(self, painter, rect, date):
 		QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
-		if date == QtCore.QDate.currentDate():
-			painter.fillRect(rect, self.color)
+		if self.observer == None:
+			if date == QtCore.QDate.currentDate():
+				painter.fillRect(rect, self.color)
+		else:
+			if date == self.observer.obvdate.date():
+				painter.fillRect(rect, self.color)
 
 		if self.lunarReturn:
 			idx=self.fetchLunarReturn(date.toPyDate())

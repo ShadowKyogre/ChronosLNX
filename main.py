@@ -38,13 +38,13 @@ class ChronosLNX(QtGui.QMainWindow):
 	def __init__(self, parent=None):
 		QtGui.QMainWindow.__init__(self, parent)
 		self.timer = QtCore.QTimer(self)
-		self.now = datetime.now().replace(tzinfo=tz.gettz())
+		self.now = CLNXConfig.observer.obvdate
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
 		self.setWindowTitle(CLNXConfig.APPNAME)
 
-		self.houses,self.zodiac=get_signs(CLNXConfig.birthtime,CLNXConfig.baby,\
+		self.houses,self.zodiac=get_signs(CLNXConfig.baby.obvdate,CLNXConfig.baby,\
 		CLNXConfig.show_nodes,CLNXConfig.show_admi)
 		#self.setDocumentMode (True)
 		self.add_widgets()
@@ -131,7 +131,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		CLNXConfig.capricorn_alt,CLNXConfig.sign_icons))
 
 		natalAction=QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-birthday"), '&View Natal Data', self)
-		natalAction.triggered.connect(lambda: self.get_info_for_date(CLNXConfig.birthtime, birth=True))
+		natalAction.triggered.connect(lambda: self.get_info_for_date(CLNXConfig.baby.obvdate, birth=True))
 
 		saveRangeAction=QtGui.QAction(QtGui.QIcon.fromTheme("document-save-as"), 'Save data from dates', self)
 		saveRangeAction.triggered.connect(self.save_for_range_dialog.open)
@@ -204,7 +204,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.astroClock.setIcons(CLNXConfig.main_icons)
 		self.astroClock.setSignIcons(CLNXConfig.sign_icons)
 		self.astroClock.setNatData(CLNXConfig.natal_data)
-		self.astroClock.setBD(CLNXConfig.birthtime)
+		self.astroClock.setBD(CLNXConfig.baby.obvdate)
 		self.astroClock.setSignData([self.houses,self.zodiac])
 		self.astroClock.setHourSource(self.hoursToday)
 		self.astroClock.setPlutoAlternate(CLNXConfig.pluto_alt)
@@ -218,10 +218,11 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.calendar.setShowPhase(CLNXConfig.show_mcal)
 		self.calendar.setSolarReturn(CLNXConfig.show_sr)
 		self.calendar.setLunarReturn(CLNXConfig.show_lr)
-		self.calendar.setBirthTime(CLNXConfig.birthtime)
+		self.calendar.setBirthTime(CLNXConfig.baby.obvdate)
 		self.calendar.setNatalMoon(CLNXConfig.natal_moon)
 		self.calendar.setNatalSun(CLNXConfig.natal_sun)
 		self.calendar.useCSS=CLNXConfig.use_css
+		self.calendar.observer=CLNXConfig.observer
 
 		self.hoursToday.setIcons(CLNXConfig.main_icons)
 		self.moonToday.setIcons(CLNXConfig.moon_icons)
@@ -304,7 +305,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			ob=CLNXConfig.baby
 			text=("\nNote: This is for the birth timezone %s and this time."
 			"\nIf you want adjust your birth time, go to Settings.") \
-			% CLNXConfig.birthtime.tzname()
+			% CLNXConfig.baby.obvdate.tzname()
 		else:
 			ob=CLNXConfig.observer
 			text=""
@@ -346,7 +347,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			print("Using already available birth data instead of recalculating it")
 			signsToday.time.timeChanged.disconnect()
 			signsToday.time.setReadOnly(True)
-			signsToday.time.setTime(CLNXConfig.birthtime.time())
+			signsToday.time.setTime(CLNXConfig.baby.obvdate.time())
 			signsToday.assembleFromZodiac(CLNXConfig.natal_data[1])
 			signsToday.h=CLNXConfig.natal_data[0]
 		else:
@@ -630,14 +631,14 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def update_settings_widgets(self):
 		self.settings_dialog.location_widget.setLatitude(CLNXConfig.observer.lat)
-		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.long)
+		self.settings_dialog.location_widget.setLongitude(CLNXConfig.observer.lng)
 		self.settings_dialog.location_widget.setElevation(CLNXConfig.observer.elevation)
 		self.settings_dialog.css_check.setChecked(CLNXConfig.use_css)
 		self.settings_dialog.override_ui_icon.setText(CLNXConfig.current_icon_override)
 
-		self.settings_dialog.date.setDateTime(CLNXConfig.birthtime)
+		self.settings_dialog.date.setDateTime(CLNXConfig.baby.obvdate)
 		self.settings_dialog.birth_widget.setLatitude(CLNXConfig.baby.lat)
-		self.settings_dialog.birth_widget.setLongitude(CLNXConfig.baby.long)
+		self.settings_dialog.birth_widget.setLongitude(CLNXConfig.baby.lng)
 		self.settings_dialog.birth_widget.setElevation(CLNXConfig.baby.elevation)
 
 		idx=self.settings_dialog.appearance_icons.findText(CLNXConfig.current_theme)
@@ -678,14 +679,15 @@ class ChronosLNX(QtGui.QMainWindow):
 		iothm=str(self.settings_dialog.override_ui_icon.text())
 
 		CLNXConfig.observer.lat=lat
-		CLNXConfig.observer.long=lng
+		CLNXConfig.observer.lng=lng
 		CLNXConfig.observer.elevation=elv
 
 		CLNXConfig.baby.lat=blat
-		CLNXConfig.baby.long=blng
+		CLNXConfig.baby.lng=blng
 		CLNXConfig.baby.elevation=belv
 		date=self.settings_dialog.date.dateTime().toPyDateTime()
-		CLNXConfig.birthtime=date.replace(tzinfo=CLNXConfig.generate_timezone()).astimezone(tz.gettz())
+		#how to migrate?
+		CLNXConfig.baby.obvdate = date.replace(tzinfo=CLNXConfig.baby.timezone).astimezone(tz.gettz('UTC'))
 
 		CLNXConfig.current_theme=thm
 		CLNXConfig.current_icon_override=iothm
@@ -916,7 +918,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		print("Stubbing out")
 
 	def update(self):
-		self.now = datetime.now(tz.gettz())
+		self.now = CLNXConfig.observer.obvdate
 		updatePandC(self.now, CLNXConfig.observer, self.houses, self.zodiac)
 		self.astroClock.setSignData([self.houses,self.zodiac])
 		if self.now >= self.next_sunrise:
@@ -934,30 +936,34 @@ class ChronosLNX(QtGui.QMainWindow):
 				suffix="rd"
 			else:
 				suffix="th"
-			house_of_moment_string="<br />The sun is in the %s<sup>%s</sup> house" %(hom,suffix)
+			house_of_moment_string="<br />The sun is in the {}<sup>{}</sup> house".format(hom,suffix)
 		else:
 			house_of_moment_string=""
 		if CLNXConfig.show_sign:
-			sign_string="<br />The sign of the month is %s" %(self.zodiac[0].m.signData['name'])
+			sign_string="<br />The sign of the month is {}".format(self.zodiac[0].m.signData['name'])
 		else:
 			sign_string=""
 		if CLNXConfig.show_moon:
 			phase=grab_phase(self.now)
-			moon_phase="<br />%s: %s illuminated" %(state_to_string(phase, swisseph.MOON), phase[2])
+			moon_phase="<br />{}: {} illuminated".format(state_to_string(phase,
+								swisseph.MOON), phase[2])
 		else:
 			moon_phase=""
 
 		#probably get boolean of day/night out of model?
-		planets_string = "Day of %s, the hour of %s" %(self.pday, self.phour)
+		planets_string = "Day of {}, the hour of {}".format(self.pday, self.phour)
 
-		total_string="%s%s%s%s" %(planets_string, sign_string, moon_phase, house_of_moment_string)
+		total_string="{}{}{}{}".format(planets_string, sign_string, 
+				moon_phase, house_of_moment_string)
 
 		if CLNXConfig.current_theme == "None":
 			sysicon=QtGui.QIcon(CLNXConfig.grab_icon_path("misc","chronoslnx"))
 		else:
 			sysicon=CLNXConfig.main_icons[str(self.phour)]
-		self.trayIcon.setToolTip("%s - %s\n%s" %(self.now.strftime("%Y/%m/%d"), self.now.strftime("%H:%M:%S"),
-			total_string.replace("<br />","\n").replace("<sup>","").replace("</sup>","")))
+		self.trayIcon.setToolTip("{} - {}\n{}".format(self.now.strftime("%Y/%m/%d"), 
+					self.now.strftime("%H:%M:%S"),
+					total_string.replace("<br />","\n")\
+						.replace("<sup>","").replace("</sup>","")))
 		self.trayIcon.setIcon(sysicon)
 		#self.todayPicture.setPixmap(CLNXConfig.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))

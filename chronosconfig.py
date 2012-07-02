@@ -36,8 +36,6 @@ class ChronosLNXConfig:
 
 		QtCore.QDir.setSearchPaths("skins", [config_theme_path,app_theme_path])
 		self.sys_icotheme=QtGui.QIcon.themeName()
-		self.observer=Observer()
-		self.baby=Observer()
 		self.reset_settings()
 		self.load_schedule()
 
@@ -122,31 +120,24 @@ class ChronosLNXConfig:
 			'MC' :  QtGui.QIcon(self.grab_icon_path("signs","mc")),
 		}
 
-	def generate_timezone(self, birth=False):
-		timezone=zonetab.nearest_tz(self.baby.lat, \
-					    self.baby.long, \
-					    zonetab.timezones())[2]
-		print("Detected natal timezone to be %s" % timezone)
-		return tz.gettz(timezone)
-
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
-		import sip
-		sip.setapi('QVariant', 2)
+		#import sip
+		#sip.setapi('QVariant', 2)
 		self.settings.beginGroup("Location")
-		self.observer.lat=float(self.settings.value("latitude", 0.0))
-		self.observer.long=float(self.settings.value("longitude", 0.0))
-		self.observer.elevation=float(self.settings.value("elevation", 0.0))
+		lat = float(self.settings.value("latitude", 0.0))
+		lng = float(self.settings.value("longitude", 0.0))
+		elevation = float(self.settings.value("elevation", 0.0))
+		self.observer = Observer(lat, lng, elevation)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Birth")
-		self.birthzone=self.settings.value("birthZone",None)
-		self.baby.lat=float(self.settings.value("latitude", 0.0))
-		self.baby.long=float(self.settings.value("longitude", 0.0))
-		self.baby.elevation=float(self.settings.value("elevation", 0.0))
-		tzo=self.generate_timezone()
-		self.birthtime=self.settings.value("birthTime", datetime(2000,1,1,tzinfo=tzo))
-		#self.birthtime=datetime(2000,1,1,tzinfo=tzo)
+		self.birthzone = self.settings.value("birthZone",None)
+		blat = float(self.settings.value("latitude", 0.0))
+		blng = float(self.settings.value("longitude", 0.0))
+		belevation = float(self.settings.value("elevation", 0.0))
+		self.baby = Observer(blat, blng, belevation)
+		self.baby.obvdate = self.settings.value("birthTime", datetime(2000,1,1))
 		#add bday
 		self.settings.endGroup()
 
@@ -188,7 +179,7 @@ class ChronosLNXConfig:
 
 	def load_natal_data(self):
 		print("Loading natal data...")
-		self.natal_data=get_signs(self.birthtime,self.baby,\
+		self.natal_data=get_signs(self.baby.obvdate,self.baby,\
 					  self.show_nodes,\
 					  self.show_admi,prefix="Natal")
 		#keep a copy of natal information for transits
@@ -293,14 +284,14 @@ class ChronosLNXConfig:
 	def save_settings(self):
 		self.settings.beginGroup("Location")
 		self.settings.setValue("latitude", self.observer.lat)
-		self.settings.setValue("longitude", self.observer.long)
+		self.settings.setValue("longitude", self.observer.lng)
 		self.settings.setValue("elevation", self.observer.elevation)
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Birth")
-		self.settings.setValue("birthTime", self.birthtime)
+		self.settings.setValue("birthTime", self.baby.obvdate)
 		self.settings.setValue("latitude", self.baby.lat)
-		self.settings.setValue("longitude", self.baby.long)
+		self.settings.setValue("longitude", self.baby.lng)
 		self.settings.setValue("elevation", self.baby.elevation)
 		self.settings.endGroup()
 

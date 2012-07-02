@@ -4,6 +4,7 @@ from dateutil import tz
 from datetime import datetime, timedelta
 import math
 
+import zonetab
 from measurements import *
 from aspects import *
 from planet import Planet
@@ -65,10 +66,38 @@ HOUR_SEQUENCE=("Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars")
 #http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
 
 class Observer:
-	def __init__(self):
-		self.lat=0
-		self.long=0
-		self.elevation=0
+	def __init__(self, lat=0, lng=0, elevation=0, dt=None):
+		self.lat=lat
+		self.lng=lng
+		self.elevation=elevation
+		self._dt=None
+	def set_dt(self, new_dt):
+		if new_dt is None:
+			self._dt = None
+			return
+		if new_dt.tzinfo is None:
+			#assume the new fixed dt is given in system's localtime
+			#if it is naive
+			ndt = new_dt.replace(tzinfo=tz.gettz())
+		else:
+			ndt = new_dt
+		#then convert it to the timezone for the observer
+		self._dt = new_dt.astimezone(self.timezone)
+	def get_dt(self):
+		if self._dt is None:
+			return self.dt_now()
+		return self._dt
+	@property
+	def timezone(self):
+		 zt = zonetab.nearest_tz(self.lat, self.lng,
+			    zonetab.timezones())[2]
+		 #print(zt)
+		 return tz.gettz(zt)
+	def dt_now(self):
+		utcdt = datetime.now(tz=tz.gettz('UTC'))
+		return utcdt.astimezone(self.timezone)
+	obvdate = property(get_dt,set_dt)
+		
 
 def search_special_aspects(aspect_table):
 	yods=set()
@@ -385,14 +414,14 @@ def next_new_moon(date,refinements=2):
 	return revjul_to_datetime(swisseph.revjul(day))
 
 def get_transit(planet, observer, date):
-	day=datetime_to_julian(date)
+	day = datetime_to_julian(date)
 	if observer.lat < 0:
 		transit=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
-				planet, observer.long, observer.lat, alt=observer.elevation, \
+				planet, observer.lng, observer.lat, alt=observer.elevation, \
 				rsmi=swisseph.CALC_MTRANSIT)[1][0]))
 	else:
 		transit=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
-				planet, observer.long, observer.lat, alt=observer.elevation, \
+				planet, observer.lng, observer.lat, alt=observer.elevation, \
 				rsmi=swisseph.CALC_ITRANSIT)[1][0]))
 	swisseph.close()
 	return transit
@@ -401,7 +430,7 @@ def get_transit(planet, observer, date):
 def fill_houses(date, observer, houses=None,data=None):
 	day=datetime_to_julian(date)
 	if not data:
-		data=swisseph.houses(day, observer.lat, observer.long)[0]
+		data=swisseph.houses(day, observer.lat, observer.lng)[0]
 	if houses == None:
 		houses=[]
 		for i in range(12):
@@ -417,7 +446,7 @@ def fill_houses(date, observer, houses=None,data=None):
 def updatePandC(date, observer, houses, entries):
 	day=datetime_to_julian(date)
 	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
-	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
+	cusps,asmc=swisseph.houses(day, observer.lat, observer.lng)
 	fill_houses(date, observer, houses=houses, data=cusps)
 	for i in range(10):
 		calcs=swisseph.calc_ut(day,i)
@@ -475,7 +504,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 	day=datetime_to_julian(date)
 	obliquity=swisseph.calc_ut(day,swisseph.ECL_NUT)[0]
 
-	cusps,asmc=swisseph.houses(day, observer.lat, observer.long)
+	cusps,asmc=swisseph.houses(day, observer.lat, observer.lng)
 
 	for i in range(10):
 		calcs=swisseph.calc_ut(day,i)
@@ -614,15 +643,15 @@ def get_sunrise_and_sunset(date,observer):
 	day=datetime_to_julian(date.replace(hour=12))
 
 	sunrise=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, \
-			swisseph.SUN, observer.long, observer.lat, alt=observer.elevation, \
+			swisseph.SUN, observer.lng, observer.lat, alt=observer.elevation, \
 			rsmi=swisseph.CALC_RISE)[1][0]))
 
 	sunset=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day, \
-			swisseph.SUN, observer.long, observer.lat, observer.elevation, \
+			swisseph.SUN, observer.lng, observer.lat, observer.elevation, \
 			rsmi=swisseph.CALC_SET)[1][0]))
 
 	next_sunrise=revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day,
-			swisseph.SUN, observer.long, observer.lat, observer.elevation, \
+			swisseph.SUN, observer.lng, observer.lat, observer.elevation, \
 			rsmi=swisseph.CALC_RISE)[1][0]))
 	swisseph.close()
 	return sunrise,sunset,next_sunrise
