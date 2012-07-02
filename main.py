@@ -96,7 +96,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		return menu
 
 	def closeTabs(self):
-		for dw in self.sender().property('tabgroup').toPyObject():
+		for dw in self.sender().property('tabgroup'):
 			dw.toggleViewAction().trigger()
 
 	def add_widgets(self):
