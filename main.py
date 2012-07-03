@@ -241,6 +241,7 @@ class ChronosLNX(QtGui.QMainWindow):
 	def update_hours(self):
 		self.hoursToday.clear()
 		self.signsToday.tree.clear()
+		self.now = CLNXConfig.observer.obvdate
 		self.prepare_hours_for_today()
 		self.eventsToday.tree.model().setDate(self.now.date())
 		self.signsToday.get_constellations(self.now, CLNXConfig.observer)
@@ -525,41 +526,42 @@ class ChronosLNX(QtGui.QMainWindow):
 			day=mdl.data(idx,0)
 			date2=None
 			date3=None
+			tzone=CLNXConfig.observer.timezone
 			if idx.row() is 1 and day > 7:
 				replace_month=month-1
 				if replace_month == 0:
 					date=datetime(year=year-1,month=12,\
 							day=day, hour=12, \
 							minute=0, second=0, \
-							tzinfo=tz.gettz())
+							tzinfo=tzone)
 				else:
 					date=datetime(year=year,month=month-1,\
 							day=day, hour=12,\
 							minute=0, second=0, \
-							tzinfo=tz.gettz())
+							tzinfo=tzone)
 			elif (idx.row() is 6 or idx.row() is 5) and day < 22:
 				replace_month=(month+1)%12
 				if replace_month == 1:
-					date=datetime(year=year+1,\
-						      month=replace_month,\
-						      day=day, hour=12, \
-						      minute=0, second=0, \
-						      tzinfo=tz.gettz())
+					date=datetime(year=year+1,
+						      month=replace_month,
+						      day=day, hour=12, 
+						      minute=0, second=0,
+						      tzinfo=tzone)
 				else:
 					if replace_month == 0:
-						date=datetime(year=year,month=12,\
-							day=day, hour=12, \
-							minute=0, second=0, \
-							tzinfo=tz.gettz())
+						date=datetime(year=year,month=12,
+							day=day, hour=12, 
+							minute=0, second=0,
+							tzinfo=tzone)
 					else:
-						date=datetime(year=year,\
-							month=replace_month,\
-							day=day, hour=12, \
-							minute=0, second=0, \
-							tzinfo=tz.gettz())
+						date=datetime(year=year,
+							month=replace_month,
+							day=day, hour=12, 
+							minute=0, second=0, 
+							tzinfo=tzone)
 			else:
-				date=datetime(year=year,month=month,day=day,\
-				hour=12,minute=0, second=0, tzinfo=tz.gettz())
+				date=datetime(year=year,month=month,day=day,
+				hour=12,minute=0, second=0, tzinfo=tzone)
 
 			if self.calendar.lunarReturn:
 				idx=self.calendar.fetchLunarReturn(date.date())
