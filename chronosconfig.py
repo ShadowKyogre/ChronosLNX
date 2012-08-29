@@ -137,7 +137,8 @@ class ChronosLNXConfig:
 		blng = float(self.settings.value("longitude", 0.0))
 		belevation = float(self.settings.value("elevation", 0.0))
 		self.baby = Observer(blat, blng, belevation)
-		self.baby.obvdate = self.settings.value("birthTime", datetime(2000,1,1))
+		self.baby.obvdate = self.settings.value("birthTime", 
+			datetime(2000,1,1,tzinfo=tz.gettz('UTC')))
 		#add bday
 		self.settings.endGroup()
 
