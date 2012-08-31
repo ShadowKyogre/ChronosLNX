@@ -8,7 +8,7 @@ import swisseph
 def prepare_planetary_info(date,observer):
 	phinfo=hours_for_day(date,observer)
 	sphinfo=[]
-	header="Planetary hours for %s, %s, %s - %s" %(observer.lat,observer.long,observer.elevation,date.strftime("%m/%d/%Y"))
+	header="Planetary hours for %s, %s, %s - %s" %(observer.lat,observer.lng,observer.elevation,date.strftime("%m/%d/%Y"))
 	for hour in phinfo:
 		data=hour[0].strftime("%m/%d/%Y - %H:%M:%S")
 		if hour[2] is True:
