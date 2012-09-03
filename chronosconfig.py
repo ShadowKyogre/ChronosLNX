@@ -31,8 +31,8 @@ class ChronosLNXConfig:
 		(QtGui.QDesktopServices.DataLocation)).replace("//","/")
 		#QtCore.QDir.currentPath()
 
-		app_theme_path="%s/themes" %(os.sys.path[0])
-		config_theme_path=("%s/themes" %(self.userconfdir))
+		app_theme_path=os.path.join(os.sys.path[0],"themes")
+		config_theme_path=os.path.join(self.userconfdir,"themes")
 
 		QtCore.QDir.setSearchPaths("skins", [config_theme_path,app_theme_path])
 		self.sys_icotheme=QtGui.QIcon.themeName()
@@ -244,8 +244,8 @@ class ChronosLNXConfig:
 
 	def save_schedule(self):
 		rows=self.schedule.rowCount()
-		path=''.join([self.userconfdir, '/schedule.csv'])
-		temppath=''.join([self.userconfdir, '/schedule_modified.csv'])
+		path=os.path.join(self.userconfdir, 'schedule.csv')
+		temppath=''.join(self.userconfdir, 'schedule_modified.csv')
 		f=open(temppath, "w")
 		planner = csv.writer(f)
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
