@@ -1,5 +1,37 @@
+09/04/2012
+====
+* Fix a typo in Observer class that prevented the date conversion from naive datetimes
+* Allow date to be readable in config even without QSettings and move the app starting to a main() function
+
+09/02/2012
+====
+* more safe joining of paths in chronosconfig
+
+08/30/2012
+====
+* fix typo regarding observer property in chronostext.py
+
+08/29/2012
+====
+* splash on so random timezone for the default 'baby'
+
+07/02/2012
+====
+* the system's timezone
+* Version bump
+* Remove toPyObject() for tabgroup retrieval
+* formatting in python 3.
+
+06/30/2012
+====
+* Remove unneeded toString() calls in eventplanner.py
+* skip over it
+* More portability updates and removed some more toPyObject calls
+* Add the portability changes from openastro's zonetab.py to this one
+
 06/28/2012
 ====
+* Add changelog generated from git commits
 * Provide encoding in order to convert the css file to a string
 * are coming from
 * Since the planetary hour string is a native python string now, use .lower() instead of .toLower()
@@ -222,3 +254,4 @@
 * cropped screenshots
 * taking out random file
 * replacing stuff here
+
