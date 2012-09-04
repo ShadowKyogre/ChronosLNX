@@ -82,7 +82,7 @@ class Observer:
 		else:
 			ndt = new_dt
 		#then convert it to the timezone for the observer
-		self._dt = new_dt.astimezone(self.timezone)
+		self._dt = ndt.astimezone(self.timezone)
 	def get_dt(self):
 		if self._dt is None:
 			return self.dt_now()
