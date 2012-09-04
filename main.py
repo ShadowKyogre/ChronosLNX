@@ -8,18 +8,21 @@
 #http://www.ips-planetarium.org/planetarian/articles/realconstellations_zodiac.html <- this too
 import os
 import sys
+import datetime
+import argparse
 from shlex import split
 from subprocess import call
-from PyQt4 import QtGui,QtCore
-import geolocationwidget ## from example, but modified a little
 from re import findall,match
-import datetime
+
+from PyQt4 import QtGui,QtCore
+
+import geolocationwidget ## from example, but modified a little
 from astro_rewrite import *
 from astrowidgets import *
 from eventplanner import *
 from chronostext import *
 from chronosconfig import ChronosLNXConfig
-pynf=True
+pynf = True
 
 #http://pastebin.com/BvNx9wdk
 
@@ -687,9 +690,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		CLNXConfig.baby.lat=blat
 		CLNXConfig.baby.lng=blng
 		CLNXConfig.baby.elevation=belv
-		date=self.settings_dialog.date.dateTime().toPyDateTime()
 		#how to migrate?
-		CLNXConfig.baby.obvdate = date.replace(tzinfo=CLNXConfig.baby.timezone).astimezone(tz.gettz('UTC'))
+		CLNXConfig.baby.obvdate = self.settings_dialog.date.dateTime().toPyDateTime()
 
 		CLNXConfig.current_theme=thm
 		CLNXConfig.current_icon_override=iothm
@@ -1067,20 +1069,26 @@ class ChronosLNX(QtGui.QMainWindow):
 					else:
 						self.event_trigger(event_type_item,txt,pt)
 
-app = QtGui.QApplication(sys.argv)
-app.setApplicationName(ChronosLNXConfig.APPNAME)
-app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
+def main():
+	global app, CLNXConfig, pynf
+	app = QtGui.QApplication(sys.argv)
+	app.setApplicationName(ChronosLNXConfig.APPNAME)
+	app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
+	
+	app.setQuitOnLastWindowClosed(False)
+	CLNXConfig = ChronosLNXConfig()
+	
+	app.setWindowIcon(CLNXConfig.main_icons['logo'])
+	try:
+		retcode=call(['which','notify-send'])
+		pynf=True if retcode == 0 else False
+	except Exception as e:
+		pynf=False
+	if not pynf:
+		print("Warning, couldn't find notify-send! On Linux systems, the notifications might look ugly.")
+	chronoslnx = ChronosLNX()
+	chronoslnx.show()
+	sys.exit(app.exec_())
 
-app.setQuitOnLastWindowClosed(False)
-CLNXConfig = ChronosLNXConfig()
-app.setWindowIcon(CLNXConfig.main_icons['logo'])
-try:
-	retcode=call(['which','notify-send'])
-	pynf=True if retcode == 0 else False
-except Exception as e:
-	pynf=False
-if not pynf:
-	print("Warning, couldn't find notify-send! On Linux systems, the notifications might look ugly.")
-chronoslnx = ChronosLNX()
-chronoslnx.show()
-sys.exit(app.exec_())
+if __name__ == "__main__":
+	main()
