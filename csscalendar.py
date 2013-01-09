@@ -64,7 +64,6 @@ class CSSCalendar(QtGui.QWidget):
 		self.date=self.date.replace(month=monthidx+1)
 
 	def setCurrentPage(self, year, month):
-		print(year,month)
 		self.currentPageChanged.emit(year, month)
 		self.date=self.date.replace(year=year, month=month)
 

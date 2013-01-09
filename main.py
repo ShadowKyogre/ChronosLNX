@@ -453,8 +453,8 @@ class ChronosLNX(QtGui.QMainWindow):
 						self.print_to_file(j.text(), date,filename=filename,suppress_notification=True)
 	#'''
 	def make_calendar_menu(self):
-		self.calendar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-		self.connect(self.calendar,QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.get_cal_menu)
+		self.calendar._table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+		self.calendar._table.customContextMenuRequested.connect(self.get_cal_menu)
 		#self.calendar.setContextMenu(self.menu)
 	#'''
 	def copy_to_clipboard(self, option,date):
@@ -504,58 +504,25 @@ class ChronosLNX(QtGui.QMainWindow):
 			f.close()
 
 	def get_cal_menu(self, qpoint):
-		table=self.calendar.findChild(QtGui.QTableView)
-		idx=table.indexAt(table.mapFromParent(qpoint))
-		mdl=table.model()
-		if idx.column() > 0 and idx.row() > 0:
-			month=self.calendar.monthShown()
-			year=self.calendar.yearShown()
-			day=mdl.data(idx,0)
+		table=self.calendar._table
+		item=table.itemAt(qpoint)
+		print(item.text())
+		print(item.row())
+		if True:
+			day=item.data(QtCore.Qt.UserRole)
 			date2=None
 			date3=None
 			tzone=CLNXConfig.observer.timezone
-			if idx.row() is 1 and day > 7:
-				replace_month=month-1
-				if replace_month == 0:
-					date=datetime(year=year-1,month=12,\
-							day=day, hour=12, \
-							minute=0, second=0, \
-							tzinfo=tzone)
-				else:
-					date=datetime(year=year,month=month-1,\
-							day=day, hour=12,\
-							minute=0, second=0, \
-							tzinfo=tzone)
-			elif (idx.row() is 6 or idx.row() is 5) and day < 22:
-				replace_month=(month+1)%12
-				if replace_month == 1:
-					date=datetime(year=year+1,
-						      month=replace_month,
-						      day=day, hour=12, 
-						      minute=0, second=0,
-						      tzinfo=tzone)
-				else:
-					if replace_month == 0:
-						date=datetime(year=year,month=12,
-							day=day, hour=12, 
-							minute=0, second=0,
-							tzinfo=tzone)
-					else:
-						date=datetime(year=year,
-							month=replace_month,
-							day=day, hour=12, 
-							minute=0, second=0, 
-							tzinfo=tzone)
-			else:
-				date=datetime(year=year,month=month,day=day,
-				hour=12,minute=0, second=0, tzinfo=tzone)
+			print(day)
+			date=datetime.fromordinal(day.toordinal())
+			date=date.replace(hour=12,minute=0, second=0, tzinfo=tzone)
 
 			if self.calendar.lunarReturn:
-				idx=self.calendar.fetchLunarReturn(date.date())
+				idx=self.calendar.fetchLunarReturn(day)
 				if idx >= 0:
 					date2=self.calendar.lunarReturns[idx]
 			if self.calendar.solarReturn:
-				if date.date()==self.calendar.solarReturnTime.date():
+				if date==self.calendar.solarReturnTime.date():
 					date3=self.calendar.solarReturnTime
 
 			#self.calendar.setGridVisible(True)

@@ -533,23 +533,20 @@ class AstroCalendar(CSSCalendar):
 				stillInYear=True
 		return stillInYear
 
-	def fetchLunarReturn(self,date,l,r):
+	def fetchLunarReturn(self,date):
+		return self._fetchLunarReturn(date,0,11)
+	
+	def _fetchLunarReturn(self,date,l,r):
 		if r < l:
 			return int((r-l)/2)-1
 		mid=int((l+r)/2)
 		other_date=self.lunarReturns[mid].date()
 		if date > other_date:
-			return self.fetchLunarReturn(date,mid+1,r)
+			return self._fetchLunarReturn(date,mid+1,r)
 		elif date < other_date:
-			return self.fetchLunarReturn(date,l,mid-1)
+			return self._fetchLunarReturn(date,l,mid-1)
 		else:
 			return mid
-		#for i in range(len(self.lunarReturns)):
-		#	t=self.lunarReturns[i]
-		#	if t.year == date.year and \
-		#		t.month == date.month and \
-		#		t.day == date.day:
-		#		return i
 
 	def selectedDateTime(self):
 		return QtCore.QDateTime(self.selectedDate())
