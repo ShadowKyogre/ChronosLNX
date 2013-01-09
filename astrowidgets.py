@@ -608,7 +608,7 @@ class AstroCalendar(CSSCalendar):
 			item.setData(QtCore.Qt.UserRole+4,phase)
 		item.setData(QtCore.Qt.ToolTipRole,tooltiptxt)
 		if here or here2:
-			item.setText('<b>{}</b>'.format(item.text()))
+			item.setText('*{}'.format(item.text()))
 
 	'''
 	def paintCell(self, painter, rect, date):

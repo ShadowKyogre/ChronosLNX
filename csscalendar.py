@@ -18,7 +18,9 @@ class CSSCalendar(QtGui.QWidget):
 		self._table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self._table.setHorizontalHeaderLabels(calendar.day_abbr[6:]+calendar.day_abbr[:6])
 		self._table.verticalHeader().hide()
-
+		self._table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+		self._table.verticalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+		self._table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 		self._goForward.clicked.connect(self.nextPage)
 		self._goBackward.clicked.connect(self.prevPage)
 		self._goBackward.setArrowType(QtCore.Qt.LeftArrow)
@@ -26,9 +28,9 @@ class CSSCalendar(QtGui.QWidget):
 		self._monthBox.activated[int].connect(self.setMonth)
 
 		layout.addWidget(self._goBackward,0,0)
-		layout.addWidget(self._monthBox,0,1,1,3)
-		layout.addWidget(self._yearBox,0,4,1,2)
-		layout.addWidget(self._goForward,0,6)
+		layout.addWidget(self._monthBox,0,1,1,2)
+		layout.addWidget(self._yearBox,0,3,1,2)
+		layout.addWidget(self._goForward,0,5)
 		layout.addWidget(self._table,1,0,4,7)
 
 		self.weekdayBGs=[QtGui.QBrush() for i in range(7)]
@@ -102,6 +104,8 @@ class CSSCalendar(QtGui.QWidget):
 			item.setData(QtCore.Qt.TextAlignmentRole,QtCore.Qt.AlignCenter)
 			self._modifyDayItem(item)
 			self._table.setItem(i/7,i%7,item)
+		self._table.resizeColumnsToContents()
+		self._table.resizeRowsToContents()
 
 	def useCSS(self):
 		return self.__useCSS
