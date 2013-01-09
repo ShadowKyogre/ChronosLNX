@@ -36,12 +36,19 @@ class CSSCalendar(QtGui.QWidget):
 		self._calendar=calendar.Calendar(6)
 		self._date=None
 		self.date=pydate.today()
+		self._yearBox.textEdited.connect(self.setYear)
+		self._yearBox.setInputMask("000D")
+		self._yearBox.setMaxLength(4)
+
 	
 	def yearShown(self):
 		return int(self._yearBox.text())
 	
 	def monthShown(self):
 		return self._monthBox.currentIndex()+1
+
+	def setYear(self, year):
+		self.date=self.date.replace(year=int(year))
 
 	def prevPage(self):
 		if self._date.month == 1:
@@ -71,8 +78,7 @@ class CSSCalendar(QtGui.QWidget):
 		return self._date
 	
 	def setDate(self, newdate):
-		if self._date is None or newdate.month != self._date.month:
-			refill=True
+		refill=self._date is None or newdate.month != self._date.month or newdate.year!=self._date.year
 		self._date=newdate
 		self._yearBox.setText(str(self._date.year))
 		self._monthBox.setCurrentIndex(self._date.month-1)
