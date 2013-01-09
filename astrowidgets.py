@@ -439,8 +439,8 @@ class AstroCalendar(CSSCalendar):
 	def __init__(self, *args):
 
 		super().__init__(*args)
-		self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Midlight))
-		self.color.setAlpha(64)
+		#self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Midlight))
+		#self.color.setAlpha(64)
 		#self.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
 		self.currentPageChanged.connect(self.checkInternals)
 		#self.selectionChanged.connect(self.updateCells)
@@ -585,11 +585,11 @@ class AstroCalendar(CSSCalendar):
 			return
 		#print(item)
 		date=item.data(QtCore.Qt.UserRole)
-		if self.observer == None:
+		#if self.observer == None:
 			#painter.fillRect(rect, self.color)
-			item.setData(QtCore.Qt.UserRole+1,date == QtCore.QDate.currentDate())
-		else:
-			item.setData(QtCore.Qt.UserRole+1,date == self.observer.obvdate.date())
+		#	item.setData(QtCore.Qt.UserRole+1,date == QtCore.QDate.currentDate())
+		#else:
+		#	item.setData(QtCore.Qt.UserRole+1,date == self.observer.obvdate.date())
 		tooltiptxt=''
 		here=self.lunarReturn and date in self.here
 		item.setData(QtCore.Qt.UserRole+2,here)

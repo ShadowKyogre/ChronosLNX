@@ -2,6 +2,21 @@ from PyQt4 import QtGui,QtCore
 import calendar
 from datetime import date as pydate
 
+class TodayDelegate(QtGui.QStyledItemDelegate):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.coltoday=QtGui.QPalette().midlight()
+		col=self.coltoday.color()
+		col.setAlpha(64)
+		self.coltoday.setColor(col)
+	def paint(self, painter, option, idx):
+		super().paint(painter, option, idx)
+		date=idx.model().data(idx,QtCore.Qt.UserRole)
+		if self._otherTodayCheck(date) or date == pydate.today():
+			painter.fillRect(option.rect, self.coltoday)
+	def _otherTodayCheck(self, date):
+		return False
+
 class CSSCalendar(QtGui.QWidget):
 	currentPageChanged = QtCore.pyqtSignal(int,int)
 	"""A CalendarWidget that supports CSS theming"""
@@ -9,18 +24,24 @@ class CSSCalendar(QtGui.QWidget):
 		super().__init__(*args)
 		self.__useCSS=False
 		layout=QtGui.QGridLayout(self)
+		layout.setSpacing(0)
 		self._monthBox=QtGui.QComboBox(self)
 		self._monthBox.addItems(calendar.month_name[1:])
 		self._goForward=QtGui.QToolButton()
 		self._goBackward=QtGui.QToolButton()
 		self._yearBox=QtGui.QLineEdit(self)
 		self._table=QtGui.QTableWidget(6,7)
+
 		self._table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self._table.setHorizontalHeaderLabels(calendar.day_abbr[6:]+calendar.day_abbr[:6])
 		self._table.verticalHeader().hide()
 		self._table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 		self._table.verticalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 		self._table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+		self._table.setShowGrid(False)
+		self._delegate=TodayDelegate()
+		self._table.setItemDelegate(self._delegate)
+
 		self._goForward.clicked.connect(self.nextPage)
 		self._goBackward.clicked.connect(self.prevPage)
 		self._goBackward.setArrowType(QtCore.Qt.LeftArrow)
@@ -28,10 +49,10 @@ class CSSCalendar(QtGui.QWidget):
 		self._monthBox.activated[int].connect(self.setMonth)
 
 		layout.addWidget(self._goBackward,0,0)
-		layout.addWidget(self._monthBox,0,1,1,2)
-		layout.addWidget(self._yearBox,0,3,1,2)
+		layout.addWidget(self._monthBox,0,1,1,3)
+		layout.addWidget(self._yearBox,0,4,1,1)
 		layout.addWidget(self._goForward,0,5)
-		layout.addWidget(self._table,1,0,4,7)
+		layout.addWidget(self._table,1,0,4,6)
 
 		self.weekdayBGs=[QtGui.QBrush() for i in range(7)]
 		self.weekdayFGs=[QtGui.QBrush() for i in range(7)]
@@ -50,7 +71,8 @@ class CSSCalendar(QtGui.QWidget):
 		return self._monthBox.currentIndex()+1
 
 	def setYear(self, year):
-		self.date=self.date.replace(year=int(year))
+		iyear=int(year)
+		self.setCurrentPage(iyear,self.date.month)
 
 	def prevPage(self):
 		if self._date.month == 1:
@@ -73,8 +95,9 @@ class CSSCalendar(QtGui.QWidget):
 		self.date=self.date.replace(month=monthidx+1)
 
 	def setCurrentPage(self, year, month):
-		self.currentPageChanged.emit(year, month)
-		self.date=self.date.replace(year=year, month=month)
+		idate=self.date.replace(year=year, month=month)
+		self.currentPageChanged.emit(idate.year, idate.month)
+		self.date=idate
 
 	def date(self):
 		return self._date
