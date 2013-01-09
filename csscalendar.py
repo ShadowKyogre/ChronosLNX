@@ -1,74 +1,138 @@
 from PyQt4 import QtGui,QtCore
+import calendar
+from datetime import date as pydate
 
-class CSSCalendar(QtGui.QCalendarWidget):
+class CSSCalendar(QtGui.QWidget):
+	currentPageChanged = QtCore.pyqtSignal(int,int)
 	"""A CalendarWidget that supports CSS theming"""
-	def __init__(self, *args):
-		QtGui.QCalendarWidget.__init__(self, *args)
+	def __init__(self, *args,**kwargs):
+		super().__init__(*args)
 		self.__useCSS=False
+		layout=QtGui.QGridLayout(self)
+		self._monthBox=QtGui.QComboBox(self)
+		self._monthBox.addItems(calendar.month_name[1:])
+		self._goForward=QtGui.QToolButton()
+		self._goBackward=QtGui.QToolButton()
+		self._yearBox=QtGui.QLineEdit(self)
+		self._table=QtGui.QTableWidget(6,7)
+		self._table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self._table.setHorizontalHeaderLabels(calendar.day_abbr[6:]+calendar.day_abbr[:6])
+		self._table.verticalHeader().hide()
+
+		self._goForward.clicked.connect(self.nextPage)
+		self._goBackward.clicked.connect(self.prevPage)
+		self._goBackward.setArrowType(QtCore.Qt.LeftArrow)
+		self._goForward.setArrowType(QtCore.Qt.RightArrow)
+		self._monthBox.activated[int].connect(self.setMonth)
+
+		layout.addWidget(self._goBackward,0,0)
+		layout.addWidget(self._monthBox,0,1,1,3)
+		layout.addWidget(self._yearBox,0,4,1,2)
+		layout.addWidget(self._goForward,0,6)
+		layout.addWidget(self._table,1,0,4,7)
+
+		self.weekdayBGs=[QtGui.QBrush() for i in range(7)]
+		self.weekdayFGs=[QtGui.QBrush() for i in range(7)]
+		self._calendar=calendar.Calendar(6)
+		self._date=None
+		self.date=pydate.today()
+	
+	def yearShown(self):
+		return int(self._yearBox.text())
+	
+	def monthShown(self):
+		return self._monthBox.currentIndex()+1
+
+	def prevPage(self):
+		if self._date.month == 1:
+			#self.currentPageChanged.emit(self._date.year-1,12)
+			self.setCurrentPage(self._date.year-1,12)
+		else:
+			#self.currentPageChanged.emit(self._date.year,self._date.month-1)
+			self.setCurrentPage(self._date.year,self._date.month-1)
+
+	def nextPage(self):
+		if self._date.month == 12:
+			#self.currentPageChanged.emit(self._date.year+1,11)
+			self.setCurrentPage(self._date.year+1,1)
+		else:
+			#self.currentPageChanged.emit(self._date.year,self._date.month+1)
+			self.setCurrentPage(self._date.year,self._date.month+1)
+
+	def setMonth(self, monthidx):
+		self.currentPageChanged.emit(self._date.year,monthidx+1)
+		self.date=self.date.replace(month=monthidx+1)
+
+	def setCurrentPage(self, year, month):
+		print(year,month)
+		self.currentPageChanged.emit(year, month)
+		self.date=self.date.replace(year=year, month=month)
+
+	def date(self):
+		return self._date
+	
+	def setDate(self, newdate):
+		if self._date is None or newdate.month != self._date.month:
+			refill=True
+		self._date=newdate
+		self._yearBox.setText(str(self._date.year))
+		self._monthBox.setCurrentIndex(self._date.month-1)
+		if refill:
+			self._refillCells()
+	
+	date=QtCore.pyqtProperty(pydate, date, setDate)
+	
+	def _modifyDayItem(self, item):
+		pass
+
+	def _refillCells(self):
+		monthdates=list(self._calendar.itermonthdates(self._date.year,self._date.month))
+		thisday=pydate.today()
+		weeks=len(monthdates)
+		self._table.setRowCount(int(weeks/7))
+		for i in range(weeks):
+			item=QtGui.QTableWidgetItem()
+			item.setText(str(monthdates[i].day))
+			item.setData(QtCore.Qt.UserRole,monthdates[i])
+			item.setData(QtCore.Qt.TextAlignmentRole,QtCore.Qt.AlignCenter)
+			self._modifyDayItem(item)
+			self._table.setItem(i/7,i%7,item)
 
 	def useCSS(self):
 		return self.__useCSS
 
 	def setUseCSS(self, css):
 		self.__useCSS=css
-		print(self.__useCSS)
-		self.__updateAppearance()
-
-	def __updateAppearance(self):
-		children=self.findChildren (QtGui.QToolButton)
-		if self.__useCSS:
-			#explicitly set the arrow type of the next month
-			#and previous month buttons
-			children[0].setArrowType(QtCore.Qt.LeftArrow)
-			children[1].setArrowType(QtCore.Qt.RightArrow)
-		else:
-			children[0].setArrowType(QtCore.Qt.NoArrow)
-			children[1].setArrowType(QtCore.Qt.NoArrow)
-			emptyFormat=QtGui.QTextCharFormat()
-			wendFormat=QtGui.QTextCharFormat()
-			wendFormat.setForeground(QtGui.QColor("red"))
-			for i in range(1,8):
-				if i <= 5:
-					self.setWeekdayTextFormat(i,emptyFormat)
-				else:
-					self.setWeekdayTextFormat(i,wendFormat)
-			self.setHeaderTextFormat(emptyFormat)
-
-	def __setWeekNFill(self, fill):
-		b=self.headerTextFormat()
-		b.setBackground(fill)
-		self.setHeaderTextFormat(b)
-
-	def __setWeekNFG(self, fg):
-		b=self.headerTextFormat()
-		b.setForeground(fg)
-		self.setHeaderTextFormat(b)
+		if not self.__useCSS:
+			transparent=QtGui.QColor()
+			transparent.setAlpha(0)
+			brush=QtGui.QBrush(transparent)
+			col=self._table.palette().text()
+			fg=QtGui.QBrush(col)
+			for i in range(self._table.rowCount()):
+				for j in range(7):
+					self._table.item(i,j).setForeground(fg)
+					self._table.item(i,j).setBackground(brush)
 
 	def __setDayFG(self, day, fg):
-		b=self.weekdayTextFormat(day)
-		b.setForeground(fg)
-		self.setWeekdayTextFormat(day,b)
+		self.weekdayFGs[day-1]=fg
+		for i in range(self._table.rowCount()):
+			self._table.item(i,day-1).setForeground(fg)
 
 	def __setDayFill(self, day, fill):
-		b=self.weekdayTextFormat(day)
-		b.setBackground(fill)
-		self.setWeekdayTextFormat(day,b)
+		self.weekdayBGs[day-1]=fill
+		for i in range(self._table.rowCount()):
+			self._table.item(i,day-1).setBackground(fill)
 
 	def __dayFG(self, day):
-		return self.weekdayTextFormat(day).foreground()
+		return self.weekdayFGs[day]
 
 	def __dayFill(self, day):
-		return self.weekdayTextFormat(day).background()
+		return self.weekdayBGs[day]
 
-	def __weekNFill(self):
-		return self.headerTextFormat().background()
-
-	def __weekNFG(self):
-		return self.headerTextFormat().foreground()
-
-	sundayFill=QtCore.pyqtProperty("QBrush", \
-		lambda self: self.__dayFill(QtCore.Qt.Sunday), \
-		lambda self,fill: self.__setDayFill(QtCore.Qt.Sunday,fill))
+	sundayFill=QtCore.pyqtProperty("QBrush", 
+		lambda self: self.__dayFill(QtCore.Qt.Sunday), 
+		lambda self, fill: self.__setDayFill(QtCore.Qt.Sunday, fill))
 	mondayFill=QtCore.pyqtProperty("QBrush", \
 		lambda self: self.__dayFill(QtCore.Qt.Monday), \
 		lambda self,fill: self.__setDayFill(QtCore.Qt.Monday,fill))
@@ -109,8 +173,8 @@ class CSSCalendar(QtGui.QCalendarWidget):
 	saturdayFG=QtCore.pyqtProperty("QBrush", \
 		lambda self: self.__dayFG(QtCore.Qt.Saturday), \
 		lambda self,fill: self.__setDayFG(QtCore.Qt.Saturday,fill))
-
+	'''
 	weekNFG=QtCore.pyqtProperty("QBrush", __weekNFG, __setWeekNFG)
 	weekNFill=QtCore.pyqtProperty("QBrush", __weekNFill, __setWeekNFill)
-
+	'''
 	useCSS=QtCore.pyqtProperty("bool", useCSS, setUseCSS)

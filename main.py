@@ -107,6 +107,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
 		self.astroClock=AstroClock(self)
 		self.setCentralWidget(self.astroClock)
+		#self.astroClock.hide()
 
 		self.todayOther=QtGui.QLabel()
 
@@ -304,6 +305,7 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
 	def get_info_for_date(self, date, birth=False):
+		info_dialog=QtGui.QDialog(self)
 		dateinfo="Info for %s" %(date.strftime("%m/%d/%Y"))
 		if birth:
 			ob=CLNXConfig.baby
@@ -314,20 +316,18 @@ class ChronosLNX(QtGui.QMainWindow):
 			ob=CLNXConfig.observer
 			text=""
 		infotext="{dateinfo}{text}".format(**locals())
+		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		vbox=QtGui.QVBoxLayout(info_dialog)
+		vbox.addWidget(QtGui.QLabel(text))
 
-		dockhours=QtGui.QDockWidget(self)
-		dockmoon=QtGui.QDockWidget(self)
-		docksigns=QtGui.QDockWidget(self)
-		dockevents=QtGui.QDockWidget(self)
-
-		hoursToday=PlanetaryHoursList(dockhours)
+		hoursToday=PlanetaryHoursList(info_dialog)
 		hoursToday.setIcons(CLNXConfig.main_icons)
 
-		moonToday=MoonCycleList(dockmoon)
+		moonToday=MoonCycleList(info_dialog)
 		moonToday.setRefinement(CLNXConfig.refinements['Moon Phase'])
 		moonToday.setIcons(CLNXConfig.moon_icons)
 
-		signsToday=SignsForDayList(docksigns)
+		signsToday=SignsForDayList(info_dialog)
 		signsToday.setIcons(CLNXConfig.main_icons)
 		signsToday.setSignIcons(CLNXConfig.sign_icons)
 		signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
@@ -338,11 +338,14 @@ class ChronosLNX(QtGui.QMainWindow):
 		if not birth:
 			signsToday.setCompareTable(CLNXConfig.natal_data[1])
 
-		eventsToday=EventsList(dockevents)
+		eventsToday=EventsList(info_dialog)
 		model=DayEventsModel()
 		model.setSourceModel(CLNXConfig.schedule)
 		model.setDate(date)
 		eventsToday.tree.setModel(model)
+		eventsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+		dayData=QtGui.QTabWidget(info_dialog)
 
 		hoursToday.prepareHours(date,ob)
 		moonToday.get_moon_cycle(date)
@@ -357,31 +360,12 @@ class ChronosLNX(QtGui.QMainWindow):
 		else:
 			signsToday.get_constellations(date, ob)
 
-		dockhours.setWindowTitle("Planetary Hours")
-		dockhours.setWidget(hoursToday)
-		self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,dockhours)
-		dockhours.setToolTip(infotext)
-		dockhours.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
-
-		dockmoon.setWindowTitle("Moon Phases")
-		dockmoon.setWidget(moonToday)
-		self.tabifyDockWidget(dockhours, dockmoon)
-		dockmoon.setToolTip(infotext)
-		dockmoon.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
-
-		docksigns.setWindowTitle("Signs")
-		docksigns.setWidget(signsToday)
-		self.tabifyDockWidget(dockmoon, docksigns)
-		docksigns.setToolTip(infotext)
-		docksigns.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
-
-		dockevents.setWindowTitle("Events")
-		dockevents.setWidget(eventsToday)
-		self.tabifyDockWidget(docksigns, dockevents)
-		dockevents.setToolTip(infotext)
-		dockevents.setAttribute(QtCore.Qt.WA_DeleteOnClose,True)
-
-		#http://www.qtcentre.org/threads/27925-QDockWidget-Close-instead-of-Collapse
+		dayData.addTab(hoursToday,"Planetary Hours")
+		dayData.addTab(moonToday,"Moon Phases")
+		dayData.addTab(signsToday,"Signs")
+		dayData.addTab(eventsToday,"Events")
+		vbox.addWidget(dayData)
+		info_dialog.show()
 
 	def make_save_for_date_range(self):
 		#self.save_for_range_dialog=QtGui.QDialog(self)
@@ -467,12 +451,12 @@ class ChronosLNX(QtGui.QMainWindow):
 						filename=str(self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
 							%(str(j.text()).replace(" ", "_"),date.strftime("%m-%d-%Y")))
 						self.print_to_file(j.text(), date,filename=filename,suppress_notification=True)
-
+	#'''
 	def make_calendar_menu(self):
 		self.calendar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 		self.connect(self.calendar,QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.get_cal_menu)
 		#self.calendar.setContextMenu(self.menu)
-
+	#'''
 	def copy_to_clipboard(self, option,date):
 		if option == "All":
 			text=prepare_all(date, CLNXConfig.observer, CLNXConfig.schedule, \
@@ -929,7 +913,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
-		self.check_alarm()
+		#self.check_alarm()
 		if CLNXConfig.show_house_of_moment:
 			hom=self.zodiac[0].m.house_info.num
 			if hom == 1:

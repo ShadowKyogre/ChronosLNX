@@ -426,27 +426,35 @@ class AstroClock(QtGui.QWidget):
 			#QtCore.QPoint(10,self.center.y()+2),\
 			#QtCore.QPoint(-5,self.center.y()))
 			#painter.restore()
-
+"""
+class AstroCalanderDelegate(TodayDelegate):
+	def __init__(self, *args, **kwargs):
+		super().__init__(self, *args, **kwargs)
+	def paint(self, painter, option, index):
+		super().paint(painter,option,index)
+		index.model().data(index,QtCore.Qt.UserRole)
+"""
 class AstroCalendar(CSSCalendar):
 
 	def __init__(self, *args):
 
-		CSSCalendar.__init__(self, *args)
+		super().__init__(*args)
 		self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Midlight))
 		self.color.setAlpha(64)
-		self.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
+		#self.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
 		self.currentPageChanged.connect(self.checkInternals)
-		self.selectionChanged.connect(self.updateCells)
+		#self.selectionChanged.connect(self.updateCells)
 		self.solarReturn=False
 		self.lunarReturn=False
 		self.showPhase=False
 		self.birthtime=None
 		self.observer=None
-		children=self.findChildren (QtGui.QToolButton)
-		children[0].setArrowType(QtCore.Qt.LeftArrow)
-		children[1].setArrowType(QtCore.Qt.RightArrow)
+		#children=self.findChildren (QtGui.QToolButton)
+		#children[0].setArrowType(QtCore.Qt.LeftArrow)
+		#children[1].setArrowType(QtCore.Qt.RightArrow)
 		self.solarF=QtGui.QTextCharFormat()
 		self.lunarF=QtGui.QTextCharFormat()
+		#self._refillCells()
 
 	def setIcons(self, icon_list):
 		self.icons=icon_list
@@ -473,61 +481,75 @@ class AstroCalendar(CSSCalendar):
 			raise RuntimeError("Cannot update natal moon without a birthtime!")
 		self.natal_moon=zodiacal_data
 		if self.lunarReturn:
-			self.updateMoon()
+			self.updateMoon(self.yearShown())
 
 	def setNatalSun(self, zodiacal_data):
 		if not self.birthtime:
 			raise RuntimeError("Cannot update natal sun without a birthtime!")
 		self.natal_sun=zodiacal_data
 		if self.solarReturn:
-			self.updateSun()
+			self.updateSun(self.yearShown())
 
 	def checkInternals(self, year, month):
 		if self.solarReturn:
 			if not self.isSolarReturnValid():
 				print("Updating solar return...")
-				self.updateSun()
+				self.updateSun(year)
 		if self.lunarReturn:
-			if not self.isLunarReturnsValid():
+			if not self.isLunarReturnsValid(year, month):
 				print("Updating lunar returns...")
-				self.updateMoon()
+				self.updateMoon(year)
+			caldates=set(self._calendar.itermonthdates(year,month))
+			self.here=caldates&self.lunarReturnss
+			#print(self.lunarReturnss)
+			#print(self.here)
 		#self.listidx=self.isLunarReturnsValid()
 
-	def updateSun(self):
+	def updateSun(self, year):
 		self.solarReturnTime=solar_return(self.birthtime, 
-						  self.yearShown(), 
+						  year, 
 						  self.natal_sun,
 						  refinements=self.refinements['Solar Return'])
 
-	def updateMoon(self):
+	def updateMoon(self,year):
 		self.lunarReturns=[]
 		for m in range(1,13):
 			self.lunarReturns.append(lunar_return(self.birthtime,
-				m,self.yearShown(),self.natal_moon,
+				m,year,self.natal_moon,
 				refinements=self.refinements['Lunar Return']))
+		self.lunarReturnss=set([d.date() for d in self.lunarReturns])
 
 	def isSolarReturnValid(self):
 		return self.solarReturnTime.year == self.yearShown()
 
-	def isLunarReturnsValid(self):
+	def isLunarReturnsValid(self, year, month):
 		stillInYear=False
 		for i in range(len(self.lunarReturns)):
 			t=self.lunarReturns[i]
-			if t.year == self.yearShown() and \
-				t.month == self.monthShown():
-				return i
-			elif t.year == self.yearShown():
+			if t.year == year and \
+				t.month == month:
+				return True
+			elif t.year == year:
 				stillInYear=True
 		return stillInYear
 
-	def fetchLunarReturn(self,date):
-		for i in range(len(self.lunarReturns)):
-			t=self.lunarReturns[i]
-			if t.year == date.year and \
-				t.month == date.month and \
-				t.day == date.day:
-				return i
-		return -1
+	def fetchLunarReturn(self,date,l,r):
+		if r < l:
+			return int((r-l)/2)-1
+		mid=int((l+r)/2)
+		other_date=self.lunarReturns[mid].date()
+		if date > other_date:
+			return self.fetchLunarReturn(date,mid+1,r)
+		elif date < other_date:
+			return self.fetchLunarReturn(date,l,mid-1)
+		else:
+			return mid
+		#for i in range(len(self.lunarReturns)):
+		#	t=self.lunarReturns[i]
+		#	if t.year == date.year and \
+		#		t.month == date.month and \
+		#		t.day == date.day:
+		#		return i
 
 	def selectedDateTime(self):
 		return QtCore.QDateTime(self.selectedDate())
@@ -560,7 +582,38 @@ class AstroCalendar(CSSCalendar):
 	lunarReturnFill = QtCore.pyqtProperty("QBrush", lunarFill, setLunarFill)
 	solarReturnFG = QtCore.pyqtProperty("QBrush", solarFG, setSolarFG)
 	solarReturnFill = QtCore.pyqtProperty("QBrush", solarFill, setSolarFill)
+	def _modifyDayItem(self, item):
+		if not hasattr(self, 'observer'):
+			super()._modifyDayItem(item)
+			return
+		#print(item)
+		date=item.data(QtCore.Qt.UserRole)
+		if self.observer == None:
+			#painter.fillRect(rect, self.color)
+			item.setData(QtCore.Qt.UserRole+1,date == QtCore.QDate.currentDate())
+		else:
+			item.setData(QtCore.Qt.UserRole+1,date == self.observer.obvdate.date())
+		tooltiptxt=''
+		here=self.lunarReturn and date in self.here
+		item.setData(QtCore.Qt.UserRole+2,here)
+		if here:
+			tooltiptxt+='<img src="skin:/misc/lunar_return.png"/> There is a lunar return.<br />'
+		#print(date,self.here,self.monthShown(),self.yearShown())
+		here2=self.solarReturn and self.solarReturnTime.date() == date
+		item.setData(QtCore.Qt.UserRole+3,here2)
+		#print(self.here)
+		if here2:
+			tooltiptxt+='<img src="skin:/misc/solar_return.png"/> There is a solar return.<br />'
+		if self.showPhase:
+			datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
+			phase=state_to_string(grab_phase(datetime, refinements=self.refinements['Moon Phase']), swisseph.MOON)
+			tooltiptxt+='<img src="skin:/moonphase/{}.png"/> Moon phase: {}'.format(phase.replace(' ','_').lower(),phase)
+			item.setData(QtCore.Qt.UserRole+4,phase)
+		item.setData(QtCore.Qt.ToolTipRole,tooltiptxt)
+		if here or here2:
+			item.setText('<b>{}</b>'.format(item.text()))
 
+	'''
 	def paintCell(self, painter, rect, date):
 		QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
 		if self.observer == None:
@@ -571,8 +624,9 @@ class AstroCalendar(CSSCalendar):
 				painter.fillRect(rect, self.color)
 
 		if self.lunarReturn:
-			idx=self.fetchLunarReturn(date.toPyDate())
-			if idx >= 0:
+			#idx=self.fetchLunarReturn(date.toPyDate(),0,len(self.lunarReturns))
+			#print(-idx)
+			if date.toPyDate() in self.here:
 				icon=self.icons['Lunar Return']
 				point=rect.bottomRight()
 				icon.paint(painter,QtCore.QRect(point.x()-14,point.y()-14, 14, 14))
@@ -580,6 +634,7 @@ class AstroCalendar(CSSCalendar):
 					self.setDateTextFormat(date, self.lunarF)
 				else:
 					self.setDateTextFormat(date, QtGui.QTextCharFormat())
+			print('a')
 
 		if self.solarReturn:
 			if self.solarReturnTime.date() == date.toPyDate():
@@ -596,7 +651,7 @@ class AstroCalendar(CSSCalendar):
 			phase=state_to_string(grab_phase(datetime, refinements=self.refinements['Moon Phase']), swisseph.MOON)
 			icon=self.icons[phase]
 			icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
-
+		'''
 # Special Models for planetary and moon phase stuff
 
 #http://doc.qt.nokia.com/stable/qhelpcontentwidget.html
