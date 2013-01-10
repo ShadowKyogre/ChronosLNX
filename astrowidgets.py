@@ -645,45 +645,6 @@ class AstroCalendar(CSSCalendar):
 		#if here or here2:
 		#	item.setText('*{}'.format(item.text()))
 
-	'''
-	def paintCell(self, painter, rect, date):
-		QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
-		if self.observer == None:
-			if date == QtCore.QDate.currentDate():
-				painter.fillRect(rect, self.color)
-		else:
-			if date == self.observer.obvdate.date():
-				painter.fillRect(rect, self.color)
-
-		if self.lunarReturn:
-			#idx=self.fetchLunarReturn(date.toPyDate(),0,len(self.lunarReturns))
-			#print(-idx)
-			if date.toPyDate() in self.here:
-				icon=self.icons['Lunar Return']
-				point=rect.bottomRight()
-				icon.paint(painter,QtCore.QRect(point.x()-14,point.y()-14, 14, 14))
-				if self.useCSS:
-					self.setDateTextFormat(date, self.lunarF)
-				else:
-					self.setDateTextFormat(date, QtGui.QTextCharFormat())
-			print('a')
-
-		if self.solarReturn:
-			if self.solarReturnTime.date() == date.toPyDate():
-				icon=self.icons['Solar Return']
-				point=rect.bottomRight()
-				icon.paint(painter,QtCore.QRect(rect.x(),point.y()-14, 14, 14))
-				if self.useCSS:
-					self.setDateTextFormat(date, self.solarF)
-				else:
-					self.setDateTextFormat(date, QtGui.QTextCharFormat())
-
-		if self.showPhase:
-			datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
-			phase=state_to_string(grab_phase(datetime, refinements=self.refinements['Moon Phase']), swisseph.MOON)
-			icon=self.icons[phase]
-			icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
-		'''
 # Special Models for planetary and moon phase stuff
 
 #http://doc.qt.nokia.com/stable/qhelpcontentwidget.html
