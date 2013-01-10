@@ -506,69 +506,67 @@ class ChronosLNX(QtGui.QMainWindow):
 	def get_cal_menu(self, qpoint):
 		table=self.calendar._table
 		item=table.itemAt(qpoint)
-		if True:
-			day=item.data(QtCore.Qt.UserRole)
-			date2=None
-			date3=None
-			tzone=CLNXConfig.observer.timezone
-			#print(day)
-			date=datetime.fromordinal(day.toordinal())
-			date=date.replace(hour=12,minute=0, second=0, tzinfo=tzone)
 
-			if self.calendar.lunarReturn:
-				idx=self.calendar.fetchLunarReturn(day)
-				if idx >= 0:
-					date2=self.calendar.lunarReturns[idx]
-			if self.calendar.solarReturn and date==self.calendar.solarReturnTime.date():
-				date3=self.calendar.solarReturnTime
-			print(self.calendar.solarReturnTime.date())
+		day=item.data(QtCore.Qt.UserRole)
+		date2=None
+		date3=None
+		tzone=CLNXConfig.observer.timezone
+		date=datetime.fromordinal(day.toordinal())
+		date=date.replace(hour=12,minute=0, second=0, tzinfo=tzone)
 
-			#self.calendar.setGridVisible(True)
-			menu=QtGui.QMenu(self.calendar)
-			if date2:
-				lritem=menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
-				lritem.triggered.connect(lambda: self.get_info_for_date(date2))
-				lritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
-			if date3:
-				sritem=menu.addAction("Solar Return for %s" %(date.strftime("%m/%d/%Y")))
-				sritem.triggered.connect(lambda: self.get_info_for_date(date3))
-				sritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
+		if self.calendar.lunarReturn:
+			idx=self.calendar.fetchLunarReturn(day)
+			if idx >= 0:
+				date2=self.calendar.lunarReturns[idx]
+		if self.calendar.solarReturn and day==self.calendar.solarReturnTime.date():
+			date3=self.calendar.solarReturnTime
 
-			infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
-			infoitem.triggered.connect(lambda: self.get_info_for_date(date))
-			infoitem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
+		#self.calendar.setGridVisible(True)
+		menu=QtGui.QMenu(self.calendar)
+		if date2:
+			lritem=menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
+			lritem.triggered.connect(lambda: self.get_info_for_date(date2))
+			lritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
+		if date3:
+			sritem=menu.addAction("Solar Return for %s" %(date.strftime("%m/%d/%Y")))
+			sritem.triggered.connect(lambda: self.get_info_for_date(date3))
+			sritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
-			copymenu=menu.addMenu("Copy")
-			copymenu.setIcon(QtGui.QIcon.fromTheme("edit-copy"))
-			copyall=copymenu.addAction("All")
-			copydate=copymenu.addAction("Date")
-			copyplanetdata=copymenu.addAction("Planetary Hours")
-			copymoonphasedata=copymenu.addAction("Moon Phases")
-			copysignsdata=copymenu.addAction("Signs for this date")
-			copyeventdata=copymenu.addAction("Events")
+		infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
+		infoitem.triggered.connect(lambda: self.get_info_for_date(date))
+		infoitem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
-			copyall.triggered.connect(lambda: self.copy_to_clipboard("All",date))
-			copydate.triggered.connect(lambda: app.clipboard().setText(date.strftime("%m/%d/%Y")))
-			copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours",date))
-			copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Phase",date))
-			copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs",date))
-			copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
+		copymenu=menu.addMenu("Copy")
+		copymenu.setIcon(QtGui.QIcon.fromTheme("edit-copy"))
+		copyall=copymenu.addAction("All")
+		copydate=copymenu.addAction("Date")
+		copyplanetdata=copymenu.addAction("Planetary Hours")
+		copymoonphasedata=copymenu.addAction("Moon Phases")
+		copysignsdata=copymenu.addAction("Signs for this date")
+		copyeventdata=copymenu.addAction("Events")
 
-			savemenu=menu.addMenu("Save to File")
-			savemenu.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
-			saveall=savemenu.addAction("All")
-			saveplanetdata=savemenu.addAction("Planetary Hours")
-			savemoonphasedata=savemenu.addAction("Moon Phases")
-			savesignsdata=savemenu.addAction("Signs for this date")
-			saveeventdata=savemenu.addAction("Events")
+		copyall.triggered.connect(lambda: self.copy_to_clipboard("All",date))
+		copydate.triggered.connect(lambda: app.clipboard().setText(date.strftime("%m/%d/%Y")))
+		copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours",date))
+		copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Phase",date))
+		copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs",date))
+		copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
 
-			saveall.triggered.connect(lambda: self.print_to_file("All",date))
-			saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours",date))
-			savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Phase",date))
-			savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs",date))
-			saveeventdata.triggered.connect(lambda: self.print_to_file("Events",date))
+		savemenu=menu.addMenu("Save to File")
+		savemenu.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
+		saveall=savemenu.addAction("All")
+		saveplanetdata=savemenu.addAction("Planetary Hours")
+		savemoonphasedata=savemenu.addAction("Moon Phases")
+		savesignsdata=savemenu.addAction("Signs for this date")
+		saveeventdata=savemenu.addAction("Events")
 
-			menu.exec_(self.calendar.mapToGlobal(qpoint))
+		saveall.triggered.connect(lambda: self.print_to_file("All",date))
+		saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours",date))
+		savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Phase",date))
+		savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs",date))
+		saveeventdata.triggered.connect(lambda: self.print_to_file("Events",date))
+
+		menu.exec_(self.calendar.mapToGlobal(qpoint))
 		#http://www.qtcentre.org/archive/index.php/t-42524.html?s=ef30fdd9697c337a1d588ce9d26f47d8
 
 ##config related
