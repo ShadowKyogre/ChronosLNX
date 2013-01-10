@@ -506,14 +506,12 @@ class ChronosLNX(QtGui.QMainWindow):
 	def get_cal_menu(self, qpoint):
 		table=self.calendar._table
 		item=table.itemAt(qpoint)
-		print(item.text())
-		print(item.row())
 		if True:
 			day=item.data(QtCore.Qt.UserRole)
 			date2=None
 			date3=None
 			tzone=CLNXConfig.observer.timezone
-			print(day)
+			#print(day)
 			date=datetime.fromordinal(day.toordinal())
 			date=date.replace(hour=12,minute=0, second=0, tzinfo=tzone)
 
@@ -521,9 +519,9 @@ class ChronosLNX(QtGui.QMainWindow):
 				idx=self.calendar.fetchLunarReturn(day)
 				if idx >= 0:
 					date2=self.calendar.lunarReturns[idx]
-			if self.calendar.solarReturn:
-				if date==self.calendar.solarReturnTime.date():
-					date3=self.calendar.solarReturnTime
+			if self.calendar.solarReturn and date==self.calendar.solarReturnTime.date():
+				date3=self.calendar.solarReturnTime
+			print(self.calendar.solarReturnTime.date())
 
 			#self.calendar.setGridVisible(True)
 			menu=QtGui.QMenu(self.calendar)

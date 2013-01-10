@@ -4,7 +4,7 @@
 from PyQt4 import QtGui,QtCore
 from astro_rewrite import *
 from measurements import ZODIAC, format_zodiacal_difference
-from csscalendar import CSSCalendar
+from csscalendar import CSSCalendar, TodayDelegate
 import swisseph
 import re
 from dateutil import tz
@@ -426,14 +426,36 @@ class AstroClock(QtGui.QWidget):
 			#QtCore.QPoint(10,self.center.y()+2),\
 			#QtCore.QPoint(-5,self.center.y()))
 			#painter.restore()
-"""
-class AstroCalanderDelegate(TodayDelegate):
+
+class AstroCalendarDelegate(TodayDelegate):
 	def __init__(self, *args, **kwargs):
-		super().__init__(self, *args, **kwargs)
+		super().__init__(*args, **kwargs)
+		self.observer=None
+		self.icons=None
 	def paint(self, painter, option, index):
 		super().paint(painter,option,index)
-		index.model().data(index,QtCore.Qt.UserRole)
-"""
+		if self.icons is None:
+			return
+		rect=option.rect
+		model=index.model()
+		islunarreturn=model.data(index,QtCore.Qt.UserRole+2)
+		issolarreturn=model.data(index,QtCore.Qt.UserRole+3)
+		phase=model.data(index,QtCore.Qt.UserRole+4)
+		if islunarreturn:
+			icon=self.icons['Lunar Return']
+			point=rect.bottomRight()
+			icon.paint(painter,QtCore.QRect(point.x()-14,point.y()-14, 14, 14))
+		if issolarreturn:
+			icon=self.icons['Solar Return']
+			point=rect.bottomRight()
+			icon.paint(painter,QtCore.QRect(rect.x(),point.y()-14, 14, 14))
+		if phase is not None:
+			icon=self.icons[phase]
+			icon.paint(painter,QtCore.QRect(rect.x(),rect.y(),14,14))
+		
+	def _otherTodayCheck(self, date):
+		return self.observer is not None and self.observer.obvdate.date() == date
+
 class AstroCalendar(CSSCalendar):
 
 	def __init__(self, *args):
@@ -448,13 +470,25 @@ class AstroCalendar(CSSCalendar):
 		self.lunarReturn=False
 		self.showPhase=False
 		self.birthtime=None
-		self.observer=None
+		self._observer=None
 		#children=self.findChildren (QtGui.QToolButton)
 		#children[0].setArrowType(QtCore.Qt.LeftArrow)
 		#children[1].setArrowType(QtCore.Qt.RightArrow)
 		self.solarF=QtGui.QTextCharFormat()
 		self.lunarF=QtGui.QTextCharFormat()
 		#self._refillCells()
+	
+	def observer(self):
+		return self._observer
+	
+	def setObserver(self,newo):
+		self._observer=newo
+		self._delegate=AstroCalendarDelegate()
+		self._delegate.observer=self._observer
+		self._delegate.icons=self.icons
+		self._table.setItemDelegate(self._delegate)
+	
+	observer = property(observer,setObserver)
 
 	def setIcons(self, icon_list):
 		self.icons=icon_list
@@ -504,7 +538,6 @@ class AstroCalendar(CSSCalendar):
 			#print(self.lunarReturnss)
 			#print(self.here)
 		#self.listidx=self.isLunarReturnsValid()
-
 	def updateSun(self, year):
 		self.solarReturnTime=solar_return(self.birthtime, 
 						  year, 
@@ -593,22 +626,24 @@ class AstroCalendar(CSSCalendar):
 		tooltiptxt=''
 		here=self.lunarReturn and date in self.here
 		item.setData(QtCore.Qt.UserRole+2,here)
-		if here:
-			tooltiptxt+='<img src="skin:/misc/lunar_return.png"/> There is a lunar return.<br />'
+		#if here:
+		#	tooltiptxt+='<img src="skin:/misc/lunar_return.png"/> There is a lunar return.<br />'
 		#print(date,self.here,self.monthShown(),self.yearShown())
 		here2=self.solarReturn and self.solarReturnTime.date() == date
 		item.setData(QtCore.Qt.UserRole+3,here2)
 		#print(self.here)
-		if here2:
-			tooltiptxt+='<img src="skin:/misc/solar_return.png"/> There is a solar return.<br />'
+		#if here2:
+		#	tooltiptxt+='<img src="skin:/misc/solar_return.png"/> There is a solar return.<br />'
 		if self.showPhase:
 			datetime=QtCore.QDateTime(date).toPyDateTime().replace(tzinfo=tz.gettz()).replace(hour=12)
 			phase=state_to_string(grab_phase(datetime, refinements=self.refinements['Moon Phase']), swisseph.MOON)
-			tooltiptxt+='<img src="skin:/moonphase/{}.png"/> Moon phase: {}'.format(phase.replace(' ','_').lower(),phase)
+			#tooltiptxt+='<img src="skin:/moonphase/{}.png"/> Moon phase: {}'.format(phase.replace(' ','_').lower(),phase)
 			item.setData(QtCore.Qt.UserRole+4,phase)
+		else:
+			item.setData(QtCore.Qt.UserRole+4,None)
 		item.setData(QtCore.Qt.ToolTipRole,tooltiptxt)
-		if here or here2:
-			item.setText('*{}'.format(item.text()))
+		#if here or here2:
+		#	item.setText('*{}'.format(item.text()))
 
 	'''
 	def paintCell(self, painter, rect, date):
