@@ -169,36 +169,6 @@ class AstroClock(QtGui.QWidget):
 	lambda self: self.__aspectBrush("opposition"), \
 	lambda self,fill: self.__setAspectBrush(fill,"opposition"))
 
-	def setHourSource(self, hours):
-		self.hours=hours
-
-	def setNextSunrise(self, date):
-		self.nexts=date
-
-	def setBD(self, date):
-		self.bd=date
-
-	def setNatData(self, natData):
-		self.natData=natData
-
-	def setSignData(self, signData):
-		self.signData=signData
-
-	def setSignIcons(self, icons):
-		self.sign_icons=icons
-
-	def setIcons(self, icons):
-		self.icons=icons
-
-	def setOrbs(self, orbs):
-		self.orbs=orbs
-
-	def setCapricornAlternate(self, cap_alt):
-		self.capricorn_alternate=cap_alt
-
-	def setPlutoAlternate(self, plu_alt):
-		self.pluto_alternate=plu_alt
-
 	def createAspectDoodle(self, angles, bound_box):
 		path=QtGui.QPainterPath()
 
@@ -316,7 +286,6 @@ class AstroClock(QtGui.QWidget):
 			icon=self.icons[str(phm.get_planet(i))]
 			icon.paint(painter,QtCore.QRect(p.x(),p.y(),20,20))
 		painter.restore()
-
 
 	def prepPie(self, painter, circle, width=480, offset=0):
 		painter.save()
