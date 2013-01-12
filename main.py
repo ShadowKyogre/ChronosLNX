@@ -228,18 +228,18 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.calendar.useCSS=CLNXConfig.use_css
 		self.calendar.observer=CLNXConfig.observer
 
-		self.hoursToday.setIcons(CLNXConfig.main_icons)
-		self.moonToday.setIcons(CLNXConfig.moon_icons)
-		self.moonToday.setRefinement(CLNXConfig.refinements['Moon Phase'])
+		self.hoursToday.icons=CLNXConfig.main_icons
+		self.moonToday.icons=CLNXConfig.moon_icons
+		self.moonToday.refinement=CLNXConfig.refinements['Moon Phase']
 
-		self.signsToday.setCompareTable(CLNXConfig.natal_data[1])
-		self.signsToday.setIcons(CLNXConfig.main_icons)
-		self.signsToday.setSignIcons(CLNXConfig.sign_icons)
-		self.signsToday.setADMI(CLNXConfig.show_admi)
-		self.signsToday.setNodes(CLNXConfig.show_nodes)
-		self.signsToday.setPlutoAlternate(CLNXConfig.pluto_alt)
-		self.signsToday.setCapricornAlternate(CLNXConfig.capricorn_alt)
-		self.signsToday.setOrbs(CLNXConfig.orbs)
+		self.signsToday.table=CLNXConfig.natal_data[1]
+		self.signsToday.icons=CLNXConfig.main_icons
+		self.signsToday.sign_icons=CLNXConfig.sign_icons
+		self.signsToday.admi=CLNXConfig.show_admi
+		self.signsToday.nodes=CLNXConfig.show_nodes
+		self.signsToday.pluto_alternate=CLNXConfig.pluto_alt
+		self.signsToday.capricorn_alternate=CLNXConfig.capricorn_alt
+		self.signsToday.orbs=CLNXConfig.orbs
 ##time related
 
 	def update_hours(self):

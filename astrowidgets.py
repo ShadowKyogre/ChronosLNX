@@ -742,12 +742,6 @@ class MoonCycleList(QtGui.QTreeView):
 		self.setRootIsDecorated(False)
 		self.setModel(MPModel())
 
-	def setIcons(self, icon_list):
-		self.icons=icon_list
-
-	def setRefinement(self, ref):
-		self.refinement=ref
-
 	def clear(self):
 		self.model().clear()
 
@@ -792,9 +786,6 @@ class PlanetaryHoursList(QtGui.QWidget):
 
 	def clear(self):
 		self.tree.model().sourceModel().clear()
-
-	def setIcons(self, icon_list):
-		self.icons=icon_list
 
 	def prepareHours(self,date,observer):
 		planetary_hours = hours_for_day(date,observer)
@@ -939,8 +930,6 @@ class AspectTableDisplay(QtGui.QWidget):
 	def setPlutoAlternate(self, value):
 		self.pluto_alternate=value #should be boolean
 
-	def setNodes(self, value):
-		self.nodes=value
 
 def aspectsDialog(widget, zodiac, other_table, icons, \
 	sign_icons, pluto_alternate, admi, nodes, orbs):
@@ -1046,9 +1035,6 @@ class SignsForDayList(QtGui.QWidget):
 		self.h=[]
 		self.table=[]
 
-	def setCompareTable(self,table):
-		self.table=table
-
 	def showAspects(self):
 		aspectsDialog(self, self.z, self.table, self.icons, \
 		self.sign_icons, self.pluto_alternate, self.admi, self.nodes,\
@@ -1057,33 +1043,12 @@ class SignsForDayList(QtGui.QWidget):
 	def showHouses(self):
 		housesDialog(self, self.h, self.capricorn_alternate, self.sign_icons)
 
-	def setOrbs(self, orbs):
-		self.orbs=orbs
-
 	def update_degrees(self, qtime):
 		self.tree.clear()
 		self.target_date=self.target_date.replace(hour=qtime.hour())\
 		.replace(minute=qtime.minute())\
 		.replace(second=qtime.second())
 		self._grab()
-
-	def setADMI(self, value):
-		self.admi=value
-
-	def setIcons(self, icon_list):
-		self.icons=icon_list
-
-	def setSignIcons(self, icon_list):
-		self.sign_icons=icon_list
-
-	def setPlutoAlternate(self, value):
-		self.pluto_alternate=value #should be boolean
-
-	def setCapricornAlternate(self, value):
-		self.capricorn_alternate=value #should be string
-
-	def setNodes(self, value):
-		self.nodes=value
 
 	def assembleFromZodiac(self, zodiac):
 		self.tree.clear()
