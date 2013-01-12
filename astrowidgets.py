@@ -456,6 +456,8 @@ class AstroCalendar(CSSCalendar):
 		self._delegate.observer=self._observer
 		self._delegate.icons=self.icons
 		self._table.setItemDelegate(self._delegate)
+		self.checkInternals(self.yearShown(),self.monthShown())
+		self._refillCells()
 	
 	observer = property(observer,setObserver)
 
