@@ -918,40 +918,27 @@ class AspectTableDisplay(QtGui.QWidget):
 			self.tableAspects.setHorizontalHeaderItem(v,item)
 			self.tableAspects.setVerticalHeaderItem(v,item2)
 
-	def setADMI(self, value):
-		self.admi=value
-
-	def setIcons(self, icon_list):
-		self.icons=icon_list
-
-	def setSignIcons(self, icon_list):
-		self.sign_icons=icon_list
-
-	def setPlutoAlternate(self, value):
-		self.pluto_alternate=value #should be boolean
-
-
 def aspectsDialog(widget, zodiac, other_table, icons, \
 	sign_icons, pluto_alternate, admi, nodes, orbs):
 	info_dialog=QtGui.QDialog(widget)
 	info_dialog.setWindowTitle("Aspectarian")
 	tabs=QtGui.QTabWidget(info_dialog)
 	aspects=AspectTableDisplay(info_dialog)
-	aspects.setIcons(icons)
-	aspects.setSignIcons(sign_icons)
-	aspects.setPlutoAlternate(pluto_alternate)
-	aspects.setADMI(admi)
-	aspects.setNodes(nodes)
+	aspects.icons=icons
+	aspects.sign_icons=sign_icons
+	aspects.pluto_alternate=pluto_alternate
+	aspects.admi=admi
+	aspects.nodes=nodes
 	vbox=QtGui.QVBoxLayout(info_dialog)
 	tabs.addTab(aspects,"Aspects for this table")
 	vbox.addWidget(tabs)
 	if other_table:
 		caspects=AspectTableDisplay(info_dialog)
-		caspects.setIcons(icons)
-		caspects.setSignIcons(sign_icons)
-		caspects.setPlutoAlternate(pluto_alternate)
-		caspects.setADMI(admi)
-		caspects.setNodes(nodes)
+		caspects.icons=icons
+		caspects.sign_icons=sign_icons
+		caspects.pluto_alternate=pluto_alternate
+		caspects.admi=admi
+		caspects.nodes=nodes
 		at,compare=create_aspect_table(zodiac,compare=other_table,orbs=orbs)
 		sado=search_special_aspects(at)
 		sad=search_special_aspects(at+compare)
