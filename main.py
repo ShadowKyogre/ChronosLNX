@@ -216,6 +216,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.astroClock.pluto_alternate=clnxcfg.pluto_alt
 		self.astroClock.capricorn_alternate=clnxcfg.capricorn_alt
 		self.astroClock.orbs=clnxcfg.orbs
+		self.astroClock.observer=clnxcfg.observer
 		if not clnxcfg.use_css:
 			self.astroClock.init_colors()
 
@@ -447,7 +448,7 @@ class ChronosLNX(QtGui.QMainWindow):
 					if not os.path.exists(store_here):
 						os.mkdir(store_here)
 			for i in range(day_numbers+1):
-				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=tz.gettz())+timedelta(days=i)
+				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=clnxcfg.observer.timezone)+timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
 					if j.isChecked():
 						filename=str(self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
@@ -927,7 +928,6 @@ class ChronosLNX(QtGui.QMainWindow):
 			callcall([split(text)])
 		else: #event_type == "Textual reminder"
 			self.show_notification("Reminder", text, planet_trigger)
-
 
 	def parse_phour_args(self,string):
 		alist=None

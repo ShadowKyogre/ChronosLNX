@@ -1,5 +1,4 @@
 from PyQt4 import QtGui,QtCore
-from dateutil import tz
 from datetime import datetime
 
 from measurements import ZODIAC
@@ -288,7 +287,7 @@ class AstroClock(QtGui.QWidget):
 		trans.setAlpha(0)
 		painter.setBrush(trans)
 		phm=self.hours.tree.model().sourceModel()
-		off=datetime.now(tz.gettz())-phm.get_date(0)
+		off=datetime.now(self.observer.timezone)-phm.get_date(0)
 		overall=self.nexts-phm.get_date(0)
 		for i in range(24):
 			top=phm.get_date(i)-phm.get_date(0)
@@ -395,7 +394,7 @@ class AstroClock(QtGui.QWidget):
 			painter.setPen(sparkles)
 			painter.drawPath(path)
 
-		years=int((datetime.now(tz.gettz())-self.bd).days/365.25)
+		years=int((datetime.now(self.observer.timezone)-self.bd).days/365.25)
 		need_idx=0
 		if len(self.natData[1]) == 14:
 			need_idx=12
