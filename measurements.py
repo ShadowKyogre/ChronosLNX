@@ -166,11 +166,11 @@ class ZodiacalMeasurement (object):
 	@property
 	def decstring(self):
 		suffix="rd"
-		if self.dn==0:
+		if int(self.dn)==0:
 			suffix="st"
-		elif self.dn==1:
+		elif int(self.dn)==1:
 			suffix="nd"
-		return "%s%s decanate, %s" %(self.dn+1,suffix,ZODIAC[self.decanate]['name'])
+		return "%s%s decanate, %s" %(int(self.dn)+1,suffix,ZODIAC[self.decanate]['name'])
 
 	def only_degs(self):
 		return '%s*%s\"%s (%s)' %(self.degrees, self.minutes, self.seconds, self.decstring)
