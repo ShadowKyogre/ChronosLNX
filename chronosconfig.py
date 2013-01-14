@@ -51,8 +51,11 @@ class ChronosLNXConfig:
 		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
 			self.stylesheet=str(css.readAll(),
 					encoding=os.sys.getdefaultencoding())
+			make_icon=lambda g, n: QtGui.QIcon(self.grab_icon_path(g,n))
 		else:
 			self.stylesheet=""
+			make_icon=lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
+									QtGui.QIcon(self.grab_icon_path(g,n)))
 
 		if self.current_icon_override > "":
 			QtGui.QIcon.setThemeName(self.current_icon_override)
@@ -60,22 +63,22 @@ class ChronosLNXConfig:
 			QtGui.QIcon.setThemeName(self.sys_icotheme)
 
 		self.main_icons = {
-			'Sun' : QtGui.QIcon(self.grab_icon_path("planets","sun")),
-			'Moon' : QtGui.QIcon(self.grab_icon_path("planets","moon")),
-			'Mercury' : QtGui.QIcon(self.grab_icon_path("planets","mercury")),
-			'Venus' : QtGui.QIcon(self.grab_icon_path("planets","venus")),
-			'Mars' : QtGui.QIcon(self.grab_icon_path("planets","mars")),
-			'Jupiter' : QtGui.QIcon(self.grab_icon_path("planets","jupiter")),
-			'Saturn' : QtGui.QIcon(self.grab_icon_path("planets","saturn")),
-			'Uranus' : QtGui.QIcon(self.grab_icon_path("planets","uranus")),
-			'Neptune' : QtGui.QIcon(self.grab_icon_path("planets","neptune")),
-			'Pluto' : QtGui.QIcon(self.grab_icon_path("planets","pluto")),
-			'Pluto 2' : QtGui.QIcon(self.grab_icon_path("planets","pluto_2")),
-			'North Node' : QtGui.QIcon(self.grab_icon_path("planets","north_node")),
-			'South Node' : QtGui.QIcon(self.grab_icon_path("planets","south_node")),
-			'logo' :  QtGui.QIcon(self.grab_icon_path("misc","chronoslnx")),
-			'daylight' : QtGui.QIcon(self.grab_icon_path("misc","day")),
-			'nightlight' : QtGui.QIcon(self.grab_icon_path("misc","night")),
+			'Sun' : make_icon("planets","sun"),
+			'Moon' : make_icon("planets","moon"),
+			'Mercury' : make_icon("planets","mercury"),
+			'Venus' : make_icon("planets","venus"),
+			'Mars' : make_icon("planets","mars"),
+			'Jupiter' : make_icon("planets","jupiter"),
+			'Saturn' : make_icon("planets","saturn"),
+			'Uranus' : make_icon("planets","uranus"),
+			'Neptune' : make_icon("planets","neptune"),
+			'Pluto' : make_icon("planets","pluto"),
+			'Pluto 2' : make_icon("planets","pluto_2"),
+			'North Node' : make_icon("planets","north_node"),
+			'South Node' : make_icon("planets","south_node"),
+			'logo' :  make_icon("misc","chronoslnx"),
+			'daylight' : make_icon("misc","day"),
+			'nightlight' : make_icon("misc","night"),
 		}
 		#only needed to update labels
 		self.main_pixmaps = {
@@ -88,42 +91,40 @@ class ChronosLNXConfig:
 			'Saturn' : self.main_icons['Saturn'].pixmap(64,64),
 		}
 		self.moon_icons = {
-			'New Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","new_moon")),
-			'Waxing Crescent Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waxing_crescent_moon")),
-			'First Quarter Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","first_quarter_moon")),
-			'Waxing Gibbous Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waxing_gibbous_moon")),
-			'Full Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","full_moon")),
-			'Waning Gibbous Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waning_gibbous_moon")),
-			'Last Quarter Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","last_quarter_moon")),
-			'Waning Crescent Moon' : QtGui.QIcon(self.grab_icon_path("moonphase","waning_crescent_moon")),
-			'Solar Return' : QtGui.QIcon(self.grab_icon_path("misc","solar_return")),
-			'Lunar Return' : QtGui.QIcon(self.grab_icon_path("misc","lunar_return")),
+			'New Moon' : make_icon("moonphase","new_moon"),
+			'Waxing Crescent Moon' : make_icon("moonphase","waxing_crescent_moon"),
+			'First Quarter Moon' : make_icon("moonphase","first_quarter_moon"),
+			'Waxing Gibbous Moon' : make_icon("moonphase","waxing_gibbous_moon"),
+			'Full Moon' : make_icon("moonphase","full_moon"),
+			'Waning Gibbous Moon' : make_icon("moonphase","waning_gibbous_moon"),
+			'Last Quarter Moon' : make_icon("moonphase","last_quarter_moon"),
+			'Waning Crescent Moon' : make_icon("moonphase","waning_crescent_moon"),
+			'Solar Return' : make_icon("misc","solar_return"),
+			'Lunar Return' : make_icon("misc","lunar_return"),
 		}
 		self.sign_icons = {
-			'Aries': QtGui.QIcon(self.grab_icon_path("signs", 'aries')),
-			'Taurus': QtGui.QIcon(self.grab_icon_path("signs", 'taurus')),
-			'Gemini': QtGui.QIcon(self.grab_icon_path("signs", 'gemini')),
-			'Cancer': QtGui.QIcon(self.grab_icon_path("signs", 'cancer')),
-			'Leo': QtGui.QIcon(self.grab_icon_path("signs", 'leo')),
-			'Virgo': QtGui.QIcon(self.grab_icon_path("signs", 'virgo')),
-			'Libra': QtGui.QIcon(self.grab_icon_path("signs", 'libra')),
-			'Scorpio': QtGui.QIcon(self.grab_icon_path("signs", 'scorpio')),
-			'Sagittarius': QtGui.QIcon(self.grab_icon_path("signs", 'sagittarius')),
-			'Capricorn': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn')),
-			'Capricorn 2': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn_2')),
-			'Capricorn 3': QtGui.QIcon(self.grab_icon_path("signs", 'capricorn_3')),
-			'Aquarius': QtGui.QIcon(self.grab_icon_path("signs", 'aquarius')),
-			'Pisces': QtGui.QIcon(self.grab_icon_path("signs", 'pisces')),
-			'Ascendant' :  QtGui.QIcon(self.grab_icon_path("signs","ascendant")),
-			'Descendant' :  QtGui.QIcon(self.grab_icon_path("signs","descendant")),
-			'IC' :  QtGui.QIcon(self.grab_icon_path("signs","ic")),
-			'MC' :  QtGui.QIcon(self.grab_icon_path("signs","mc")),
+			'Aries': make_icon("signs", 'aries'),
+			'Taurus': make_icon("signs", 'taurus'),
+			'Gemini': make_icon("signs", 'gemini'),
+			'Cancer': make_icon("signs", 'cancer'),
+			'Leo': make_icon("signs", 'leo'),
+			'Virgo': make_icon("signs", 'virgo'),
+			'Libra': make_icon("signs", 'libra'),
+			'Scorpio': make_icon("signs", 'scorpio'),
+			'Sagittarius': make_icon("signs", 'sagittarius'),
+			'Capricorn': make_icon("signs", 'capricorn'),
+			'Capricorn 2': make_icon("signs", 'capricorn_2'),
+			'Capricorn 3': make_icon("signs", 'capricorn_3'),
+			'Aquarius': make_icon("signs", 'aquarius'),
+			'Pisces': make_icon("signs", 'pisces'),
+			'Ascendant' :  make_icon("signs","ascendant"),
+			'Descendant' :  make_icon("signs","descendant"),
+			'IC' :  make_icon("signs","ic"),
+			'MC' :  make_icon("signs","mc"),
 		}
 
 	#resets to what the values are on file if 'apply' was just clicked and user wants to undo
 	def reset_settings(self):
-		#import sip
-		#sip.setapi('QVariant', 2)
 		self.settings.beginGroup("Location")
 		lat = float(self.settings.value("latitude", 0.0))
 		lng = float(self.settings.value("longitude", 0.0))

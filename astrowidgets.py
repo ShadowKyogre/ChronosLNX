@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #http://www.kimgentes.com/worshiptech-web-tools-page/2008/10/14/regex-pattern-for-parsing-csv-files-with-embedded-commas-dou.html
 #http://doc.qt.nokia.com/qq/qq26-pyqtdesigner.html#creatingacustomwidget
 from PyQt4 import QtGui,QtCore
