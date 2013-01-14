@@ -19,6 +19,7 @@ from PyQt4 import QtGui,QtCore
 import geolocationwidget ## from example, but modified a little
 from astro_rewrite import *
 from astroclock import AstroClock
+from astrocalendar import AstroCalendar
 from astrowidgets import *
 from eventplanner import *
 from chronostext import *
