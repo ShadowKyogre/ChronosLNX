@@ -688,7 +688,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog=ReusableDialog(self)
 		self.settings_dialog.setWindowTitle("Settings")
 		tabs=QtGui.QTabWidget(self.settings_dialog)
-		self.settings_dialog.setFixedSize(500,580)
 
 		location_page=QtGui.QFrame()
 		appearance_page=QtGui.QFrame()
