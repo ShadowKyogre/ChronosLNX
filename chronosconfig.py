@@ -15,7 +15,7 @@ import zonetab
 class ChronosLNXConfig:
 
 	APPNAME="ChronosLNX"
-	APPVERSION="0.9.5"
+	APPVERSION="0.9.6"
 	AUTHOR="ShadowKyogre"
 	DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 	YEAR="2012"
