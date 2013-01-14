@@ -132,9 +132,9 @@ class MPModel(BookMarkedModel):
 ### Planetary Hours and Moon Phase Widgets
 
 class MoonCycleList(QtGui.QTreeView):
-	def __init__(self, *args):
+	def __init__(self, *args, **kwargs):
 
-		QtGui.QTreeView.__init__(self, *args)
+		QtGui.QTreeView.__init__(self, *args, **kwargs)
 		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self.setRootIsDecorated(False)
 		self.setModel(MPModel())
@@ -149,9 +149,9 @@ class MoonCycleList(QtGui.QTreeView):
 		self.setModel(MPModel.getMoonCycle(date,self.icons,self.refinement))
 
 class PlanetaryHoursList(QtGui.QWidget):
-	def __init__(self, parent = None):
+	def __init__(self, *args, **kwargs):
 
-		QtGui.QWidget.__init__(self, parent)
+		QtGui.QWidget.__init__(self, *args, **kwargs)
 		hbox=QtGui.QVBoxLayout(self)
 		self.tree=QtGui.QTreeView(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
@@ -200,8 +200,8 @@ class PlanetaryHoursList(QtGui.QWidget):
 ### Sign stuff
 
 class AspectTableDisplay(QtGui.QWidget):
-	def __init__(self, *args):
-		QtGui.QWidget.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		QtGui.QWidget.__init__(self, *args, **kwargs)
 		vbox=QtGui.QVBoxLayout(self)
 		#orbs = { 'conjunction': 10.0,
 		#'semi-sextile':3.0,
@@ -386,9 +386,9 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 	info_dialog.show()
 
 class SignsForDayList(QtGui.QWidget):
-	def __init__(self, *args):
+	def __init__(self, *args, **kwargs):
 
-		QtGui.QWidget.__init__(self, *args)
+		QtGui.QWidget.__init__(self, *args, **kwargs)
 		vbox=QtGui.QVBoxLayout(self)
 		grid=QtGui.QGridLayout()
 		vbox.addLayout(grid)

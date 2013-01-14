@@ -39,7 +39,6 @@ class ChronosLNXConfig:
 		self.reset_settings()
 		self.load_schedule()
 
-
 	def grab_icon_path(self,icon_type,looking):
 		#icon type must be of following: planets, moonphase, signs, misc
 		return "skin:%s/%s.png" %(icon_type,looking)
