@@ -27,8 +27,8 @@ class ChronosLNXConfig:
 						ChronosLNXConfig.AUTHOR,
 						ChronosLNXConfig.APPNAME)
 
-		self.userconfdir=str(QtGui.QDesktopServices.storageLocation\
-		(QtGui.QDesktopServices.DataLocation)).replace("//","/")
+		self.userconfdir=QtGui.QDesktopServices.storageLocation\
+		(QtGui.QDesktopServices.DataLocation).replace("//","/")
 		#QtCore.QDir.currentPath()
 
 		app_theme_path=os.path.join(os.sys.path[0],"themes")
@@ -260,17 +260,17 @@ class ChronosLNXConfig:
 			second_column=self.schedule.item(i,1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
 			if isinstance(second_column,QtCore.QDate):
 				#print second_column
-				second_column=str(second_column.toString("MM/dd/yyyy"))
+				second_column=second_column.toString("MM/dd/yyyy")
 			else:
-				second_column=str(self.schedule.item(i,1).data(QtCore.Qt.EditRole))
+				second_column=self.schedule.item(i,1).data(QtCore.Qt.EditRole)
 			third_column=self.schedule.item(i,2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
 			if isinstance(third_column,QtCore.QTime):
-				third_column=str(third_column.toString("HH:mm"))
+				third_column=third_column.toString("HH:mm")
 			else:
-				third_column=str(self.schedule.item(i,2).data(QtCore.Qt.EditRole))
-			fourth_column=str(self.schedule.item(i,3).data(QtCore.Qt.EditRole))
-			fifth_column=str(self.schedule.item(i,4).data(QtCore.Qt.EditRole))
+				third_column=self.schedule.item(i,2).data(QtCore.Qt.EditRole)
+			fourth_column=self.schedule.item(i,3).data(QtCore.Qt.EditRole)
+			fifth_column=self.schedule.item(i,4).data(QtCore.Qt.EditRole)
 			planner.writerow([first_column,second_column,third_column,fourth_column,fifth_column])
 		f.close()
 		os.remove(path)
@@ -280,7 +280,7 @@ class ChronosLNXConfig:
 		themes=set()
 		ath=QtCore.QDir("skins:")
 		for at in ath.entryList():
-			themes.add(str(at))
+			themes.add(at)
 		themes.remove(".")
 		themes.remove("..")
 		return tuple(themes)

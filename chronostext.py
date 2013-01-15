@@ -55,13 +55,13 @@ def prepare_events(date, source):
 
 		if isinstance(second_column,QtCore.QDate):
 			#print second_column
-			second_column=str(second_column.toString("MM/dd/yyyy"))
+			second_column=second_column.toString("MM/dd/yyyy")
 		else:
 			second_column=source.item(i,1).data(QtCore.Qt.EditRole)
 		third_column=source.item(i,2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
 		if isinstance(third_column,QtCore.QTime):
-			third_column=str(third_column.toString("HH:mm"))
+			third_column=third_column.toString("HH:mm")
 		else:
 			third_column=source.item(i,2).data(QtCore.Qt.EditRole)
 		fourth_column=source.item(i,3).data(QtCore.Qt.EditRole)

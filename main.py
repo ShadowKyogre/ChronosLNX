@@ -278,7 +278,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			if pynf:
 				fldr=QtCore.QDir("skin:/")
 				if ptrigger:
-					path=clnxcfg.grab_icon_path("planets",str(self.phour.lower()))
+					path=clnxcfg.grab_icon_path("planets",self.phour.lower())
 				else:
 					path=clnxcfg.grab_icon_path("misc","chronoslnx")
 				path=fldr.absoluteFilePath(path.replace("skin:",""))
@@ -440,19 +440,19 @@ class ChronosLNX(QtGui.QMainWindow):
 	def mass_print(self):
 		day_numbers=(self.save_for_range_dialog.date_end.date().toPyDate() - \
 			self.save_for_range_dialog.date_start.date().toPyDate()).days
-		if str(self.save_for_range_dialog.filename.text()) > "":
+		if self.save_for_range_dialog.filename.text() > "":
 			for j in self.save_for_range_dialog.checkboxes.buttons():
 				if j.isChecked():
 					store_here="%s/%s" %(self.save_for_range_dialog.filename.text(), \
-						str(j.text()).replace(" ", "_"))
+						j.text().replace(" ", "_"))
 					if not os.path.exists(store_here):
 						os.mkdir(store_here)
 			for i in range(day_numbers+1):
 				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=clnxcfg.observer.timezone)+timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
 					if j.isChecked():
-						filename=str(self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
-							%(str(j.text()).replace(" ", "_"),date.strftime("%m-%d-%Y")))
+						filename=self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
+							%(j.text().replace(" ", "_"),date.strftime("%m-%d-%Y"))
 						self.print_to_file(j.text(), date,filename=filename,suppress_notification=True)
 	#'''
 	def make_calendar_menu(self):
@@ -629,9 +629,9 @@ class ChronosLNX(QtGui.QMainWindow):
 		blng=float(self.settings_dialog.birth_widget.longitude)
 		belv=float(self.settings_dialog.birth_widget.elevation)
 
-		thm=str(self.settings_dialog.appearance_icons.currentText())
-		cp=str(self.settings_dialog.c_check.currentText())
-		iothm=str(self.settings_dialog.override_ui_icon.text())
+		thm=self.settings_dialog.appearance_icons.currentText()
+		cp=self.settings_dialog.c_check.currentText()
+		iothm=self.settings_dialog.override_ui_icon.text()
 
 		clnxcfg.observer.lat=lat
 		clnxcfg.observer.lng=lng
@@ -912,7 +912,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		if clnxcfg.current_theme == "None":
 			sysicon=QtGui.QIcon(clnxcfg.grab_icon_path("misc","chronoslnx"))
 		else:
-			sysicon=clnxcfg.main_icons[str(self.phour)]
+			sysicon=clnxcfg.main_icons[self.phour]
 		self.trayIcon.setToolTip("{} - {}\n{}".format(self.now.strftime("%Y/%m/%d"), 
 					self.now.strftime("%H:%M:%S"),
 					total_string.replace("<br />","\n")\
@@ -994,7 +994,7 @@ class ChronosLNX(QtGui.QMainWindow):
 						if hour_trigger:
 							pt=True
 							alist,args=self.parse_phour_args(txt)
-					elif self.phour == str(hour_item):
+					elif self.phour == hour_item:
 						phm=self.hoursToday.tree.model().sourceModel()
 						dt = phm.get_date(phm.last_index)
 						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)

@@ -125,6 +125,9 @@ class CSSCalendar(QtGui.QWidget):
 			item.setText(str(monthdates[i].day))
 			item.setData(QtCore.Qt.UserRole,monthdates[i])
 			item.setData(QtCore.Qt.TextAlignmentRole,QtCore.Qt.AlignCenter)
+			if self.useCSS:
+				item.setForeground(self.weekdayFGs[i%7])
+				item.setBackground(self.weekdayBGs[i%7])
 			self._modifyDayItem(item)
 			self._table.setItem(i/7,i%7,item)
 		self._table.resizeColumnsToContents()
@@ -145,6 +148,13 @@ class CSSCalendar(QtGui.QWidget):
 				for j in range(7):
 					self._table.item(i,j).setForeground(fg)
 					self._table.item(i,j).setBackground(brush)
+		else:
+			for i in range(self._table.rowCount()):
+				for day in range(1,8):
+					fg=self.weekdayFGs[day-1]
+					fill=self.weekdayBGs[day-1]
+					self._table.item(i,day-1).setForeground(fg)
+					self._table.item(i,day-1).setBackground(fill)
 
 	def __setDayFG(self, day, fg):
 		self.weekdayFGs[day-1]=fg
@@ -157,10 +167,10 @@ class CSSCalendar(QtGui.QWidget):
 			self._table.item(i,day-1).setBackground(fill)
 
 	def __dayFG(self, day):
-		return self.weekdayFGs[day]
+		return self.weekdayFGs[day-1]
 
 	def __dayFill(self, day):
-		return self.weekdayBGs[day]
+		return self.weekdayBGs[day-1]
 
 	sundayFill=QtCore.pyqtProperty("QBrush", 
 		lambda self: self.__dayFill(QtCore.Qt.Sunday), 

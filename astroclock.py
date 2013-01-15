@@ -304,10 +304,9 @@ class AstroClock(QtGui.QWidget):
 			painter.drawPie(circle, angle*16, w*16)
 			p=self.getPointAt(circle,put)
 			self.adjustPoint(p,put)
-			icon=self.icons[str(phm.get_planet(i))]
+			icon=self.icons[phm.get_planet(i)]
 			icon.paint(painter,QtCore.QRect(p.x(),p.y(),20,20))
 		painter.restore()
-
 
 	def prepPie(self, painter, circle, width=480, offset=0):
 		painter.save()
@@ -379,7 +378,7 @@ class AstroClock(QtGui.QWidget):
 		self.drawPlanets(painter, self.natData[1], self.inner_circle)
 
 		dt=self.hours.tree.model().sourceModel().get_planet(0)
-		ic=self.icons[str(dt)]
+		ic=self.icons[dt]
 		ic.paint(painter,self.centerRect.toRect())
 
 		c=create_aspect_table(self.natData[1])

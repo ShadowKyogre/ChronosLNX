@@ -250,13 +250,11 @@ AstroCalendar
 
   qproperty-saturdayFill: black;
   qproperty-saturdayFG: red;
-
-  qproperty-weekNFill: black;
-  qproperty-weekNFG: red;
-
+/*
   qproperty-lunarReturnFill: black;
   qproperty-lunarReturnFG: grey;
 
   qproperty-solarReturnFill: black;
   qproperty-solarReturnFG: gold;
+*/
 }

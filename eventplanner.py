@@ -261,7 +261,7 @@ class DayEventsModel(QtGui.QSortFilterProxyModel):
 			elif data == "Weekdays":
 				return 1 <= self.wday <= 5
 			else:
-				return str(data) == self.exact_day_type
+				return data == self.exact_day_type
 
 	def setDate(self,date):
 		self.date=date
