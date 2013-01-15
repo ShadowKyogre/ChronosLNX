@@ -1,5 +1,6 @@
 from PyQt4 import QtGui,QtCore
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from measurements import ZODIAC
 from astro_rewrite import create_aspect_table
@@ -394,7 +395,7 @@ class AstroClock(QtGui.QWidget):
 			painter.setPen(sparkles)
 			painter.drawPath(path)
 
-		years=int((datetime.now(self.observer.timezone)-self.bd).days/365.25)
+		years=relativedelta(self.observer.dt_now(),self.bd).years
 		need_idx=0
 		if len(self.natData[1]) == 14:
 			need_idx=12
