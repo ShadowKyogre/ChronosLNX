@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import swisseph
 from dateutil import tz
+from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 import math
 
@@ -688,4 +689,9 @@ def get_sun_sign(date, observer):
 	sign=get_house(swisseph.SUN, observer, date)[2][1]
 	swisseph.close()
 	return sign
+
+def yearly_profection(date, birthdate, ascendant):
+	years=relativedelta(date,birthdate).years
+	yp=ZODIAC[(years+ascendant.signData['decanates'][0])%12]['name']
+	return yp
 

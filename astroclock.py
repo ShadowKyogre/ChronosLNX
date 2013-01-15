@@ -3,7 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from measurements import ZODIAC
-from astro_rewrite import create_aspect_table
+from astro_rewrite import create_aspect_table, yearly_profection
 
 LEVELS=(('Sun','Moon','Venus','Mercury'),\
 ('Mars','Jupiter','Saturn'),\
@@ -398,12 +398,12 @@ class AstroClock(QtGui.QWidget):
 		years=relativedelta(self.observer.dt_now(),self.bd).years
 		need_idx=0
 		if len(self.natData[1]) == 14:
-			need_idx=12
-		elif len(self.natData[1]) == 16:
 			need_idx=10
+		elif len(self.natData[1]) == 16:
+			need_idx=12
 		if need_idx > 0:
-			yearly_profection=ZODIAC[(years+self.natData[1][12].m.signData['decanates'][0])%12]['name']
-			icon=self.sign_icons[yearly_profection]
+			yp=yearly_profection(self.observer.dt_now(), self.bd, self.natData[1][need_idx].m)
+			icon=self.sign_icons[yp]
 			painter.setPen(penifiedOFG)
 			#self.theme.outer['houses'].setBrush(self.inner['fill'])
 			painter.drawText(0,12,"Yearly Profection")
