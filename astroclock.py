@@ -25,6 +25,9 @@ self.astroClock.orbs=clnxcfg.orbs
 self.astroClock.observer=clnxcfg.observer
 if not clnxcfg.use_css:
 	self.astroClock.init_colors()
+
+updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
+self.astroClock.signData=[self.houses,self.zodiac]
 '''
 
 class AstroClock(QtGui.QWidget):

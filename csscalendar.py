@@ -120,6 +120,7 @@ class CSSCalendar(QtGui.QWidget):
 		thisday=pydate.today()
 		weeks=len(monthdates)
 		self._table.setRowCount(int(weeks/7))
+		idxs=None
 		for i in range(weeks):
 			item=QtGui.QTableWidgetItem()
 			item.setText(str(monthdates[i].day))
@@ -128,8 +129,11 @@ class CSSCalendar(QtGui.QWidget):
 			if self.useCSS:
 				item.setForeground(self.weekdayFGs[i%7])
 				item.setBackground(self.weekdayBGs[i%7])
+			if monthdates[i] == self._date:
+				idxs=(i/7,i%7)
 			self._modifyDayItem(item)
 			self._table.setItem(i/7,i%7,item)
+		self._table.setCurrentCell(*idxs)
 		self._table.resizeColumnsToContents()
 		self._table.resizeRowsToContents()
 

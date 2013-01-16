@@ -133,6 +133,14 @@ class MPModel(BookMarkedModel):
 '''
 self.moonToday.icons=clnxcfg.moon_icons
 self.moonToday.refinement=clnxcfg.refinements['Moon Phase']
+	def update_moon_cycle(self):
+		if previous_new_moon(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
+			self.moonToday.clear()
+			self.moonToday.get_moon_cycle(self.now)
+		self.moonToday.highlight_cycle_phase(self.now)
+#updatey
+	if self.now >= self.next_sunrise:
+		self.update_moon_cycle()
 '''
 class MoonCycleList(QtGui.QTreeView):
 	def __init__(self, *args, **kwargs):
@@ -152,6 +160,22 @@ class MoonCycleList(QtGui.QTreeView):
 		self.setModel(MPModel.getMoonCycle(date,self.icons,self.refinement))
 '''
 self.hoursToday.icons=clnxcfg.main_icons
+
+	def prepare_hours_for_today(self):
+		dayn=self.now.isoweekday()%7
+		self.pday = get_planet_day(dayn)
+		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, clnxcfg.observer)
+		self.astroClock.nexts=self.next_sunrise
+		if self.now < self.sunrise:
+			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), clnxcfg.observer)
+			self.astroClock.nexts=self.next_sunrise
+			self.hoursToday.prepareHours(self.now-timedelta(days=1), clnxcfg.observer)
+			self.pday = get_planet_day(dayn-1)
+		else:
+			self.hoursToday.prepareHours(self.now, clnxcfg.observer)
+#updatey
+	if self.now >= self.next_sunrise:
+		self.update_hours()
 '''
 class PlanetaryHoursList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
