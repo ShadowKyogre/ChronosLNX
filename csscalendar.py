@@ -5,15 +5,19 @@ from datetime import date as pydate
 class TodayDelegate(QtGui.QStyledItemDelegate):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.coltoday=QtGui.QPalette().midlight()
-		col=self.coltoday.color()
-		col.setAlpha(64)
-		self.coltoday.setColor(col)
+		self.coltoday=QtGui.QPalette().midlight().color()
+		#col=self.coltoday.color()
+		self.coltoday.setAlpha(64)
 	def paint(self, painter, option, idx):
 		super().paint(painter, option, idx)
 		date=idx.model().data(idx,QtCore.Qt.UserRole)
 		if self._otherTodayCheck(date) or date == pydate.today():
-			painter.fillRect(option.rect, self.coltoday)
+			painter.save()
+			painter.setPen(self.coltoday)
+			optrect=option.rect
+			rect=QtCore.QRectF(optrect.x(),optrect.y(),optrect.width()-2,optrect.height()-2)
+			painter.drawRect(rect)
+			painter.restore()
 	def _otherTodayCheck(self, date):
 		return False
 
