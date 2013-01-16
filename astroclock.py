@@ -12,6 +12,20 @@ LEVELS=(('Sun','Moon','Venus','Mercury'),\
 ('Ascendant','Descendant','MC','IC'))
 
 ### CSS Themable Custom Widgets
+'''
+self.astroClock.icons=clnxcfg.main_icons
+self.astroClock.sign_icons=clnxcfg.sign_icons
+self.astroClock.natData=clnxcfg.natal_data
+self.astroClock.bd=clnxcfg.baby.obvdate
+self.astroClock.signData=[self.houses,self.zodiac]
+self.astroClock.hours=self.hoursToday
+self.astroClock.pluto_alternate=clnxcfg.pluto_alt
+self.astroClock.capricorn_alternate=clnxcfg.capricorn_alt
+self.astroClock.orbs=clnxcfg.orbs
+self.astroClock.observer=clnxcfg.observer
+if not clnxcfg.use_css:
+	self.astroClock.init_colors()
+'''
 
 class AstroClock(QtGui.QWidget):
 	def __init__(self, *args):

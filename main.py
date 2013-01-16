@@ -31,7 +31,7 @@ pynf = True
 class ReusableDialog(QtGui.QDialog):
 	#because some dialogs are better if they're made and just re-used instead of completely reconstructed
 	def __init__(self, *args):
-		QtGui.QDialog.__init__(self, *args)
+		super().__init__(*args)
 
 	def closeEvent(self, event):
 		if hasattr(self.parent(),"trayIcon") and \
@@ -41,7 +41,7 @@ class ReusableDialog(QtGui.QDialog):
 
 class ChronosLNX(QtGui.QMainWindow):
 	def __init__(self, parent=None):
-		QtGui.QMainWindow.__init__(self, parent)
+		super().__init__(parent)
 		self.timer = QtCore.QTimer(self)
 		self.now = clnxcfg.observer.obvdate
 		self.make_settings_dialog()
@@ -57,56 +57,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.setDockNestingEnabled(True)
 		self.timer.start(1000)
 
-	def createPopupMenu (self):
-		menu=QtGui.QMenu(self)
-		tabgroups=[]
-		alone=[]
-		toolbars=False
-		tabgroupsFound=False
-		aloneFound=False
-
-		for i in self.findChildren(QtGui.QToolBar):
-			menu.addAction(i.toggleViewAction())
-			if not toolbars:
-				toolbars=True
-		if toolbars:
-			menu.addSeparator()
-
-		for i in self.findChildren(QtGui.QDockWidget):
-			tabgroup=set(self.tabifiedDockWidgets(i))
-			tabgroup.add(i)
-			if tabgroup not in tabgroups and len(tabgroup) > 1:
-				tabgroups.append(tabgroup)
-				if not tabgroupsFound:
-					tabgroupsFound=True
-			elif i not in alone and len(tabgroup) == 1:
-				alone.append(i)
-				if not aloneFound:
-					aloneFound=True
-
-		if aloneFound:
-			menu.addSeparator()
-		for i in alone:
-			menu.addAction(i.toggleViewAction())
-
-		if tabgroupsFound:
-			menu.addSeparator()
-		for n,group in enumerate(tabgroups):
-			submenu=menu.addMenu("Tab group {} ({} items)".format(n+1,len(group)))
-			closeall=submenu.addAction("Close this tabgroup")
-			closeall.setProperty('tabgroup',group)
-			closeall.triggered.connect(self.closeTabs)
-			for dw in group:
-				submenu.addAction(dw.toggleViewAction())
-		return menu
-
-	def closeTabs(self):
-		for dw in self.sender().property('tabgroup'):
-			dw.toggleViewAction().trigger()
-
 	def add_widgets(self):
 		##left pane
-
 		self.astroClock=AstroClock(self)
 		self.setCentralWidget(self.astroClock)
 		#self.astroClock.hide()

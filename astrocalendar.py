@@ -4,6 +4,18 @@ from csscalendar import CSSCalendar, TodayDelegate
 import swisseph
 
 ### CSS Themable Custom Widgets
+'''
+self.calendar.setRefinements(clnxcfg.refinements)
+self.calendar.setIcons(clnxcfg.moon_icons)
+self.calendar.setShowPhase(clnxcfg.show_mcal)
+self.calendar.setSolarReturn(clnxcfg.show_sr)
+self.calendar.setLunarReturn(clnxcfg.show_lr)
+self.calendar.setBirthTime(clnxcfg.baby.obvdate)
+self.calendar.setNatalMoon(clnxcfg.natal_moon)
+self.calendar.setNatalSun(clnxcfg.natal_sun)
+self.calendar.useCSS=clnxcfg.use_css
+self.calendar.observer=clnxcfg.observer
+'''
 
 class AstroCalendarDelegate(TodayDelegate):
 	def __init__(self, *args, **kwargs):

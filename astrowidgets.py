@@ -130,7 +130,10 @@ class MPModel(BookMarkedModel):
 		return model
 
 ### Planetary Hours and Moon Phase Widgets
-
+'''
+self.moonToday.icons=clnxcfg.moon_icons
+self.moonToday.refinement=clnxcfg.refinements['Moon Phase']
+'''
 class MoonCycleList(QtGui.QTreeView):
 	def __init__(self, *args, **kwargs):
 
@@ -147,7 +150,9 @@ class MoonCycleList(QtGui.QTreeView):
 
 	def get_moon_cycle(self,date):
 		self.setModel(MPModel.getMoonCycle(date,self.icons,self.refinement))
-
+'''
+self.hoursToday.icons=clnxcfg.main_icons
+'''
 class PlanetaryHoursList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
 
@@ -385,6 +390,16 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 		tree.addTopLevelItem(item)
 	info_dialog.show()
 
+'''
+self.signsToday.table=clnxcfg.natal_data[1]
+self.signsToday.icons=clnxcfg.main_icons
+self.signsToday.sign_icons=clnxcfg.sign_icons
+self.signsToday.admi=clnxcfg.show_admi
+self.signsToday.nodes=clnxcfg.show_nodes
+self.signsToday.pluto_alternate=clnxcfg.pluto_alt
+self.signsToday.capricorn_alternate=clnxcfg.capricorn_alt
+self.signsToday.orbs=clnxcfg.orbs
+'''
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
 

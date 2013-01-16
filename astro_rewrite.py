@@ -98,7 +98,6 @@ class Observer:
 		utcdt = datetime.now(tz=tz.gettz('UTC'))
 		return utcdt.astimezone(self.timezone)
 	obvdate = property(get_dt,set_dt)
-		
 
 def search_special_aspects(aspect_table):
 	yods=set()
