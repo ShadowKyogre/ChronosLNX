@@ -186,7 +186,7 @@ class ZodiacalMeasurement (object):
 class ActiveZodiacalMeasurement(ZodiacalMeasurement):
 	__slots__ = ('house_info','progress')
 	def __init__(self, l, a, house_info, progress=None):
-		ZodiacalMeasurement.__init__(self,l,a)
+		super().__init__(l,a)
 		self.house_info=house_info
 		self.progress=progress
 

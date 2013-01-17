@@ -31,8 +31,8 @@ self.astroClock.signData=[self.houses,self.zodiac]
 '''
 
 class AstroClock(QtGui.QWidget):
-	def __init__(self, *args):
-		QtGui.QWidget.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.size=500
 		self.true_size=self.size+100
 		self.inner_size=self.size-200

@@ -5,7 +5,7 @@ from astro_rewrite import *
 
 class PlanetDateEditor(QtGui.QWidget):
 	def __init__(self, parent = None):
-		QtGui.QWidget.__init__(self, parent)
+		super().__init__(parent)
 		inputstuff=QtGui.QGridLayout(self)
 		self.day=QtGui.QComboBox(self)
 		self.day.addItem("Sun")
@@ -52,7 +52,7 @@ class PlanetDateEditor(QtGui.QWidget):
 
 class PlanetHourEditor(QtGui.QWidget):
 	def __init__(self, parent = None):
-		QtGui.QWidget.__init__(self, parent)
+		super().__init__(parent)
 		inputstuff=QtGui.QGridLayout(self)
 		self.time=QtGui.QComboBox(self)
 		self.time.addItem("Sun")
@@ -97,9 +97,6 @@ class PlanetHourEditor(QtGui.QWidget):
 ##Delegates to place the needed widgets in
 
 class EventTypeEditorDelegate(QtGui.QStyledItemDelegate):
-	def __init__(self, parent=None, *args):
-		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
-
 	def createEditor(self, parent, option, index):
 		event_type=QtGui.QComboBox(parent)
 		event_type.addItem("Textual reminder")
@@ -118,9 +115,6 @@ class EventTypeEditorDelegate(QtGui.QStyledItemDelegate):
 		editor.setGeometry(option.rect)
 
 class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
-	def __init__(self, parent=None, *args):
-		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
-
 	def createEditor(self, parent, option, index):
 		didx=index.model().index(index.row(),index.column()-1)
 		event_type=index.model().data(didx, QtCore.Qt.EditRole)
@@ -151,9 +145,6 @@ class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
 		editor.setGeometry(option.rect)
 
 class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
-	def __init__(self, parent=None, *args):
-		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
-
 	def createEditor(self, parent, option, index):
 		p=TriggerEditor(parent)
 		p.setAutoFillBackground(True)
@@ -180,10 +171,6 @@ class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
 		editor.setGeometry(option.rect)
 
 class DateEditorDelegate(QtGui.QStyledItemDelegate):
-
-	def __init__(self, parent=None, *args):
-		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
-
 	def createEditor(self, parent, option, index):
 		p=PlanetDateEditor(parent)
 		p.setAutoFillBackground(True)
@@ -210,9 +197,6 @@ class DateEditorDelegate(QtGui.QStyledItemDelegate):
 		editor.setGeometry(option.rect)
 
 class TimeEditorDelegate(QtGui.QStyledItemDelegate):
-	def __init__(self, parent=None, *args):
-		QtGui.QStyledItemDelegate.__init__(self, parent, *args)
-
 	def createEditor(self, parent, option, index):
 		return PlanetHourEditor(parent)
 
@@ -240,7 +224,7 @@ class TimeEditorDelegate(QtGui.QStyledItemDelegate):
 
 class DayEventsModel(QtGui.QSortFilterProxyModel):
 	def __init__(self, *args):
-		QtGui.QSortFilterProxyModel.__init__(self, *args)
+		super().__init__(*args)
 		self.date=None
 		self.wday=None
 		self.exact_day_type=None
@@ -271,8 +255,7 @@ class DayEventsModel(QtGui.QSortFilterProxyModel):
 
 class EventsList(QtGui.QWidget):
 	def __init__(self, *args):
-
-		QtGui.QWidget.__init__(self, *args)
+		super().__init__(*args)
 
 		a_vbox=QtGui.QVBoxLayout(self)
 		editbuttons=QtGui.QHBoxLayout()

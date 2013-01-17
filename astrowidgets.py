@@ -19,7 +19,7 @@ from datetime import datetime
 #http://www.commandprompt.com/community/pyqt/x6082
 class BookMarkedModel(QtGui.QStandardItemModel):
 	def __init__(self,  rows = 0, columns = 0, parent = None):
-		QtGui.QStandardItemModel.__init__(self, rows, columns, parent)
+		super().__init__(rows, columns, parent)
 		color=QtGui.QPalette().color(QtGui.QPalette.Midlight)
 		color.setAlpha(64)
 		self.color=QtGui.QBrush(color)
@@ -42,7 +42,7 @@ class BookMarkedModel(QtGui.QStandardItemModel):
 
 class PHModel(BookMarkedModel):
 	def __init__(self, parent = None):
-		BookMarkedModel.__init__(self, parent=parent,columns=2)
+		super().__init__(parent=parent,columns=2)
 		self.setHorizontalHeaderLabels(["Time","Planet"])
 
 	def grab_nearest_hour(self,date):
@@ -89,7 +89,7 @@ class PHModel(BookMarkedModel):
 
 class MPModel(BookMarkedModel):
 	def __init__(self, parent = None):
-		BookMarkedModel.__init__(self, columns=3, parent=parent)
+		super().__init__(columns=3, parent=parent)
 		self.setHorizontalHeaderLabels(["Time","Phase","Illumination"])
 
 	def highlight_cycle_phase(self,date):
@@ -144,8 +144,7 @@ self.moonToday.refinement=clnxcfg.refinements['Moon Phase']
 '''
 class MoonCycleList(QtGui.QTreeView):
 	def __init__(self, *args, **kwargs):
-
-		QtGui.QTreeView.__init__(self, *args, **kwargs)
+		super().__init__(*args, **kwargs)
 		self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self.setRootIsDecorated(False)
 		self.setModel(MPModel())
@@ -179,8 +178,7 @@ self.hoursToday.icons=clnxcfg.main_icons
 '''
 class PlanetaryHoursList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
-
-		QtGui.QWidget.__init__(self, *args, **kwargs)
+		super().__init__(*args, **kwargs)
 		hbox=QtGui.QVBoxLayout(self)
 		self.tree=QtGui.QTreeView(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
@@ -230,7 +228,7 @@ class PlanetaryHoursList(QtGui.QWidget):
 
 class AspectTableDisplay(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
-		QtGui.QWidget.__init__(self, *args, **kwargs)
+		super().__init__(*args, **kwargs)
 		vbox=QtGui.QVBoxLayout(self)
 		#orbs = { 'conjunction': 10.0,
 		#'semi-sextile':3.0,
@@ -427,7 +425,7 @@ self.signsToday.orbs=clnxcfg.orbs
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
 
-		QtGui.QWidget.__init__(self, *args, **kwargs)
+		super().__init__(*args, **kwargs)
 		vbox=QtGui.QVBoxLayout(self)
 		grid=QtGui.QGridLayout()
 		vbox.addLayout(grid)
