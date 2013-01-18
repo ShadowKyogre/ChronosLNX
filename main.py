@@ -133,7 +133,11 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.tabifyDockWidget(dockhours, dockmoon)
 
 		docksigns=QtGui.QDockWidget(self)
-		self.signsToday=SignsForDayList(self)
+		self.signsToday=SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
+										clnxcfg.show_admi, clnxcfg.show_nodes, 
+										clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
+										table=clnxcfg.natal_data[1], 
+										orbs=clnxcfg.orbs, parent=self)
 		docksigns.setWindowTitle("Signs")
 		docksigns.setWidget(self.signsToday)
 		self.tabifyDockWidget(dockmoon, docksigns)
@@ -143,7 +147,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		dockevents.setWindowTitle("Events")
 		dockevents.setWidget(self.eventsToday)
 		self.tabifyDockWidget(docksigns, dockevents)
-
+		
+		#comment this out later
 		self.update_widgets_config()
 
 		self.prepare_hours_for_today()
@@ -282,14 +287,10 @@ class ChronosLNX(QtGui.QMainWindow):
 		moonToday.refinement=clnxcfg.refinements['Moon Phase']
 		moonToday.icons=clnxcfg.moon_icons
 
-		signsToday=SignsForDayList(info_dialog)
-		signsToday.icons=clnxcfg.main_icons
-		signsToday.sign_icons=clnxcfg.sign_icons
-		signsToday.pluto_alternate=clnxcfg.pluto_alt
-		signsToday.admi=clnxcfg.show_admi
-		signsToday.nodes=clnxcfg.show_nodes
-		signsToday.capricorn_alternate=clnxcfg.capricorn_alt
-		signsToday.orbs=clnxcfg.orbs
+		signsToday=SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
+									clnxcfg.show_admi, clnxcfg.show_nodes, 
+									clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
+									orbs=clnxcfg.orbs, parent=info_dialog)
 		if not birth:
 			signsToday.table=clnxcfg.natal_data[1]
 

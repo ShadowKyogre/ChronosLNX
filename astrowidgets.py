@@ -1,11 +1,13 @@
 #http://www.kimgentes.com/worshiptech-web-tools-page/2008/10/14/regex-pattern-for-parsing-csv-files-with-embedded-commas-dou.html
 #http://doc.qt.nokia.com/qq/qq26-pyqtdesigner.html#creatingacustomwidget
 from PyQt4 import QtGui,QtCore
-from astro_rewrite import *
-from measurements import format_zodiacal_difference
 #import re
 from dateutil import tz
 from datetime import datetime
+
+from astro_rewrite import *
+from measurements import format_zodiacal_difference
+from aspects import DEFAULT_ORBS
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 ##http://doc.qt.nokia.com/latest/widgets-analogclock.html
@@ -230,18 +232,6 @@ class AspectTableDisplay(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		vbox=QtGui.QVBoxLayout(self)
-		#orbs = { 'conjunction': 10.0,
-		#'semi-sextile':3.0,
-		#'semi-square':3.0,
-		#'sextile':6.0,
-		#'quintile':2.0,
-		#'square':8.0,
-		#'trine':8.0,
-		#'sesiquadrate':3.0,
-		#'biquintile':2.0,
-		#'inconjunct':3.0,
-		#'opposition':10.0,
-		#}
 		self.tableAspects=QtGui.QStandardItemModel()
 		self.tableSpecial=QtGui.QStandardItemModel()
 		self.headers=[]
@@ -385,7 +375,7 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 	vbox.addWidget(tree)
 	for i in houses:
 		item=QtGui.QTreeWidgetItem()
-		item.setText(0,"House %s" %(i.num))
+		item.setText(0,"%s" %(i.num))
 		item.setToolTip(0,str(i))
 		if i.natRulerData['name'] == "Capricorn":
 			item.setIcon(1,sign_icons[capricorn_alternate])
@@ -412,20 +402,10 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 		tree.addTopLevelItem(item)
 	info_dialog.show()
 
-'''
-self.signsToday.table=clnxcfg.natal_data[1]
-self.signsToday.icons=clnxcfg.main_icons
-self.signsToday.sign_icons=clnxcfg.sign_icons
-self.signsToday.admi=clnxcfg.show_admi
-self.signsToday.nodes=clnxcfg.show_nodes
-self.signsToday.pluto_alternate=clnxcfg.pluto_alt
-self.signsToday.capricorn_alternate=clnxcfg.capricorn_alt
-self.signsToday.orbs=clnxcfg.orbs
-'''
 class SignsForDayList(QtGui.QWidget):
-	def __init__(self, *args, **kwargs):
-
-		super().__init__(*args, **kwargs)
+	def __init__(self, icons, sign_icons, admi, nodes, pluto_alt, cprc_alt, 
+				table=[], orbs=DEFAULT_ORBS, parent=None):
+		super().__init__(parent=parent)
 		vbox=QtGui.QVBoxLayout(self)
 		grid=QtGui.QGridLayout()
 		vbox.addLayout(grid)
@@ -435,13 +415,7 @@ class SignsForDayList(QtGui.QWidget):
 		self.tree=QtGui.QTreeWidget(self)
 		self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self.tree.setRootIsDecorated(False)
-		header=[]
-		header.append("Planet")
-		header.append("Constellation")
-		header.append("Angle")
-		header.append("Retrograde?")
-		header.append("House")
-		self.tree.setHeaderLabels(header)
+		self.tree.setHeaderLabels(["Planet","Constellation","Angle","Retrograde?","House"])
 		self.tree.setColumnCount(5)
 		vbox.addWidget(self.tree)
 		self.time.setDisplayFormat("HH:mm:ss")
@@ -452,23 +426,28 @@ class SignsForDayList(QtGui.QWidget):
 		button2.clicked.connect(self.showHouses)
 		grid.addWidget(button,2,0)
 		grid.addWidget(button2,2,1)
+
 		self.z=[]
 		self.h=[]
-		self.table=[]
-
+		self.icons=icons
+		self.sign_icons=sign_icons
+		self.admi=admi
+		self.nodes=nodes
+		self.pluto_alternate=pluto_alt
+		self.capricorn_alternate=cprc_alt
+		self.table=table
+		self.orbs=orbs
 	def showAspects(self):
-		aspectsDialog(self, self.z, self.table, self.icons, \
-		self.sign_icons, self.pluto_alternate, self.admi, self.nodes,\
-		self.orbs)
+		aspectsDialog(self, self.z, self.table, self.icons, 
+		self.sign_icons, self.pluto_alternate, self.admi, 
+		self.nodes, self.orbs)
 
 	def showHouses(self):
 		housesDialog(self, self.h, self.capricorn_alternate, self.sign_icons)
 
-	def update_degrees(self, qtime):
+	def update_degrees(self, time):
 		self.tree.clear()
-		self.target_date=self.target_date.replace(hour=qtime.hour())\
-		.replace(minute=qtime.minute())\
-		.replace(second=qtime.second())
+		self.target_date=self.target_date.replace(hour=time.hour(), minute=time.minute(), second=time.second())
 		self._grab()
 
 	def assembleFromZodiac(self, zodiac):
@@ -509,7 +488,7 @@ class SignsForDayList(QtGui.QWidget):
 			updatePandC(self.target_date, self.observer, self.h, self.z)
 		self.assembleFromZodiac(self.z)
 
-	def get_constellations(self,date, observer):
+	def get_constellations(self, date, observer):
 		self.observer=observer
 		self.target_date=date
 		self.time.setTime(self.target_date.time())
