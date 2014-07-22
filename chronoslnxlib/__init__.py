@@ -1,7 +1,7 @@
 from os import path
 
 APPNAME="ChronosLNX"
-APPVERSION="0.9.6"
+APPVERSION="0.9.7"
 AUTHOR="ShadowKyogre"
 DESCRIPTION="A simple tool for checking planetary hours and moon phases."
 YEAR="2012"
