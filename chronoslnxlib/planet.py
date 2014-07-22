@@ -1,5 +1,5 @@
-from rulerships import RLIST,RTEMPLATE
-from measurements import ZODIAC
+from .rulerships import RLIST,RTEMPLATE
+from .measurements import ZODIAC
 
 class Planet:
 	def __init__(self, name, m=None, prefix=None,\

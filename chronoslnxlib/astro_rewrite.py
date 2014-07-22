@@ -5,10 +5,10 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 import math
 
-import zonetab
-from measurements import *
-from aspects import *
-from planet import Planet
+from . import zonetab
+from .measurements import *
+from .aspects import *
+from .planet import Planet
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/

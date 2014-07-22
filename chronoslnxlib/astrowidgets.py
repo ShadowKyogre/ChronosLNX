@@ -5,9 +5,9 @@ from PyQt4 import QtGui,QtCore
 from dateutil import tz
 from datetime import datetime
 
-from astro_rewrite import *
-from measurements import format_zodiacal_difference
-from aspects import DEFAULT_ORBS
+from .astro_rewrite import *
+from .measurements import format_zodiacal_difference
+from .aspects import DEFAULT_ORBS
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 ##http://doc.qt.nokia.com/latest/widgets-analogclock.html

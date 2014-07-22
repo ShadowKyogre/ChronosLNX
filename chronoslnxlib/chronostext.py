@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from astro_rewrite import *
-from eventplanner import DayEventsModel
+from .astro_rewrite import *
+from .eventplanner import DayEventsModel
 from PyQt4 import QtGui,QtCore
 from datetime import timedelta
 import swisseph

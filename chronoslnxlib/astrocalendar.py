@@ -1,6 +1,6 @@
 from PyQt4 import QtGui,QtCore
-from astro_rewrite import lunar_return, solar_return, state_to_string, grab_phase
-from csscalendar import CSSCalendar, TodayDelegate
+from .astro_rewrite import lunar_return, solar_return, state_to_string, grab_phase
+from .csscalendar import CSSCalendar, TodayDelegate
 import swisseph
 
 ### CSS Themable Custom Widgets

@@ -2,36 +2,29 @@
 from PyQt4 import QtGui,QtCore
 import os, csv
 from ast import literal_eval
-from eventplanner import *
+from .eventplanner import *
 import datetime
 from collections import OrderedDict as od
 
-from astro_rewrite import *
-from aspects import DEFAULT_ORBS
+from .astro_rewrite import *
+from .aspects import DEFAULT_ORBS
 from dateutil import tz
-import zonetab
+from . import zonetab
 #from dateutil.parser import *
+from . import DATA_DIR, THEMES, AUTHOR, APPNAME
 
 class ChronosLNXConfig:
-
-	APPNAME="ChronosLNX"
-	APPVERSION="0.9.6"
-	AUTHOR="ShadowKyogre"
-	DESCRIPTION="A simple tool for checking planetary hours and moon phases."
-	YEAR="2012"
-	PAGE="http://shadowkyogre.github.com/ChronosLNX/"
-
 	def __init__(self):
 		self.settings=QtCore.QSettings(QtCore.QSettings.IniFormat,
 						QtCore.QSettings.UserScope,
-						ChronosLNXConfig.AUTHOR,
-						ChronosLNXConfig.APPNAME)
+						AUTHOR,
+						APPNAME)
 
 		self.userconfdir=QtGui.QDesktopServices.storageLocation\
 		(QtGui.QDesktopServices.DataLocation).replace("//","/")
 		#QtCore.QDir.currentPath()
 
-		app_theme_path=os.path.join(os.sys.path[0],"themes")
+		app_theme_path=os.path.join(THEMES)
 		config_theme_path=os.path.join(self.userconfdir,"themes")
 
 		QtCore.QDir.setSearchPaths("skins", [config_theme_path,app_theme_path])
@@ -204,7 +197,7 @@ class ChronosLNXConfig:
 				print("Making directory to store schedule")
 				os.makedirs(self.userconfdir)
 			from shutil import copyfile
-			sch=os.path.join(os.sys.path[0],"schedule.csv")
+			sch=os.path.join(DATA_DIR,"schedule.csv")
 			copyfile(sch, path)
 		planner = csv.reader(open(path, "r"))
 		next(planner)

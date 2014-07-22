@@ -1,4 +1,4 @@
-from measurements import format_zodiacal_difference
+from .measurements import format_zodiacal_difference
 from collections import OrderedDict as od
 
 ASPECTS = od([('conjunction', 0.0),

@@ -16,14 +16,15 @@ from re import findall,match
 
 from PyQt4 import QtGui,QtCore
 
-import geolocationwidget ## from example, but modified a little
-from astro_rewrite import *
-from astroclock import AstroClock
-from astrocalendar import AstroCalendar
-from astrowidgets import *
-from eventplanner import *
-from chronostext import *
-from chronosconfig import ChronosLNXConfig
+from . import geolocationwidget ## from example, but modified a little
+from .astro_rewrite import *
+from .astroclock import AstroClock
+from .astrocalendar import AstroCalendar
+from .astrowidgets import *
+from .eventplanner import *
+from .chronostext import *
+from .guiconfig import ChronosLNXConfig
+from . import APPNAME, APPVERSION, DESCRIPTION, EMAIL, AUTHOR, YEAR, PAGE
 pynf = True
 
 #http://pastebin.com/BvNx9wdk
@@ -47,7 +48,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
 		self.make_tray_icon()
-		self.setWindowTitle(clnxcfg.APPNAME)
+		self.setWindowTitle(APPNAME)
 
 		self.houses,self.zodiac=get_signs(clnxcfg.baby.obvdate,clnxcfg.baby,\
 		clnxcfg.show_nodes,clnxcfg.show_admi)
@@ -239,7 +240,7 @@ class ChronosLNX(QtGui.QMainWindow):
 				else:
 					path=clnxcfg.grab_icon_path("misc","chronoslnx")
 				path=fldr.absoluteFilePath(path.replace("skin:",""))
-				call(['notify-send','-t','10000','-a',clnxcfg.APPNAME,
+				call(['notify-send','-t','10000','-a', APPNAME,
 					'-i',path,title,text])
 			else:
 				if self.trayIcon.supportsMessages():
@@ -813,12 +814,11 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
 
 	def show_about(self):
-		QtGui.QMessageBox.about (self, "About {APPNAME}"\
-		.format(**vars(ChronosLNXConfig)),
-		("<center><big><b>{APPNAME} {APPVERSION}</b></big>"
-		"<br />{DESCRIPTION}<br />(C) {AUTHOR} {YEAR}<br />"
-		"<a href=\"{PAGE}\">{APPNAME} Homepage</a></center>")\
-		.format(**vars(ChronosLNXConfig)))
+		QtGui.QMessageBox.about (self, "About {}".format(APPNAME),
+		("<center><big><b>{0} {1}</b></big>"
+		"<br />{2}<br />(C) <a href=\"mailto:{3}\">{4}</a> {5}<br />"
+		"<a href=\"{6}\">{0} Homepage</a></center>")\
+		.format(APPNAME,APPVERSION,DESCRIPTION,EMAIL,AUTHOR,YEAR,PAGE))
 
 	def show_help(self):
 		print("Stubbing out")
@@ -973,8 +973,8 @@ class ChronosLNX(QtGui.QMainWindow):
 def main():
 	global app, clnxcfg, pynf
 	app = QtGui.QApplication(sys.argv)
-	app.setApplicationName(ChronosLNXConfig.APPNAME)
-	app.setApplicationVersion(ChronosLNXConfig.APPVERSION)
+	app.setApplicationName(APPNAME)
+	app.setApplicationVersion(APPVERSION)
 	
 	app.setQuitOnLastWindowClosed(False)
 	clnxcfg = ChronosLNXConfig()

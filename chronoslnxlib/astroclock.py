@@ -2,8 +2,8 @@ from PyQt4 import QtGui,QtCore
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from measurements import ZODIAC
-from astro_rewrite import create_aspect_table, yearly_profection
+from .measurements import ZODIAC
+from .astro_rewrite import create_aspect_table, yearly_profection
 
 LEVELS=(('Sun','Moon','Venus','Mercury'),\
 ('Mars','Jupiter','Saturn'),\
