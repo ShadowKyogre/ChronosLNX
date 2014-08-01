@@ -79,7 +79,7 @@ class install(_install):
 					os.chmod(f, S_IMODE(at[ST_MODE]))
 
 data_files = [('share/applications',['ChronosLNX.desktop']),
-			  ('share/pixmaps', ['chronoslnx.png']),
+			  ('share/pixmaps', ['themes/DarkGlyphs/mics/chronoslnx.png']),
 			  ('share/chronoslnx', ['schedule.csv'])
 			  ]
 data_files.extend(globby_themes())
