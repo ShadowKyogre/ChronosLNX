@@ -16,7 +16,7 @@ def globby_themes():
 		put_here = os.path.join('share', 'chronoslnx', d)
 		for f in glob.glob(os.path.join(d,'*')):
 			if os.path.isdir(f):
-				file_pairs.append((os.path.join(put_here, f), 
+				file_pairs.append((os.path.join(put_here, os.path.basename(f)), 
 				glob.glob(os.path.join(f,'*'))))
 			else:
 				file_pairs.append((put_here, [os.path.join(d,'ui.css')]))
