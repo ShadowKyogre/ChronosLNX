@@ -96,10 +96,18 @@ class CSSCalendar(QtGui.QWidget):
 
 	def setMonth(self, monthidx):
 		self.currentPageChanged.emit(self._date.year,monthidx+1)
-		self.date=self.date.replace(month=monthidx+1)
+		try:
+			self.date = self.date.replace(month=monthidx+1)
+		except ValueError as e:
+			_, monthdays = calendar.monthrange(year, month)
+			self.date = self.date.replace(month=monthidx+1, day=monthdays)
 
 	def setCurrentPage(self, year, month):
-		idate=self.date.replace(year=year, month=month)
+		try:
+			idate=self.date.replace(year=year, month=month)
+		except ValueError as e:
+			_, monthdays = calendar.monthrange(year, month)
+			idate=self.date.replace(year=year, month=month, day=monthdays)
 		self.currentPageChanged.emit(idate.year, idate.month)
 		self.date=idate
 
