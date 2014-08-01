@@ -78,7 +78,7 @@ class install(_install):
 					os.utime(f, (at[ST_ATIME], at[ST_MTIME]))
 					os.chmod(f, S_IMODE(at[ST_MODE]))
 
-data_files = [('share/applications',['chronoslnx.desktop']),
+data_files = [('share/applications',['ChronosLNX.desktop']),
 			  ('share/pixmaps', ['chronoslnx.png']),
 			  ('share/chronoslnx', ['schedule.csv'])
 			  ]
