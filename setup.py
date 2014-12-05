@@ -84,7 +84,7 @@ data_files = [('share/applications',['ChronosLNX.desktop']),
 			  ('share/chronoslnx', ['schedule.csv'])
 			  ]
 data_files.extend(globby_themes())
-print(data_files)
+#print(data_files)
 
 setup(
 	name = APPNAME,
