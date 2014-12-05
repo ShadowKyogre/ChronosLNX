@@ -1,4 +1,5 @@
 You need these to run this:
+* python 3.x
 * PyQt
 * PySwissEph
 * python-dateutil
@@ -8,10 +9,10 @@ Todo:
 * Find an alternate moon phase method to make this lighter
 
 Credits:
-*https://gist.github.com/202755
-*http://chronosxp.sourceforget.net
-*http://zim-wiki.org
-*http://openastro.org
+* https://gist.github.com/202755
+* http://chronosxp.sourceforge.net
+* http://zim-wiki.org
+* http://openastro.org
 
 Date geolocationwidget.py added: Um... 10/7/2011 if I remember correctly or something
 Date zone.tab added: 10/30/2011
