@@ -831,7 +831,7 @@ class ChronosLNX(QtGui.QMainWindow):
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
-		#self.check_alarm()
+		self.check_alarm()
 		if clnxcfg.show_house_of_moment:
 			hom=self.zodiac[0].m.house_info.num
 			if hom == 1:
