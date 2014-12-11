@@ -241,7 +241,7 @@ class ChronosLNXConfig:
 	def save_schedule(self):
 		rows=self.schedule.rowCount()
 		path=os.path.join(self.userconfdir, 'schedule.csv')
-		temppath=''.join(self.userconfdir, 'schedule_modified.csv')
+		temppath=os.path.join(self.userconfdir, 'schedule_modified.csv')
 		f=open(temppath, "w")
 		planner = csv.writer(f)
 		planner.writerow(["Enabled","Date","Hour","Event Type","Text"])
