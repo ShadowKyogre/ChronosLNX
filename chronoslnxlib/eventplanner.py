@@ -266,8 +266,16 @@ class EventsList(QtGui.QWidget):
 		deletebutton=QtGui.QPushButton("Delete",self)
 		deletebutton.clicked.connect(self.delete)
 
+		enablebutton=QtGui.QPushButton("Enable All", self)
+		enablebutton.clicked.connect(lambda: self.toggleAll(True))
+
+		disablebutton=QtGui.QPushButton("Disable All", self)
+		disablebutton.clicked.connect(lambda: self.toggleAll(False))
+
 		editbuttons.addWidget(newbutton)
 		editbuttons.addWidget(deletebutton)
+		editbuttons.addWidget(enablebutton)
+		editbuttons.addWidget(disablebutton)
 
 		a_vbox.addLayout(editbuttons)
 
@@ -286,6 +294,19 @@ class EventsList(QtGui.QWidget):
 		self.tree.setItemDelegateForColumn(3,eventtypeeditor)
 		self.tree.setItemDelegateForColumn(4,eventparameditor)
 		a_vbox.addWidget(self.tree)
+
+	def toggleAll(self, value=None):
+		for i in range(self.tree.model().rowCount()):
+			idx = self.tree.model().index(i,0)
+			if value:
+				self.tree.model().setData(idx, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
+			elif value is not None:
+				self.tree.model().setData(idx, QtCore.Qt.Unchecked, QtCore.Qt.CheckStateRole)
+			else:
+				if item.checkState() == QtCore.Checked:
+					self.tree.model().setData(idx, QtCore.Qt.Unchecked, QtCore.Qt.CheckStateRole)
+				else:
+					self.tree.model().setData(idx, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
 
 	def add(self):
 		item=QtGui.QStandardItem()
