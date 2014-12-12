@@ -44,6 +44,7 @@ class ChronosLNX(QtGui.QMainWindow):
 	def __init__(self, parent=None):
 		super().__init__(parent)
 		self.timer = QtCore.QTimer(self)
+		self.draw_timer = QtCore.QTimer(self)
 		self.now = clnxcfg.observer.obvdate
 		self.make_settings_dialog()
 		self.make_save_for_date_range()
@@ -55,8 +56,10 @@ class ChronosLNX(QtGui.QMainWindow):
 		#self.setDocumentMode (True)
 		self.add_widgets()
 		self.timer.timeout.connect(self.update)
+		self.draw_timer.timeout.connect(self.update_astro_clock)
 		self.setDockNestingEnabled(True)
 		self.timer.start(1000)
+		self.draw_timer.start(60000)
 
 	def add_widgets(self):
 		##left pane
@@ -161,6 +164,9 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.eventsToday.tree.setModel(clnxcfg.todays_schedule)
 
 		self.update()
+
+	def update_astro_clock(self):
+		self.astroClock.signData=[self.houses,self.zodiac]
 
 	def update_widgets_config(self):
 		app.setStyleSheet(clnxcfg.stylesheet)
@@ -826,7 +832,7 @@ class ChronosLNX(QtGui.QMainWindow):
 	def update(self):
 		self.now = clnxcfg.observer.obvdate
 		updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
-		self.astroClock.signData=[self.houses,self.zodiac]
+		#self.astroClock.signData=[self.houses,self.zodiac]
 		if self.now >= self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
