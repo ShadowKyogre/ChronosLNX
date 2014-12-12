@@ -59,7 +59,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.draw_timer.timeout.connect(self.update_astro_clock)
 		self.setDockNestingEnabled(True)
 		self.timer.start(1000)
-		self.draw_timer.start(60000)
+		if self.astroClock is not None:
+			self.draw_timer.start(60000)
 
 	def add_widgets(self):
 		##left pane
