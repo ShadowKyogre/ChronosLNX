@@ -27,10 +27,10 @@ class AstroCalendarDelegate(TodayDelegate):
 		if self.icons is None:
 			return
 		rect=option.rect
-		model=index.model()
-		islunarreturn=model.data(index,QtCore.Qt.UserRole+2)
-		issolarreturn=model.data(index,QtCore.Qt.UserRole+3)
-		phase=model.data(index,QtCore.Qt.UserRole+4)
+		#model=index.model()
+		islunarreturn=index.data(QtCore.Qt.UserRole+2)
+		issolarreturn=index.data(QtCore.Qt.UserRole+3)
+		phase=index.data(QtCore.Qt.UserRole+4)
 		if islunarreturn:
 			icon=self.icons['Lunar Return']
 			point=rect.bottomRight()

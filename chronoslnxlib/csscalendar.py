@@ -10,7 +10,7 @@ class TodayDelegate(QtGui.QStyledItemDelegate):
 		self.coltoday.setAlpha(64)
 	def paint(self, painter, option, idx):
 		super().paint(painter, option, idx)
-		date=idx.model().data(idx,QtCore.Qt.UserRole)
+		date=idx.data(QtCore.Qt.UserRole)
 		if self._otherTodayCheck(date) or date == pydate.today():
 			painter.save()
 			painter.setPen(self.coltoday)
@@ -67,7 +67,6 @@ class CSSCalendar(QtGui.QWidget):
 		self._yearBox.setInputMask("000D")
 		self._yearBox.setMaxLength(4)
 
-	
 	def yearShown(self):
 		return int(self._yearBox.text())
 	
