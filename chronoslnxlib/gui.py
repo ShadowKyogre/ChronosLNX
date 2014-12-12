@@ -878,7 +878,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		if event_type == "Save to file":
 			print_to_file(self, text, self.now)
 		elif event_type == "Command":
-			callcall([split(text)])
+			call([split(text)])
 		else: #event_type == "Textual reminder"
 			self.show_notification("Reminder", text, planet_trigger)
 
