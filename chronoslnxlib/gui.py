@@ -63,8 +63,11 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def add_widgets(self):
 		##left pane
-		self.astroClock=AstroClock(self)
-		self.setCentralWidget(self.astroClock)
+		if clnxcfg.show_aclk:
+			self.astroClock=AstroClock(self)
+			self.setCentralWidget(self.astroClock)
+		else:
+			self.astroClock=None
 		#self.astroClock.hide()
 
 		self.todayOther=QtGui.QLabel()
@@ -166,23 +169,34 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.update()
 
 	def update_astro_clock(self):
-		self.astroClock.signData=[self.houses,self.zodiac]
+		if self.astroClock is not None:
+			self.astroClock.signData=[self.houses,self.zodiac]
 
 	def update_widgets_config(self):
 		app.setStyleSheet(clnxcfg.stylesheet)
 
-		self.astroClock.icons=clnxcfg.main_icons
-		self.astroClock.sign_icons=clnxcfg.sign_icons
-		self.astroClock.natData=clnxcfg.natal_data
-		self.astroClock.bd=clnxcfg.baby.obvdate
-		self.astroClock.signData=[self.houses,self.zodiac]
-		self.astroClock.hours=self.hoursToday
-		self.astroClock.pluto_alternate=clnxcfg.pluto_alt
-		self.astroClock.capricorn_alternate=clnxcfg.capricorn_alt
-		self.astroClock.orbs=clnxcfg.orbs
-		self.astroClock.observer=clnxcfg.observer
-		if not clnxcfg.use_css:
-			self.astroClock.init_colors()
+		if not clnxcfg.show_aclk:
+			if self.astroClock is not None:
+				self.setCentralWidget(None)
+				self.astroClock = None
+				self.draw_timer.stop()
+		else:
+			self.astroClock=AstroClock(self)
+			self.setCentralWidget(self.astroClock)
+
+			self.astroClock.icons=clnxcfg.main_icons
+			self.astroClock.sign_icons=clnxcfg.sign_icons
+			self.astroClock.natData=clnxcfg.natal_data
+			self.astroClock.bd=clnxcfg.baby.obvdate
+			self.astroClock.signData=[self.houses,self.zodiac]
+			self.astroClock.hours=self.hoursToday
+			self.astroClock.pluto_alternate=clnxcfg.pluto_alt
+			self.astroClock.capricorn_alternate=clnxcfg.capricorn_alt
+			self.astroClock.orbs=clnxcfg.orbs
+			self.astroClock.observer=clnxcfg.observer
+			if not clnxcfg.use_css:
+				self.astroClock.init_colors()
+			self.draw_timer.start(60000)
 
 		self.calendar.setRefinements(clnxcfg.refinements)
 		self.calendar.setIcons(clnxcfg.moon_icons)
@@ -227,10 +241,12 @@ class ChronosLNX(QtGui.QMainWindow):
 		dayn=self.now.isoweekday()%7
 		self.pday = get_planet_day(dayn)
 		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, clnxcfg.observer)
-		self.astroClock.nexts=self.next_sunrise
+		if self.astroClock is not None:
+			self.astroClock.nexts=self.next_sunrise
 		if self.now < self.sunrise:
 			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), clnxcfg.observer)
-			self.astroClock.nexts=self.next_sunrise
+			if self.astroClock is not None:
+				self.astroClock.nexts=self.next_sunrise
 			self.hoursToday.prepareHours(self.now-timedelta(days=1), clnxcfg.observer)
 			self.pday = get_planet_day(dayn-1)
 		else:
@@ -569,6 +585,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.a_check.setChecked(clnxcfg.show_admi)
 		self.settings_dialog.n_check.setChecked(clnxcfg.show_nodes)
 		self.settings_dialog.p_check.setChecked(clnxcfg.pluto_alt)
+		self.settings_dialog.ac_check.setChecked(clnxcfg.show_aclk)
 
 		idx2=self.settings_dialog.c_check.findText(clnxcfg.capricorn_alt)
 		self.settings_dialog.c_check.setCurrentIndex(idx2)
@@ -616,6 +633,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		clnxcfg.pluto_alt=self.settings_dialog.p_check.isChecked()
 		clnxcfg.capricorn_alt=cp
 		clnxcfg.use_css=self.settings_dialog.css_check.isChecked()
+		clnxcfg.show_aclk=self.settings_dialog.ac_check.isChecked()
 
 		clnxcfg.refinements['Solar Return']=self.settings_dialog.solar.value()
 		clnxcfg.refinements['Lunar Return']=self.settings_dialog.lunar.value()
@@ -743,7 +761,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.mp_check=QtGui.QCheckBox("Show moon phases",tweaks_page)
 		self.settings_dialog.sr_check=QtGui.QCheckBox("Show solar returns",tweaks_page)
 		self.settings_dialog.lr_check=QtGui.QCheckBox("Show lunar returns",tweaks_page)
-
+		self.settings_dialog.ac_check=QtGui.QCheckBox("Show rendered astrological clock?", tweaks_page)
 		tweak_grid.addWidget(QtGui.QLabel("Show these main window's textual information"),0,0,1,2)
 		tweak_grid.addWidget(self.settings_dialog.s_check,1,1)
 		tweak_grid.addWidget(self.settings_dialog.m_check,2,1)
@@ -755,6 +773,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		tweak_grid.addWidget(self.settings_dialog.mp_check,8,1)
 		tweak_grid.addWidget(self.settings_dialog.sr_check,9,1)
 		tweak_grid.addWidget(self.settings_dialog.lr_check,10,1)
+		tweak_grid.addWidget(QtGui.QLabel("Graphical Clock"),11,0,1,2)
+		tweak_grid.addWidget(self.settings_dialog.ac_check,12,1)
 
 		another_vbox=QtGui.QVBoxLayout(calculations_page)
 		gbox1=QtGui.QGroupBox("Refinements")

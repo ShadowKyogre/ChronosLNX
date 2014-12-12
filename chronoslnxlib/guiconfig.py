@@ -148,6 +148,7 @@ class ChronosLNXConfig:
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
+		self.show_aclk = self.settings.value("showAstroClock", defaultValue=True, type=bool)
 		self.show_sign = literal_eval(self.settings.value("showSign","True"))
 		self.show_moon = literal_eval(self.settings.value("showMoonPhase","True"))
 		self.show_house_of_moment = literal_eval(self.settings.value("showHouseOfMoment","True"))
@@ -301,6 +302,7 @@ class ChronosLNXConfig:
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Tweaks")
+		self.settings.setValue("showAstroClock", self.show_aclk)
 		self.settings.setValue("showSign", str(self.show_sign))
 		self.settings.setValue("showMoonPhase",str(self.show_moon))
 		self.settings.setValue("showHouseOfMoment",str(self.show_house_of_moment))
