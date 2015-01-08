@@ -194,31 +194,6 @@ QAbstractItemView::item:selected
   color: white;
 }
 
-AstroClock
-{
-  qproperty-outerFill: qradialgradient(cx:0.5, cy:0.63333333, radius: 0.3333333333,
-		fx:0.5, fy:0.58333333, stop:0 #DBB800, stop:1 #473500);
-  qproperty-outerFG: #DBB800;
-  qproperty-outerHouses: #0064FF;
-
-  qproperty-innerFill: qradialgradient(cx:0.5, cy:0.68333333, radius: 0.5,
-		fx:0.5, fy:0.58333333, stop:0 #520000, stop:1 #000000);
-  qproperty-innerFG: #520000;
-  qproperty-innerHouses: #0064FF;
-
-  qproperty-conjunction: #9900EE;
-  qproperty-semiSextile: #FFB300;
-  qproperty-semiSquare: #99FF00;
-  qproperty-sextile: #04FF00;
-  qproperty-quintile: #00FFE2;
-  qproperty-square: #FF0000;
-  qproperty-trine: #E600FF;
-  qproperty-sesiquadrate: #FFFFFF;
-  qproperty-biquintile: #1971FF;
-  qproperty-inconjunct: #FFF010;
-  qproperty-opposition: #8000FF;
-}
-
 AstroCalendar > QTableView
 {
   selection-background-color:  qlineargradient(spread:pad,
@@ -257,4 +232,16 @@ AstroCalendar
   qproperty-solarReturnFill: black;
   qproperty-solarReturnFG: gold;
 */
+}
+
+AstroClock {
+  qproperty-outerFill: qradialgradient(cx:0.5, cy:0.63333333, radius: 0.3333333333,
+		fx:0.5, fy:0.58333333, stop:0 #DBB800, stop:1 #473500);
+  qproperty-outerFG: #DBB800;
+  qproperty-outerHouses: #0064FF;
+
+  qproperty-innerFill: qradialgradient(cx:0.5, cy:0.68333333, radius: 0.5,
+		fx:0.5, fy:0.58333333, stop:0 #520000, stop:1 #000000);
+  qproperty-innerFG: #520000;
+  qproperty-innerHouses: #0064FF;
 }

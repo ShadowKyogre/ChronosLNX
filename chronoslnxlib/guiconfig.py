@@ -40,14 +40,23 @@ class ChronosLNXConfig:
 		QtCore.QDir.setSearchPaths("skin", ["skins:%s" %(self.current_theme)])
 
 		css=QtCore.QFile("skin:ui.css")
-		if css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text) and self.use_css == True:
-			self.stylesheet=str(css.readAll(),
+		clock_css=QtCore.QFile("skin:clock.css")
+		css_isopen = css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+		clock_css_isopen = clock_css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+		if  self.use_css and css_isopen and clock_css_isopen:
+			self.stylesheet=str(css.readAll()+clock_css.readAll(),
 					encoding=os.sys.getdefaultencoding())
 			make_icon=lambda g, n: QtGui.QIcon(self.grab_icon_path(g,n))
+		elif clock_css_isopen:
+			self.stylesheet=str(clock_css.readAll(),encoding=os.sys.getdefaultencoding())
+			make_icon=lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
+									QtGui.QIcon(self.grab_icon_path(g,n)))
 		else:
 			self.stylesheet=""
 			make_icon=lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
 									QtGui.QIcon(self.grab_icon_path(g,n)))
+		css.close()
+		clock_css.close()
 
 		if self.current_icon_override > "":
 			QtGui.QIcon.setThemeName(self.current_icon_override)
