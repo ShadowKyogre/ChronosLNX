@@ -270,8 +270,8 @@ class AspectTableDisplay(QtGui.QWidget):
 				c = QtGui.QStandardItem("%s" %(i.aspect.title()))
 			c.setToolTip("%s" %(i))
 			c.setData(i, 32)
-			self.tableAspects.setItem(self.headers.index(i.planet2.name), \
-			self.headers.index(i.planet1.name), c)
+			self.tableAspects.setItem(self.headers.index(i.planet2.name), 
+			                          self.headers.index(i.planet1.name), c)
 		i = 0
 		for yod in sad[0]:
 			c = QtGui.QStandardItem(str(yod))

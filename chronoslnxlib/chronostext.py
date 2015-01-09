@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from .astro_rewrite import *
+from .astro_rewrite import get_signs, hours_for_day, get_moon_cycle, updatePandC
 from .eventplanner import DayEventsModel
 from PyQt4 import QtGui ,QtCore
 from datetime import timedelta
@@ -58,14 +58,14 @@ def prepare_events(date, source):
 			first_column = "False"
 		second_column = source.item(i, 1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
 
-		if isinstance(second_column,QtCore.QDate):
+		if isinstance(second_column, QtCore.QDate):
 			#print second_column
 			second_column = second_column.toString("MM/dd/yyyy")
 		else:
 			second_column = source.item(i, 1).data(QtCore.Qt.EditRole)
 		third_column = source.item(i, 2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
-		if isinstance(third_column,QtCore.QTime):
+		if isinstance(third_column, QtCore.QTime):
 			third_column = third_column.toString("HH:mm")
 		else:
 			third_column = source.item(i, 2).data(QtCore.Qt.EditRole)
@@ -74,7 +74,7 @@ def prepare_events(date, source):
 		sevents.append(','.join([first_column, second_column, third_column, 
 		                         fourth_column, fifth_column])
 		              )
-	return "Events for %s\n%s" % (date.strftime("%m/%d/%Y"),"\n".join(sevents))
+	return "Events for %s\n%s" % (date.strftime("%m/%d/%Y"), "\n".join(sevents))
 
 #http://love-python.blogspot.com/2008/02/read-csv-file-in-python.html
 

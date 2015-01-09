@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 import math
 
 from . import zonetab
-from .measurements import *
-from .aspects import *
+from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
+                          HouseMeasurement
+from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .planet import Planet
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418

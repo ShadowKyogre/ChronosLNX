@@ -2,11 +2,11 @@
 from PyQt4 import QtGui, QtCore
 import os, csv
 from ast import literal_eval
-from .eventplanner import *
-import datetime
+from .eventplanner import DayEventsModel
+from datetime import datetime
 from collections import OrderedDict as od
 
-from .astro_rewrite import *
+from .astro_rewrite import get_signs, Observer
 from .aspects import DEFAULT_ORBS
 from dateutil import tz
 from . import zonetab
@@ -186,7 +186,7 @@ class ChronosLNXConfig:
 	def load_natal_data(self):
 		print("Loading natal data...")
 		self.natal_data = get_signs(self.baby.obvdate, self.baby, self.show_nodes, 
-		                            self.show_admi, prefix = "Natal")
+		                            self.show_admi, prefix="Natal")
 		#keep a copy of natal information for transits
 		self.natal_sun = self.natal_data[1][0].m.longitude
 		#keep a formatted copy for solar returns

@@ -15,14 +15,18 @@ from subprocess import call
 from re import findall, match
 
 from PyQt4 import QtGui, QtCore
+import swisseph
 
 from . import geolocationwidget ## from example, but modified a little
-from .astro_rewrite import *
+from .astro_rewrite import previous_new_moon, updatePandC, get_signs, grab_phase,\
+                           state_to_string, get_sunrise_and_sunset, \
+                           compare_to_the_second, get_planet_day
 from .astroclock import AstroClock
 from .astrocalendar import AstroCalendar
-from .astrowidgets import *
-from .eventplanner import *
-from .chronostext import *
+from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, housesDialog
+from .eventplanner import EventsList
+from .chronostext import prepare_planetary_info, prepare_moon_cycle, prepare_sign_info, \
+                         prepare_events, prepare_all
 from .guiconfig import ChronosLNXConfig
 from . import APPNAME, APPVERSION, DESCRIPTION, EMAIL, AUTHOR, YEAR, PAGE
 pynf = True
