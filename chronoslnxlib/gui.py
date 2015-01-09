@@ -12,9 +12,9 @@ import datetime
 import argparse
 from shlex import split
 from subprocess import call
-from re import findall,match
+from re import findall, match
 
-from PyQt4 import QtGui,QtCore
+from PyQt4 import QtGui, QtCore
 
 from . import geolocationwidget ## from example, but modified a little
 from .astro_rewrite import *
@@ -35,8 +35,7 @@ class ReusableDialog(QtGui.QDialog):
 		super().__init__(*args)
 
 	def closeEvent(self, event):
-		if hasattr(self.parent(),"trayIcon") and \
-		self.parent().trayIcon.isVisible():
+		if hasattr(self.parent(), "trayIcon") and self.parent().trayIcon.isVisible():
 			self.hide()
 			event.ignore()
 
@@ -51,8 +50,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.make_tray_icon()
 		self.setWindowTitle(APPNAME)
 
-		self.houses,self.zodiac=get_signs(clnxcfg.baby.obvdate,clnxcfg.baby,\
-		clnxcfg.show_nodes,clnxcfg.show_admi)
+		self.houses, self.zodiac = get_signs(clnxcfg.baby.obvdate, clnxcfg.baby,
+		                                    clnxcfg.show_nodes, clnxcfg.show_admi)
 		#self.setDocumentMode (True)
 		self.add_widgets()
 		self.timer.timeout.connect(self.update)
@@ -65,50 +64,52 @@ class ChronosLNX(QtGui.QMainWindow):
 	def add_widgets(self):
 		##left pane
 		if clnxcfg.show_aclk:
-			self.astroClock=AstroClock(self)
+			self.astroClock = AstroClock(self)
 			self.setCentralWidget(self.astroClock)
 		else:
-			self.astroClock=None
+			self.astroClock = None
 		#self.astroClock.hide()
 
-		self.todayOther=QtGui.QLabel()
+		self.todayOther = QtGui.QLabel()
 
 		self.todayOther.setTextFormat(QtCore.Qt.RichText)
 
-		docktlabel=QtGui.QDockWidget(self)
+		docktlabel = QtGui.QDockWidget(self)
 		docktlabel.setWidget(self.todayOther)
 		docktlabel.setWindowTitle("Info for Today")
-		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,docktlabel)
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea, docktlabel)
 
-		dockcalendar=QtGui.QDockWidget(self)
-		self.calendar=AstroCalendar(dockcalendar)
+		dockcalendar = QtGui.QDockWidget(self)
+		self.calendar = AstroCalendar(dockcalendar)
 		dockcalendar.setWidget(self.calendar)
-		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockcalendar)
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dockcalendar)
 		dockcalendar.setWindowTitle("Calendar")
 		self.make_calendar_menu()
 
-		aspectsAction=QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-list"), 'Aspects for Now', self)
-		aspectsAction.triggered.connect(lambda: aspectsDialog(self, self.zodiac, clnxcfg.natal_data[1], \
-		clnxcfg.main_icons, clnxcfg.sign_icons, \
-		clnxcfg.pluto_alt, clnxcfg.show_admi, clnxcfg.show_nodes, clnxcfg.orbs))
+		aspectsAction = QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-list"), 'Aspects for Now', self)
+		aspectsAction.triggered.connect(lambda: aspectsDialog(self, self.zodiac, clnxcfg.natal_data[1], 
+		                                                      clnxcfg.main_icons, clnxcfg.sign_icons, 
+		                                                      clnxcfg.pluto_alt, clnxcfg.show_admi, 
+		                                                      clnxcfg.show_nodes, clnxcfg.orbs)
+		                               )
 
-		housesAction=QtGui.QAction(QtGui.QIcon.fromTheme("measure"), 'Houses for Now', self)
+		housesAction = QtGui.QAction(QtGui.QIcon.fromTheme("measure"), 'Houses for Now', self)
 		housesAction.triggered.connect(lambda: housesDialog(self, self.houses, \
-		clnxcfg.capricorn_alt,clnxcfg.sign_icons))
+		clnxcfg.capricorn_alt, clnxcfg.sign_icons))
 
-		natalAction=QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-birthday"), '&View Natal Data', self)
-		natalAction.triggered.connect(lambda: self.get_info_for_date(clnxcfg.baby.obvdate, birth=True))
+		natalAction = QtGui.QAction(QtGui.QIcon.fromTheme("view-calendar-birthday"), '&View Natal Data', self)
+		natalAction.triggered.connect(lambda: self.get_info_for_date(clnxcfg.baby.obvdate, birth = True))
 
-		saveRangeAction=QtGui.QAction(QtGui.QIcon.fromTheme("document-save-as"), 'Save data from dates', self)
+		saveRangeAction = QtGui.QAction(QtGui.QIcon.fromTheme("document-save-as"), 'Save data from dates', self)
 		saveRangeAction.triggered.connect(self.save_for_range_dialog.open)
 
-		settingsAction=QtGui.QAction(QtGui.QIcon.fromTheme('preferences-other'), 'Settings', self)
+		settingsAction = QtGui.QAction(QtGui.QIcon.fromTheme('preferences-other'), 'Settings', self)
 		settingsAction.triggered.connect(self.settings_dialog.open)
 
-		helpAction=QtGui.QAction(QtGui.QIcon.fromTheme('help-contents'), 'Help', self)
+		helpAction = QtGui.QAction(QtGui.QIcon.fromTheme('help-contents'), 'Help', self)
 		helpAction.triggered.connect(self.show_help)
 
-		aboutAction=QtGui.QAction(QtGui.QIcon.fromTheme('help-about'), 'About', self)
+		aboutAction = QtGui.QAction(QtGui.QIcon.fromTheme('help-about'), 'About', self)
 		aboutAction.triggered.connect(self.show_about)
 
 		toolbar = self.addToolBar('Main')
@@ -121,37 +122,37 @@ class ChronosLNX(QtGui.QMainWindow):
 		toolbar.addAction(aboutAction)
 
 		##right pane
-		#dayinfo=QtGui.QHBoxLayout()
-		#self.todayPicture=QtGui.QLabel()
+		#dayinfo = QtGui.QHBoxLayout()
+		#self.todayPicture = QtGui.QLabel()
 
 		#dayinfo.addWidget(self.todayPicture)
 		#dayinfo.addWidget(self.todayOther)
 
 
-		dockhours=QtGui.QDockWidget(self)
-		self.hoursToday=PlanetaryHoursList(self)
+		dockhours = QtGui.QDockWidget(self)
+		self.hoursToday = PlanetaryHoursList(self)
 		dockhours.setWindowTitle("Planetary Hours")
 		dockhours.setWidget(self.hoursToday)
-		self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dockhours)
+		self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dockhours)
 
-		dockmoon=QtGui.QDockWidget(self)
-		self.moonToday=MoonCycleList(self)
+		dockmoon = QtGui.QDockWidget(self)
+		self.moonToday = MoonCycleList(self)
 		dockmoon.setWindowTitle("Moon Phases")
 		dockmoon.setWidget(self.moonToday)
 		self.tabifyDockWidget(dockhours, dockmoon)
 
-		docksigns=QtGui.QDockWidget(self)
-		self.signsToday=SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
-										clnxcfg.show_admi, clnxcfg.show_nodes, 
-										clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
-										table=clnxcfg.natal_data[1], 
-										orbs=clnxcfg.orbs, parent=self)
+		docksigns = QtGui.QDockWidget(self)
+		self.signsToday = SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
+		                                  clnxcfg.show_admi, clnxcfg.show_nodes, 
+		                                  clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
+		                                  table=clnxcfg.natal_data[1], 
+		                                  orbs=clnxcfg.orbs, parent=self)
 		docksigns.setWindowTitle("Signs")
 		docksigns.setWidget(self.signsToday)
 		self.tabifyDockWidget(dockmoon, docksigns)
 
-		dockevents=QtGui.QDockWidget(self)
-		self.eventsToday=EventsList(self)
+		dockevents = QtGui.QDockWidget(self)
+		self.eventsToday = EventsList(self)
 		dockevents.setWindowTitle("Events")
 		dockevents.setWidget(self.eventsToday)
 		self.tabifyDockWidget(docksigns, dockevents)
@@ -171,7 +172,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def update_astro_clock(self):
 		if self.astroClock is not None:
-			self.astroClock.signData=[self.houses,self.zodiac]
+			self.astroClock.signData = [self.houses, self.zodiac]
 
 	def update_widgets_config(self):
 		app.setStyleSheet(clnxcfg.stylesheet)
@@ -182,19 +183,19 @@ class ChronosLNX(QtGui.QMainWindow):
 				self.astroClock = None
 				self.draw_timer.stop()
 		else:
-			self.astroClock=AstroClock(self)
+			self.astroClock = AstroClock(self)
 			self.setCentralWidget(self.astroClock)
 
-			self.astroClock.icons=clnxcfg.main_icons
-			self.astroClock.sign_icons=clnxcfg.sign_icons
-			self.astroClock.natData=clnxcfg.natal_data
-			self.astroClock.bd=clnxcfg.baby.obvdate
-			self.astroClock.signData=[self.houses,self.zodiac]
-			self.astroClock.hours=self.hoursToday
-			self.astroClock.pluto_alternate=clnxcfg.pluto_alt
-			self.astroClock.capricorn_alternate=clnxcfg.capricorn_alt
-			self.astroClock.orbs=clnxcfg.orbs
-			self.astroClock.observer=clnxcfg.observer
+			self.astroClock.icons = clnxcfg.main_icons
+			self.astroClock.sign_icons = clnxcfg.sign_icons
+			self.astroClock.natData = clnxcfg.natal_data
+			self.astroClock.bd = clnxcfg.baby.obvdate
+			self.astroClock.signData = [self.houses, self.zodiac]
+			self.astroClock.hours = self.hoursToday
+			self.astroClock.pluto_alternate = clnxcfg.pluto_alt
+			self.astroClock.capricorn_alternate = clnxcfg.capricorn_alt
+			self.astroClock.orbs = clnxcfg.orbs
+			self.astroClock.observer = clnxcfg.observer
 			if not clnxcfg.use_css:
 				self.astroClock.init_colors()
 			self.draw_timer.start(60000)
@@ -207,21 +208,21 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.calendar.setBirthTime(clnxcfg.baby.obvdate)
 		self.calendar.setNatalMoon(clnxcfg.natal_moon)
 		self.calendar.setNatalSun(clnxcfg.natal_sun)
-		self.calendar.useCSS=clnxcfg.use_css
-		self.calendar.observer=clnxcfg.observer
+		self.calendar.useCSS = clnxcfg.use_css
+		self.calendar.observer = clnxcfg.observer
 
-		self.hoursToday.icons=clnxcfg.main_icons
-		self.moonToday.icons=clnxcfg.moon_icons
-		self.moonToday.refinement=clnxcfg.refinements['Moon Phase']
+		self.hoursToday.icons = clnxcfg.main_icons
+		self.moonToday.icons = clnxcfg.moon_icons
+		self.moonToday.refinement = clnxcfg.refinements['Moon Phase']
 
-		self.signsToday.table=clnxcfg.natal_data[1]
-		self.signsToday.icons=clnxcfg.main_icons
-		self.signsToday.sign_icons=clnxcfg.sign_icons
-		self.signsToday.admi=clnxcfg.show_admi
-		self.signsToday.nodes=clnxcfg.show_nodes
-		self.signsToday.pluto_alternate=clnxcfg.pluto_alt
-		self.signsToday.capricorn_alternate=clnxcfg.capricorn_alt
-		self.signsToday.orbs=clnxcfg.orbs
+		self.signsToday.table = clnxcfg.natal_data[1]
+		self.signsToday.icons = clnxcfg.main_icons
+		self.signsToday.sign_icons = clnxcfg.sign_icons
+		self.signsToday.admi = clnxcfg.show_admi
+		self.signsToday.nodes = clnxcfg.show_nodes
+		self.signsToday.pluto_alternate = clnxcfg.pluto_alt
+		self.signsToday.capricorn_alternate = clnxcfg.capricorn_alt
+		self.signsToday.orbs = clnxcfg.orbs
 ##time related
 
 	def update_hours(self):
@@ -239,16 +240,16 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.moonToday.highlight_cycle_phase(self.now)
 
 	def prepare_hours_for_today(self):
-		dayn=self.now.isoweekday()%7
+		dayn = self.now.isoweekday() % 7
 		self.pday = get_planet_day(dayn)
-		self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now, clnxcfg.observer)
+		self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(self.now, clnxcfg.observer)
 		if self.astroClock is not None:
-			self.astroClock.nexts=self.next_sunrise
+			self.astroClock.nexts = self.next_sunrise
 		if self.now < self.sunrise:
-			self.sunrise,self.sunset,self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), clnxcfg.observer)
+			self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(self.now-timedelta(days = 1), clnxcfg.observer)
 			if self.astroClock is not None:
-				self.astroClock.nexts=self.next_sunrise
-			self.hoursToday.prepareHours(self.now-timedelta(days=1), clnxcfg.observer)
+				self.astroClock.nexts = self.next_sunrise
+			self.hoursToday.prepareHours(self.now-timedelta(days = 1), clnxcfg.observer)
 			self.pday = get_planet_day(dayn-1)
 		else:
 			self.hoursToday.prepareHours(self.now, clnxcfg.observer)
@@ -257,29 +258,29 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def show_notification(self, title, text, ptrigger):
 			if pynf:
-				fldr=QtCore.QDir("skin:/")
+				fldr = QtCore.QDir("skin:/")
 				if ptrigger:
-					path=clnxcfg.grab_icon_path("planets",self.phour.lower())
+					path = clnxcfg.grab_icon_path("planets", self.phour.lower())
 				else:
-					path=clnxcfg.grab_icon_path("misc","chronoslnx")
-				path=fldr.absoluteFilePath(path.replace("skin:",""))
-				call(['notify-send','-t','10000','-a', APPNAME,
-					'-i',path,title,text])
+					path = clnxcfg.grab_icon_path("misc", "chronoslnx")
+				path = fldr.absoluteFilePath(path.replace("skin:", ""))
+				call(['notify-send', '-t', '10000', '-a', APPNAME,
+				      '-i', path, title, text])
 			else:
 				if self.trayIcon.supportsMessages():
 					if ptrigger:
 						self.trayIcon.showMessage(title, text, msecs=10000)
-						      #clnxcfg.main_icons[self.phour],msecs=10000)
+						      #clnxcfg.main_icons[self.phour],msecs = 10000)
 					else:
 						self.trayIcon.showMessage(title, text, msecs=10000)
-						      #clnxcfg.main_icons['logo'],msecs=10000)
+						      #clnxcfg.main_icons['logo'],msecs = 10000)
 				else:
 					#last resort, as popup dialogs are annoying
 					if ptrigger:
-						pixmap=self.main_pixmaps[self.phour]
+						pixmap = self.main_pixmaps[self.phour]
 					else:
-						pixmap=self.main_pixmaps['logo']
-					dialog=QtGui.QMessageBox(self)
+						pixmap = self.main_pixmaps['logo']
+					dialog = QtGui.QMessageBox(self)
 					dialog.setTitle(title)
 					dialog.setTitle(text)
 					dialog.setIconPixmap(pixmap)
@@ -288,46 +289,46 @@ class ChronosLNX(QtGui.QMainWindow):
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
-	def get_info_for_date(self, date, birth=False):
-		info_dialog=QtGui.QDialog(self)
-		dateinfo="Info for %s" %(date.strftime("%m/%d/%Y"))
+	def get_info_for_date(self, date, birth = False):
+		info_dialog = QtGui.QDialog(self)
+		dateinfo = "Info for %s" %(date.strftime("%m/%d/%Y"))
 		if birth:
-			ob=clnxcfg.baby
-			text=("\nNote: This is for the birth timezone %s and this time."
-			"\nIf you want adjust your birth time, go to Settings.") \
-			% clnxcfg.baby.obvdate.tzname()
+			ob = clnxcfg.baby
+			text = ("\nNote: This is for the birth timezone %s and this time."
+			        "\nIf you want adjust your birth time, go to Settings.") \
+			        % clnxcfg.baby.obvdate.tzname()
 		else:
-			ob=clnxcfg.observer
-			text=""
-		infotext="{dateinfo}{text}".format(**locals())
+			ob = clnxcfg.observer
+			text = ""
+		infotext = "{dateinfo}{text}".format(**locals())
 		info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-		vbox=QtGui.QVBoxLayout(info_dialog)
+		vbox = QtGui.QVBoxLayout(info_dialog)
 		vbox.addWidget(QtGui.QLabel(text))
 
-		hoursToday=PlanetaryHoursList(info_dialog)
-		hoursToday.icons=clnxcfg.main_icons
+		hoursToday = PlanetaryHoursList(info_dialog)
+		hoursToday.icons = clnxcfg.main_icons
 
-		moonToday=MoonCycleList(info_dialog)
-		moonToday.refinement=clnxcfg.refinements['Moon Phase']
-		moonToday.icons=clnxcfg.moon_icons
+		moonToday = MoonCycleList(info_dialog)
+		moonToday.refinement = clnxcfg.refinements['Moon Phase']
+		moonToday.icons = clnxcfg.moon_icons
 
-		signsToday=SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
-									clnxcfg.show_admi, clnxcfg.show_nodes, 
-									clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
-									orbs=clnxcfg.orbs, parent=info_dialog)
+		signsToday = SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
+		                             clnxcfg.show_admi, clnxcfg.show_nodes, 
+		                             clnxcfg.pluto_alt, clnxcfg.capricorn_alt, 
+		                             orbs=clnxcfg.orbs, parent=info_dialog)
 		if not birth:
-			signsToday.table=clnxcfg.natal_data[1]
+			signsToday.table = clnxcfg.natal_data[1]
 
-		eventsToday=EventsList(info_dialog)
-		model=DayEventsModel()
+		eventsToday = EventsList(info_dialog)
+		model = DayEventsModel()
 		model.setSourceModel(clnxcfg.schedule)
 		model.setDate(date)
 		eventsToday.tree.setModel(model)
 		eventsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-		dayData=QtGui.QTabWidget(info_dialog)
+		dayData = QtGui.QTabWidget(info_dialog)
 
-		hoursToday.prepareHours(date,ob)
+		hoursToday.prepareHours(date, ob)
 		moonToday.get_moon_cycle(date)
 		moonToday.highlight_cycle_phase(date)
 		if birth:
@@ -336,46 +337,46 @@ class ChronosLNX(QtGui.QMainWindow):
 			signsToday.time.setReadOnly(True)
 			signsToday.time.setTime(clnxcfg.baby.obvdate.time())
 			signsToday.assembleFromZodiac(clnxcfg.natal_data[1])
-			signsToday.h=clnxcfg.natal_data[0]
+			signsToday.h = clnxcfg.natal_data[0]
 		else:
 			signsToday.get_constellations(date, ob)
 
-		dayData.addTab(hoursToday,"Planetary Hours")
-		dayData.addTab(moonToday,"Moon Phases")
-		dayData.addTab(signsToday,"Signs")
-		dayData.addTab(eventsToday,"Events")
+		dayData.addTab(hoursToday, "Planetary Hours")
+		dayData.addTab(moonToday, "Moon Phases")
+		dayData.addTab(signsToday, "Signs")
+		dayData.addTab(eventsToday, "Events")
 		vbox.addWidget(dayData)
 		info_dialog.show()
 
 	def make_save_for_date_range(self):
-		#self.save_for_range_dialog=QtGui.QDialog(self)
-		self.save_for_range_dialog=ReusableDialog(self)
-		self.save_for_range_dialog.setFixedSize(380,280)
+		#self.save_for_range_dialog = QtGui.QDialog(self)
+		self.save_for_range_dialog = ReusableDialog(self)
+		self.save_for_range_dialog.setFixedSize(380, 280)
 		self.save_for_range_dialog.setWindowTitle("Save Data for Dates")
-		grid=QtGui.QGridLayout(self.save_for_range_dialog)
+		grid = QtGui.QGridLayout(self.save_for_range_dialog)
 
-		self.save_for_range_dialog.date_start=QtGui.QDateTimeEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_start = QtGui.QDateTimeEdit(self.save_for_range_dialog)
 		self.save_for_range_dialog.date_start.setDisplayFormat("MM/dd/yyyy")
-		self.save_for_range_dialog.date_end=QtGui.QDateTimeEdit(self.save_for_range_dialog)
+		self.save_for_range_dialog.date_end = QtGui.QDateTimeEdit(self.save_for_range_dialog)
 		self.save_for_range_dialog.date_end.setDisplayFormat("MM/dd/yyyy")
 
-		grid.addWidget(QtGui.QLabel("Save from"),0,0)
-		grid.addWidget(self.save_for_range_dialog.date_start,0,1)
-		grid.addWidget(QtGui.QLabel("To"),1,0)
-		grid.addWidget(self.save_for_range_dialog.date_end,1,1)
-		grid.addWidget(QtGui.QLabel("Data to Save"),2,0)
+		grid.addWidget(QtGui.QLabel("Save from"), 0, 0)
+		grid.addWidget(self.save_for_range_dialog.date_start, 0, 1)
+		grid.addWidget(QtGui.QLabel("To"), 1, 0)
+		grid.addWidget(self.save_for_range_dialog.date_end, 1, 1)
+		grid.addWidget(QtGui.QLabel("Data to Save"), 2, 0)
 
-		self.save_for_range_dialog.checkboxes=QtGui.QButtonGroup()
+		self.save_for_range_dialog.checkboxes = QtGui.QButtonGroup()
 		self.save_for_range_dialog.checkboxes.setExclusive(False)
-		checkboxes_frame=QtGui.QFrame(self.save_for_range_dialog)
+		checkboxes_frame = QtGui.QFrame(self.save_for_range_dialog)
 
-		vbox=QtGui.QVBoxLayout(checkboxes_frame)
+		vbox = QtGui.QVBoxLayout(checkboxes_frame)
 
-		all_check=QtGui.QCheckBox("All",checkboxes_frame)
-		ph_check=QtGui.QCheckBox("Planetary Hours",checkboxes_frame)
-		s_check=QtGui.QCheckBox("Planetary Signs",checkboxes_frame)
-		m_check=QtGui.QCheckBox("Moon Phase",checkboxes_frame)
-		e_check=QtGui.QCheckBox("Events",checkboxes_frame)
+		all_check = QtGui.QCheckBox("All", checkboxes_frame)
+		ph_check = QtGui.QCheckBox("Planetary Hours", checkboxes_frame)
+		s_check = QtGui.QCheckBox("Planetary Signs", checkboxes_frame)
+		m_check = QtGui.QCheckBox("Moon Phase", checkboxes_frame)
+		e_check = QtGui.QCheckBox("Events", checkboxes_frame)
 
 		self.save_for_range_dialog.checkboxes.addButton(all_check)
 		self.save_for_range_dialog.checkboxes.addButton(ph_check)
@@ -389,67 +390,68 @@ class ChronosLNX(QtGui.QMainWindow):
 		vbox.addWidget(m_check)
 		vbox.addWidget(e_check)
 
-		grid.addWidget(checkboxes_frame,2,1)
+		grid.addWidget(checkboxes_frame, 2, 1)
 
-		grid.addWidget(QtGui.QLabel("Folder to save in"),3,0)
-		hbox=QtGui.QHBoxLayout()
-		self.save_for_range_dialog.filename=QtGui.QLineEdit(self.save_for_range_dialog)
-		button=QtGui.QPushButton(self.save_for_range_dialog)
+		grid.addWidget(QtGui.QLabel("Folder to save in"), 3, 0)
+		hbox = QtGui.QHBoxLayout()
+		self.save_for_range_dialog.filename = QtGui.QLineEdit(self.save_for_range_dialog)
+		button = QtGui.QPushButton(self.save_for_range_dialog)
 		button.setIcon(QtGui.QIcon.fromTheme("document-open"))
 		button.clicked.connect(self.get_folder_name)
 		hbox.addWidget(self.save_for_range_dialog.filename)
 		hbox.addWidget(button)
-		grid.addLayout(hbox,3,1)
+		grid.addLayout(hbox, 3, 1)
 
-		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
-		okbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
-		#okbutton.clicked.connect(self.print_to_file("All", date,filename="",suppress_notification=True))
+		buttonbox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
+		okbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+		#okbutton.clicked.connect(self.print_to_file("All", date,filename = "",suppress_notification = True))
 		okbutton.clicked.connect(self.mass_print)
-		cancelbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+		cancelbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
 		cancelbutton.clicked.connect(self.save_for_range_dialog.hide)
-		grid.addWidget(buttonbox,4,0,1,2)
+		grid.addWidget(buttonbox, 4, 0, 1, 2)
 
 	def get_folder_name(self):
-		text=QtGui.QFileDialog.getExistingDirectory(caption="Save in folder...", \
-			options=QtGui.QFileDialog.ShowDirsOnly)
+		text = QtGui.QFileDialog.getExistingDirectory(caption="Save in folder...", 
+		                                              options=QtGui.QFileDialog.ShowDirsOnly)
 		self.save_for_range_dialog.filename.setText(text)
 
 	def mass_print(self):
-		day_numbers=(self.save_for_range_dialog.date_end.date().toPyDate() - \
-			self.save_for_range_dialog.date_start.date().toPyDate()).days
+		day_numbers = (self.save_for_range_dialog.date_end.date().toPyDate() - \
+		               self.save_for_range_dialog.date_start.date().toPyDate()).days
 		if self.save_for_range_dialog.filename.text() > "":
 			for j in self.save_for_range_dialog.checkboxes.buttons():
 				if j.isChecked():
-					store_here="%s/%s" %(self.save_for_range_dialog.filename.text(), \
-						j.text().replace(" ", "_"))
+					store_here = os.path.join(self.save_for_range_dialog.filename.text(), 
+					                          j.text().replace(" ", "_"))
 					if not os.path.exists(store_here):
 						os.mkdir(store_here)
 			for i in range(day_numbers+1):
-				date=self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=clnxcfg.observer.timezone)+timedelta(days=i)
+				date = self.save_for_range_dialog.date_start.dateTime().toPyDateTime().replace(tzinfo=clnxcfg.observer.timezone) + timedelta(days=i)
 				for j in self.save_for_range_dialog.checkboxes.buttons():
 					if j.isChecked():
-						filename=self.save_for_range_dialog.filename.text() + "/%s/%s.txt" \
-							%(j.text().replace(" ", "_"),date.strftime("%m-%d-%Y"))
-						self.print_to_file(j.text(), date,filename=filename,suppress_notification=True)
+						filename = os.path.join(self.save_for_range_dialog.filename.text(), 
+						                        j.text().replace(" ", "_"),
+						                        date.strftime("%m-%d-%Y.txt"))
+						self.print_to_file(j.text(), date, filename=filename, suppress_notification=True)
 	#'''
 	def make_calendar_menu(self):
 		self.calendar._table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 		self.calendar._table.customContextMenuRequested.connect(self.get_cal_menu)
 		#self.calendar.setContextMenu(self.menu)
 	#'''
-	def copy_to_clipboard(self, option,date):
+	def copy_to_clipboard(self, option, date):
 		if option == "All":
-			text=prepare_all(date, clnxcfg.observer, clnxcfg.schedule, \
-			clnxcfg.show_nodes, clnxcfg.show_admi)
+			text = prepare_all(date, clnxcfg.observer, clnxcfg.schedule, 
+			                   clnxcfg.show_nodes, clnxcfg.show_admi)
 		elif option == "Moon Phase":
-			text=prepare_moon_cycle(date)
+			text = prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date, clnxcfg.observer, \
-			clnxcfg.show_nodes, clnxcfg.show_admi)
+			text = prepare_sign_info(date, clnxcfg.observer, 
+			                         clnxcfg.show_nodes, clnxcfg.show_admi)
 		elif option == "Planetary Hours":
-			text=prepare_planetary_info(date, clnxcfg.observer)
+			text = prepare_planetary_info(date, clnxcfg.observer)
 		else: #option == "Events"
-			text=prepare_events(date, clnxcfg.schedule)
+			text = prepare_events(date, clnxcfg.schedule)
 		app.clipboard().setText(text)
 
 #KGlobal::locale::Warning your global KLocale is being recreated with a valid main component instead of a fake component, this usually means you tried to call i18n related functions before your main component was created. You should not do that since it most likely will not work
@@ -459,95 +461,97 @@ class ChronosLNX(QtGui.QMainWindow):
 #Resource id:  0x3800836
 #weird bug related to opening file dialog on linux through this, but it's harmless
 
-	def print_to_file(self, option,date,filename=None,suppress_notification=False):
+	def print_to_file(self, option, date, filename=None, 
+	                  suppress_notification=False):
 		if option == "All":
-			text=prepare_all(date, clnxcfg.observer, clnxcfg.schedule,\
-			clnxcfg.show_nodes, clnxcfg.show_admi)
+			text = prepare_all(date, clnxcfg.observer, clnxcfg.schedule,
+			                   clnxcfg.show_nodes, clnxcfg.show_admi)
 		elif option == "Moon Phase":
-			text=prepare_moon_cycle(date)
+			text = prepare_moon_cycle(date)
 		elif option == "Planetary Signs":
-			text=prepare_sign_info(date, clnxcfg.observer, \
-			clnxcfg.show_nodes, clnxcfg.show_admi)
+			text = prepare_sign_info(date, clnxcfg.observer, 
+			                         clnxcfg.show_nodes, clnxcfg.show_admi)
 		elif option == "Planetary Hours":
-			text=prepare_planetary_info(date, clnxcfg.observer)
+			text = prepare_planetary_info(date, clnxcfg.observer)
 		else:  #option == "Events"
-			text=prepare_events(date, clnxcfg.schedule)
+			text = prepare_events(date, clnxcfg.schedule)
 		if filename == None:
-			filename=QtGui.QFileDialog.getSaveFileName(self, caption="Saving %s for %s" \
-					%(option, date.strftime("%m/%d/%Y")),
-					filter="*.txt")
+			filename = QtGui.QFileDialog.getSaveFileName(self, caption="Saving %s for %s" \
+				                                         %(option, date.strftime("%m/%d/%Y")),
+				                                         filter="*.txt")
 		if filename is not None and filename != "":
-			f=open(filename,"w")
+			f = open(filename, "w")
 			f.write(text)
 			if not suppress_notification:
-				self.show_notification("Saved", "%s has the %s you saved." %(filename, option), False)
+				self.show_notification("Saved", "%s has the %s you saved." \
+				                       %(filename, option), False)
 			f.close()
 
 	def get_cal_menu(self, qpoint):
-		table=self.calendar._table
-		item=table.itemAt(qpoint)
+		table = self.calendar._table
+		item = table.itemAt(qpoint)
 
-		day=item.data(QtCore.Qt.UserRole)
-		date2=None
-		date3=None
-		tzone=clnxcfg.observer.timezone
-		date=datetime.fromordinal(day.toordinal())
-		date=date.replace(hour=12,minute=0, second=0, tzinfo=tzone)
+		day = item.data(QtCore.Qt.UserRole)
+		date2 = None
+		date3 = None
+		tzone = clnxcfg.observer.timezone
+		date = datetime.fromordinal(day.toordinal())
+		date = date.replace(hour=12, minute=0, second=0, tzinfo=tzone)
 
 		if self.calendar.lunarReturn:
-			idx=self.calendar.fetchLunarReturn(day)
+			idx = self.calendar.fetchLunarReturn(day)
 			if idx >= 0:
-				date2=self.calendar.lunarReturns[idx]
-		if self.calendar.solarReturn and day==self.calendar.solarReturnTime.date():
-			date3=self.calendar.solarReturnTime
+				date2 = self.calendar.lunarReturns[idx]
+		if self.calendar.solarReturn and day == self.calendar.solarReturnTime.date():
+			date3 = self.calendar.solarReturnTime
 
 		#self.calendar.setGridVisible(True)
-		menu=QtGui.QMenu(self.calendar)
+		menu = QtGui.QMenu(self.calendar)
 		if date2:
-			lritem=menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
+			lritem = menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
 			lritem.triggered.connect(lambda: self.get_info_for_date(date2))
 			lritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 		if date3:
-			sritem=menu.addAction("Solar Return for %s" %(date.strftime("%m/%d/%Y")))
+			sritem = menu.addAction("Solar Return for %s" %(date.strftime("%m/%d/%Y")))
 			sritem.triggered.connect(lambda: self.get_info_for_date(date3))
 			sritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
-		infoitem=menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
+		infoitem = menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
 		infoitem.triggered.connect(lambda: self.get_info_for_date(date))
 		infoitem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
-		copymenu=menu.addMenu("Copy")
+		copymenu = menu.addMenu("Copy")
 		copymenu.setIcon(QtGui.QIcon.fromTheme("edit-copy"))
-		copyall=copymenu.addAction("All")
-		copydate=copymenu.addAction("Date")
-		copyplanetdata=copymenu.addAction("Planetary Hours")
-		copymoonphasedata=copymenu.addAction("Moon Phases")
-		copysignsdata=copymenu.addAction("Signs for this date")
-		copyeventdata=copymenu.addAction("Events")
+		copyall = copymenu.addAction("All")
+		copydate = copymenu.addAction("Date")
+		copyplanetdata = copymenu.addAction("Planetary Hours")
+		copymoonphasedata = copymenu.addAction("Moon Phases")
+		copysignsdata = copymenu.addAction("Signs for this date")
+		copyeventdata = copymenu.addAction("Events")
 
-		copyall.triggered.connect(lambda: self.copy_to_clipboard("All",date))
+		copyall.triggered.connect(lambda: self.copy_to_clipboard("All", date))
 		copydate.triggered.connect(lambda: app.clipboard().setText(date.strftime("%m/%d/%Y")))
-		copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours",date))
-		copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Phase",date))
-		copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs",date))
+		copyplanetdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Hours", date))
+		copymoonphasedata.triggered.connect(lambda: self.copy_to_clipboard("Moon Phase", date))
+		copysignsdata.triggered.connect(lambda: self.copy_to_clipboard("Planetary Signs", date))
 		copyeventdata.triggered.connect(lambda: self.copy_to_clipboard("Events", date))
 
-		savemenu=menu.addMenu("Save to File")
+		savemenu = menu.addMenu("Save to File")
 		savemenu.setIcon(QtGui.QIcon.fromTheme("document-save-as"))
-		saveall=savemenu.addAction("All")
-		saveplanetdata=savemenu.addAction("Planetary Hours")
-		savemoonphasedata=savemenu.addAction("Moon Phases")
-		savesignsdata=savemenu.addAction("Signs for this date")
-		saveeventdata=savemenu.addAction("Events")
+		saveall = savemenu.addAction("All")
+		saveplanetdata = savemenu.addAction("Planetary Hours")
+		savemoonphasedata = savemenu.addAction("Moon Phases")
+		savesignsdata = savemenu.addAction("Signs for this date")
+		saveeventdata = savemenu.addAction("Events")
 
-		saveall.triggered.connect(lambda: self.print_to_file("All",date))
-		saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours",date))
-		savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Phase",date))
-		savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs",date))
-		saveeventdata.triggered.connect(lambda: self.print_to_file("Events",date))
+		saveall.triggered.connect(lambda: self.print_to_file("All", date))
+		saveplanetdata.triggered.connect(lambda: self.print_to_file("Planetary Hours", date))
+		savemoonphasedata.triggered.connect(lambda: self.print_to_file("Moon Phase", date))
+		savesignsdata.triggered.connect(lambda: self.print_to_file("Planetary Signs", date))
+		saveeventdata.triggered.connect(lambda: self.print_to_file("Events", date))
 
 		menu.exec_(self.calendar.mapToGlobal(qpoint))
-		#http://www.qtcentre.org/archive/index.php/t-42524.html?s=ef30fdd9697c337a1d588ce9d26f47d8
+		#http://www.qtcentre.org/archive/index.php/t-42524.html?s = ef30fdd9697c337a1d588ce9d26f47d8
 
 ##config related
 
@@ -573,7 +577,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.birth_widget.setLongitude(clnxcfg.baby.lng)
 		self.settings_dialog.birth_widget.setElevation(clnxcfg.baby.elevation)
 
-		idx=self.settings_dialog.appearance_icons.findText(clnxcfg.current_theme)
+		idx = self.settings_dialog.appearance_icons.findText(clnxcfg.current_theme)
 		self.settings_dialog.appearance_icons.setCurrentIndex(idx)
 
 		self.settings_dialog.s_check.setChecked(clnxcfg.show_sign)
@@ -588,7 +592,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.p_check.setChecked(clnxcfg.pluto_alt)
 		self.settings_dialog.ac_check.setChecked(clnxcfg.show_aclk)
 
-		idx2=self.settings_dialog.c_check.findText(clnxcfg.capricorn_alt)
+		idx2 = self.settings_dialog.c_check.findText(clnxcfg.capricorn_alt)
 		self.settings_dialog.c_check.setCurrentIndex(idx2)
 
 		self.settings_dialog.solar.setValue(clnxcfg.refinements['Solar Return'])
@@ -599,49 +603,49 @@ class ChronosLNX(QtGui.QMainWindow):
 			self.settings_dialog.orbs[i].setValue(clnxcfg.orbs[i])
 
 	def settings_change(self):
-		lat=float(self.settings_dialog.location_widget.latitude)
-		lng=float(self.settings_dialog.location_widget.longitude)
-		elv=float(self.settings_dialog.location_widget.elevation)
+		lat = float(self.settings_dialog.location_widget.latitude)
+		lng = float(self.settings_dialog.location_widget.longitude)
+		elv = float(self.settings_dialog.location_widget.elevation)
 
-		blat=float(self.settings_dialog.birth_widget.latitude)
-		blng=float(self.settings_dialog.birth_widget.longitude)
-		belv=float(self.settings_dialog.birth_widget.elevation)
+		blat = float(self.settings_dialog.birth_widget.latitude)
+		blng = float(self.settings_dialog.birth_widget.longitude)
+		belv = float(self.settings_dialog.birth_widget.elevation)
 
-		thm=self.settings_dialog.appearance_icons.currentText()
-		cp=self.settings_dialog.c_check.currentText()
-		iothm=self.settings_dialog.override_ui_icon.text()
+		thm = self.settings_dialog.appearance_icons.currentText()
+		cp = self.settings_dialog.c_check.currentText()
+		iothm = self.settings_dialog.override_ui_icon.text()
 
-		clnxcfg.observer.lat=lat
-		clnxcfg.observer.lng=lng
-		clnxcfg.observer.elevation=elv
+		clnxcfg.observer.lat = lat
+		clnxcfg.observer.lng = lng
+		clnxcfg.observer.elevation = elv
 
-		clnxcfg.baby.lat=blat
-		clnxcfg.baby.lng=blng
-		clnxcfg.baby.elevation=belv
+		clnxcfg.baby.lat = blat
+		clnxcfg.baby.lng = blng
+		clnxcfg.baby.elevation = belv
 		#how to migrate?
 		clnxcfg.baby.obvdate = self.settings_dialog.date.dateTime().toPyDateTime()
 
-		clnxcfg.current_theme=thm
-		clnxcfg.current_icon_override=iothm
-		clnxcfg.show_sign=self.settings_dialog.s_check.isChecked()
-		clnxcfg.show_moon=self.settings_dialog.m_check.isChecked()
-		clnxcfg.show_house_of_moment=self.settings_dialog.h_check.isChecked()
-		clnxcfg.show_nodes=self.settings_dialog.n_check.isChecked()
-		clnxcfg.show_admi=self.settings_dialog.a_check.isChecked()
-		clnxcfg.show_mcal=self.settings_dialog.mp_check.isChecked()
-		clnxcfg.show_sr=self.settings_dialog.sr_check.isChecked()
-		clnxcfg.show_lr=self.settings_dialog.lr_check.isChecked()
-		clnxcfg.pluto_alt=self.settings_dialog.p_check.isChecked()
-		clnxcfg.capricorn_alt=cp
-		clnxcfg.use_css=self.settings_dialog.css_check.isChecked()
-		clnxcfg.show_aclk=self.settings_dialog.ac_check.isChecked()
+		clnxcfg.current_theme = thm
+		clnxcfg.current_icon_override = iothm
+		clnxcfg.show_sign = self.settings_dialog.s_check.isChecked()
+		clnxcfg.show_moon = self.settings_dialog.m_check.isChecked()
+		clnxcfg.show_house_of_moment = self.settings_dialog.h_check.isChecked()
+		clnxcfg.show_nodes = self.settings_dialog.n_check.isChecked()
+		clnxcfg.show_admi = self.settings_dialog.a_check.isChecked()
+		clnxcfg.show_mcal = self.settings_dialog.mp_check.isChecked()
+		clnxcfg.show_sr = self.settings_dialog.sr_check.isChecked()
+		clnxcfg.show_lr = self.settings_dialog.lr_check.isChecked()
+		clnxcfg.pluto_alt = self.settings_dialog.p_check.isChecked()
+		clnxcfg.capricorn_alt = cp
+		clnxcfg.use_css = self.settings_dialog.css_check.isChecked()
+		clnxcfg.show_aclk = self.settings_dialog.ac_check.isChecked()
 
-		clnxcfg.refinements['Solar Return']=self.settings_dialog.solar.value()
-		clnxcfg.refinements['Lunar Return']=self.settings_dialog.lunar.value()
-		clnxcfg.refinements['Moon Phase']=self.settings_dialog.phase.value()
+		clnxcfg.refinements['Solar Return'] = self.settings_dialog.solar.value()
+		clnxcfg.refinements['Lunar Return'] = self.settings_dialog.lunar.value()
+		clnxcfg.refinements['Moon Phase'] = self.settings_dialog.phase.value()
 
 		for i in self.settings_dialog.orbs:
-			clnxcfg.orbs[i]=self.settings_dialog.orbs[i].value()
+			clnxcfg.orbs[i] = self.settings_dialog.orbs[i].value()
 
 		clnxcfg.load_theme()
 		clnxcfg.load_natal_data()
@@ -665,27 +669,27 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.hide()
 
 	def make_settings_dialog(self):
-		self.settings_dialog=ReusableDialog(self)
+		self.settings_dialog = ReusableDialog(self)
 		self.settings_dialog.setWindowTitle("Settings")
-		tabs=QtGui.QTabWidget(self.settings_dialog)
+		tabs = QtGui.QTabWidget(self.settings_dialog)
 
-		location_page=QtGui.QFrame()
-		appearance_page=QtGui.QFrame()
-		events_page=QtGui.QFrame()
-		tweaks_page=QtGui.QFrame()
-		calculations_page=QtGui.QFrame()
+		location_page = QtGui.QFrame()
+		appearance_page = QtGui.QFrame()
+		events_page = QtGui.QFrame()
+		tweaks_page = QtGui.QFrame()
+		calculations_page = QtGui.QFrame()
 
-		tabs.addTab(location_page,"Your Info")
-		tabs.addTab(appearance_page,"Appearance")
-		tabs.addTab(events_page,"Events")
-		tabs.addTab(tweaks_page,"Tweaks")
-		tabs.addTab(calculations_page,"Calculations")
+		tabs.addTab(location_page, "Your Info")
+		tabs.addTab(appearance_page, "Appearance")
+		tabs.addTab(events_page, "Events")
+		tabs.addTab(tweaks_page, "Tweaks")
+		tabs.addTab(calculations_page, "Calculations")
 
-		groupbox=QtGui.QGroupBox("Current Location",location_page)
-		groupbox2=QtGui.QGroupBox("Birth Information",location_page)
+		groupbox = QtGui.QGroupBox("Current Location", location_page)
+		groupbox2 = QtGui.QGroupBox("Birth Information", location_page)
 		self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(groupbox)
-		vbox=QtGui.QVBoxLayout(location_page)
-		gvbox=QtGui.QVBoxLayout(groupbox)
+		vbox = QtGui.QVBoxLayout(location_page)
+		gvbox = QtGui.QVBoxLayout(groupbox)
 		gvbox.addWidget(self.settings_dialog.location_widget)
 
 		vbox.addWidget(groupbox)
@@ -693,53 +697,57 @@ class ChronosLNX(QtGui.QMainWindow):
 
 		self.settings_dialog.birth_widget = geolocationwidget.GeoLocationWidget(groupbox2)
 		self.settings_dialog.date = QtGui.QDateTimeEdit(groupbox2)
-		self.settings_dialog.date.setDateRange(QtCore.QDate(1902,1,1),QtCore.QDate(2037,1,1))
+		self.settings_dialog.date.setDateRange(QtCore.QDate(1902, 1, 1), QtCore.QDate(2037, 1, 1))
 		self.settings_dialog.date.setDisplayFormat("MM/dd/yyyy - HH:mm:ss")
 
-		tgrid=QtGui.QGridLayout(groupbox2)
-		tgrid.addWidget(self.settings_dialog.birth_widget,0,0,3,2)
-		tgrid.addWidget(QtGui.QLabel("Birth time"),3,0)
-		tgrid.addWidget(self.settings_dialog.date,3,1)
+		tgrid = QtGui.QGridLayout(groupbox2)
+		tgrid.addWidget(self.settings_dialog.birth_widget, 0, 0, 3, 2)
+		tgrid.addWidget(QtGui.QLabel("Birth time"), 3, 0)
+		tgrid.addWidget(self.settings_dialog.date, 3, 1)
 
-		layout=QtGui.QVBoxLayout(self.settings_dialog)
+		layout = QtGui.QVBoxLayout(self.settings_dialog)
 		layout.addWidget(tabs)
 
-		grid=QtGui.QGridLayout(appearance_page)
-		appearance_label=QtGui.QLabel("Icon theme")
-		self.settings_dialog.appearance_icons=QtGui.QComboBox()
+		grid = QtGui.QGridLayout(appearance_page)
+		appearance_label = QtGui.QLabel("Icon theme")
+		self.settings_dialog.appearance_icons = QtGui.QComboBox()
 		self.settings_dialog.appearance_icons.addItem("None")
-		self.settings_dialog.css_check=QtGui.QCheckBox("Use the custom UI styling in the theme",appearance_page)
+		self.settings_dialog.css_check = QtGui.QCheckBox("Use the custom UI styling in the theme", appearance_page)
 		for theme in clnxcfg.get_available_themes():
-			path="skins:%s/misc/chronoslnx.png" %(theme)
-			icon=QtGui.QIcon(path)
-			self.settings_dialog.appearance_icons.addItem(icon,theme)
+			#is it all right to format path here?
+			path = "skins:%s/misc/chronoslnx.png" %(theme)
+			icon = QtGui.QIcon(path)
+			self.settings_dialog.appearance_icons.addItem(icon, theme)
 
-		grid.addWidget(appearance_label,0,0)
-		grid.addWidget(self.settings_dialog.appearance_icons,0,1)
-		self.settings_dialog.override_ui_icon=QtGui.QLineEdit(appearance_page)
+		grid.addWidget(appearance_label, 0, 0)
+		grid.addWidget(self.settings_dialog.appearance_icons, 0, 1)
+		self.settings_dialog.override_ui_icon = QtGui.QLineEdit(appearance_page)
 		self.settings_dialog.override_ui_icon.setToolTip(("You should only set this if"
-			"standard icons, like Quit, are not showing.\n"
-			"This will take effect after a restart of ChronosLNX.\n"
-			"Currently detected icon theme by system: %s") % clnxcfg.sys_icotheme)
-		grid.addWidget(QtGui.QLabel("UI Icon theme: "),1,0)
-		grid.addWidget(self.settings_dialog.override_ui_icon,1,1)
-		grid.addWidget(self.settings_dialog.css_check,2,0,1,2)
-		grid.addWidget(QtGui.QLabel("Change the following for signs information"),3,0,1,2)
-		self.settings_dialog.c_check=QtGui.QComboBox(appearance_page)
-		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn"],"Capricorn")
-		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn 2"],"Capricorn 2")
-		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn 3"],"Capricorn 3")
-		self.settings_dialog.p_check=QtGui.QCheckBox("Use the P-looking Pluto icon",appearance_page)
-		grid.addWidget(self.settings_dialog.p_check,4,1)
-		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"),5,0)
-		grid.addWidget(self.settings_dialog.c_check,5,1)
+		                                                  "standard icons, like Quit, "
+		                                                  "are not showing.\n"
+		                                                  "This will take effect after "
+		                                                  "a restart of ChronosLNX.\n"
+		                                                  "Currently detected icon theme by system: %s") \
+		                                                    % clnxcfg.sys_icotheme)
+		grid.addWidget(QtGui.QLabel("UI Icon theme: "), 1, 0)
+		grid.addWidget(self.settings_dialog.override_ui_icon, 1, 1)
+		grid.addWidget(self.settings_dialog.css_check, 2, 0, 1, 2)
+		grid.addWidget(QtGui.QLabel("Change the following for signs information"), 3, 0, 1, 2)
+		self.settings_dialog.c_check = QtGui.QComboBox(appearance_page)
+		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn"], "Capricorn")
+		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn 2"], "Capricorn 2")
+		self.settings_dialog.c_check.addItem(clnxcfg.sign_icons["Capricorn 3"], "Capricorn 3")
+		self.settings_dialog.p_check = QtGui.QCheckBox("Use the P-looking Pluto icon", appearance_page)
+		grid.addWidget(self.settings_dialog.p_check, 4, 1)
+		grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"), 5, 0)
+		grid.addWidget(self.settings_dialog.c_check, 5, 1)
 
 
-		buttonbox=QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
-		resetbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
-		okbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
-		applybutton=buttonbox.addButton(QtGui.QDialogButtonBox.Apply)
-		cancelbutton=buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+		buttonbox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
+		resetbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
+		okbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+		applybutton = buttonbox.addButton(QtGui.QDialogButtonBox.Apply)
+		cancelbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
 
 		resetbutton.clicked.connect(self.settings_reset)
 		okbutton.clicked.connect(self.settings_write)
@@ -747,62 +755,63 @@ class ChronosLNX(QtGui.QMainWindow):
 		cancelbutton.clicked.connect(self.settings_dialog.hide)
 		layout.addWidget(buttonbox)
 
-		eventplanner=EventsList(events_page)
-		a_vbox=QtGui.QVBoxLayout(events_page)
+		eventplanner = EventsList(events_page)
+		a_vbox = QtGui.QVBoxLayout(events_page)
 		a_vbox.addWidget(eventplanner)
 		eventplanner.tree.setModel(clnxcfg.schedule)
 
-		tweak_grid=QtGui.QGridLayout(tweaks_page)
-		self.settings_dialog.s_check=QtGui.QCheckBox("Sign of the month",tweaks_page)
-		self.settings_dialog.m_check=QtGui.QCheckBox("Current moon phase",tweaks_page)
-		self.settings_dialog.h_check=QtGui.QCheckBox("House of moment",tweaks_page)
-		self.settings_dialog.n_check=QtGui.QCheckBox("Show Nodes",tweaks_page)
-		self.settings_dialog.a_check=QtGui.QCheckBox("Show the ADMI axis",tweaks_page)
+		tweak_grid = QtGui.QGridLayout(tweaks_page)
+		self.settings_dialog.s_check = QtGui.QCheckBox("Sign of the month", tweaks_page)
+		self.settings_dialog.m_check = QtGui.QCheckBox("Current moon phase", tweaks_page)
+		self.settings_dialog.h_check = QtGui.QCheckBox("House of moment", tweaks_page)
+		self.settings_dialog.n_check = QtGui.QCheckBox("Show Nodes", tweaks_page)
+		self.settings_dialog.a_check = QtGui.QCheckBox("Show the ADMI axis", tweaks_page)
 		self.settings_dialog.a_check.setToolTip("This will show the Ascendant, Descendant, MC, and IC")
-		self.settings_dialog.mp_check=QtGui.QCheckBox("Show moon phases",tweaks_page)
-		self.settings_dialog.sr_check=QtGui.QCheckBox("Show solar returns",tweaks_page)
-		self.settings_dialog.lr_check=QtGui.QCheckBox("Show lunar returns",tweaks_page)
-		self.settings_dialog.ac_check=QtGui.QCheckBox("Show rendered astrological clock?", tweaks_page)
-		tweak_grid.addWidget(QtGui.QLabel("Show these main window's textual information"),0,0,1,2)
-		tweak_grid.addWidget(self.settings_dialog.s_check,1,1)
-		tweak_grid.addWidget(self.settings_dialog.m_check,2,1)
-		tweak_grid.addWidget(self.settings_dialog.h_check,3,1)
-		tweak_grid.addWidget(QtGui.QLabel("Change the following for signs information"),4,0,1,2)
-		tweak_grid.addWidget(self.settings_dialog.n_check,5,1)
-		tweak_grid.addWidget(self.settings_dialog.a_check,6,1)
-		tweak_grid.addWidget(QtGui.QLabel("Change the following for the calendar"),7,0,1,2)
-		tweak_grid.addWidget(self.settings_dialog.mp_check,8,1)
-		tweak_grid.addWidget(self.settings_dialog.sr_check,9,1)
-		tweak_grid.addWidget(self.settings_dialog.lr_check,10,1)
-		tweak_grid.addWidget(QtGui.QLabel("Graphical Clock"),11,0,1,2)
-		tweak_grid.addWidget(self.settings_dialog.ac_check,12,1)
+		self.settings_dialog.mp_check = QtGui.QCheckBox("Show moon phases", tweaks_page)
+		self.settings_dialog.sr_check = QtGui.QCheckBox("Show solar returns", tweaks_page)
+		self.settings_dialog.lr_check = QtGui.QCheckBox("Show lunar returns", tweaks_page)
+		self.settings_dialog.ac_check = QtGui.QCheckBox("Show rendered astrological clock?", tweaks_page)
+		tweak_grid.addWidget(QtGui.QLabel("Show these main window's textual information"), 0, 0, 1, 2)
+		tweak_grid.addWidget(self.settings_dialog.s_check, 1, 1)
+		tweak_grid.addWidget(self.settings_dialog.m_check, 2, 1)
+		tweak_grid.addWidget(self.settings_dialog.h_check, 3, 1)
+		tweak_grid.addWidget(QtGui.QLabel("Change the following for signs information"), 4, 0, 1, 2)
+		tweak_grid.addWidget(self.settings_dialog.n_check, 5, 1)
+		tweak_grid.addWidget(self.settings_dialog.a_check, 6, 1)
+		tweak_grid.addWidget(QtGui.QLabel("Change the following for the calendar"), 7, 0, 1, 2)
+		tweak_grid.addWidget(self.settings_dialog.mp_check, 8, 1)
+		tweak_grid.addWidget(self.settings_dialog.sr_check, 9, 1)
+		tweak_grid.addWidget(self.settings_dialog.lr_check, 10, 1)
+		tweak_grid.addWidget(QtGui.QLabel("Graphical Clock"), 11, 0, 1, 2)
+		tweak_grid.addWidget(self.settings_dialog.ac_check, 12, 1)
 
-		another_vbox=QtGui.QVBoxLayout(calculations_page)
-		gbox1=QtGui.QGroupBox("Refinements")
+		another_vbox = QtGui.QVBoxLayout(calculations_page)
+		gbox1 = QtGui.QGroupBox("Refinements")
 		another_vbox.addWidget(gbox1)
-		ggbox=QtGui.QGridLayout(gbox1)
-		gbox2=QtGui.QGroupBox("Orbs")
+		ggbox = QtGui.QGridLayout(gbox1)
+		gbox2 = QtGui.QGroupBox("Orbs")
 		another_vbox.addWidget(gbox2)
-		ggbox2=QtGui.QGridLayout(gbox2)
+		ggbox2 = QtGui.QGridLayout(gbox2)
 
-		self.settings_dialog.solar=QtGui.QSpinBox(calculations_page)
-		self.settings_dialog.lunar=QtGui.QSpinBox(calculations_page)
-		self.settings_dialog.phase=QtGui.QSpinBox(calculations_page)
+		self.settings_dialog.solar = QtGui.QSpinBox(calculations_page)
+		self.settings_dialog.lunar = QtGui.QSpinBox(calculations_page)
+		self.settings_dialog.phase = QtGui.QSpinBox(calculations_page)
 		ggbox.addWidget(QtGui.QLabel(("Adjust the number of refinements to perform\n"
-		"for each of these calculations")),0,0,1,2)
-		ggbox.addWidget(QtGui.QLabel("Solar Return"),1,0,1,2)
-		ggbox.addWidget(self.settings_dialog.solar,1,2)
-		ggbox.addWidget(QtGui.QLabel("Lunar Return"),2,0,1,2)
-		ggbox.addWidget(self.settings_dialog.lunar,2,2)
-		ggbox.addWidget(QtGui.QLabel("Moon Phase"),3,0,1,2)
-		ggbox.addWidget(self.settings_dialog.phase,3,2)
-		self.settings_dialog.orbs={}
+		                              "for each of these calculations")),
+		                0, 0, 1, 2)
+		ggbox.addWidget(QtGui.QLabel("Solar Return"), 1, 0, 1, 2)
+		ggbox.addWidget(self.settings_dialog.solar, 1, 2)
+		ggbox.addWidget(QtGui.QLabel("Lunar Return"), 2, 0, 1, 2)
+		ggbox.addWidget(self.settings_dialog.lunar, 2, 2)
+		ggbox.addWidget(QtGui.QLabel("Moon Phase"), 3, 0, 1, 2)
+		ggbox.addWidget(self.settings_dialog.phase, 3, 2)
+		self.settings_dialog.orbs = {}
 
-		for x,i in enumerate(list(clnxcfg.orbs.keys())):
-			self.settings_dialog.orbs[i]=QtGui.QDoubleSpinBox(calculations_page)
-			self.settings_dialog.orbs[i].setRange(0,10)
-			ggbox2.addWidget(QtGui.QLabel(i.title()),x,0,1,5)
-			ggbox2.addWidget(self.settings_dialog.orbs[i],x,5,1,1)
+		for x, i in enumerate(list(clnxcfg.orbs.keys())):
+			self.settings_dialog.orbs[i] = QtGui.QDoubleSpinBox(calculations_page)
+			self.settings_dialog.orbs[i].setRange(0, 10)
+			ggbox2.addWidget(QtGui.QLabel(i.title()), x, 0, 1, 5)
+			ggbox2.addWidget(self.settings_dialog.orbs[i], x, 5, 1, 1)
 
 		self.update_settings_widgets()
 
@@ -815,9 +824,9 @@ class ChronosLNX(QtGui.QMainWindow):
 		menu = QtGui.QMenu()
 		quitAction = QtGui.QAction(self.tr("&Quit"), self)
 		quitAction.triggered.connect(QtGui.qApp.quit)
-		showaction=menu.addAction("&Show",self.show)
+		showaction = menu.addAction("&Show", self.show)
 		showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
-		setaction=menu.addAction("&Settings",self.settings_dialog.open)
+		setaction = menu.addAction("&Settings", self.settings_dialog.open)
 		setaction.setIcon(QtGui.QIcon.fromTheme("preferences-other"))
 		menu.addAction(quitAction)
 		quitAction.setIcon(QtGui.QIcon.fromTheme("application-exit"))
@@ -825,7 +834,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.trayIcon.activated.connect(self.__icon_activated)
 		self.trayIcon.show()
 
-	def _ChronosLNX__icon_activated(self,reason):
+	def _ChronosLNX__icon_activated(self, reason):
 		if reason == QtGui.QSystemTrayIcon.DoubleClick:
 			if(self.isHidden()):
 				self.show()
@@ -841,11 +850,13 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
 
 	def show_about(self):
-		QtGui.QMessageBox.about (self, "About {}".format(APPNAME),
-		("<center><big><b>{0} {1}</b></big>"
-		"<br />{2}<br />(C) <a href=\"mailto:{3}\">{4}</a> {5}<br />"
-		"<a href=\"{6}\">{0} Homepage</a></center>")\
-		.format(APPNAME,APPVERSION,DESCRIPTION,EMAIL,AUTHOR,YEAR,PAGE))
+		QtGui.QMessageBox.about(self, "About {}".format(APPNAME),
+		                        ("<center><big><b>{0} {1}</b></big>"
+		                         "<br />{2}<br />(C) <a href=\"mailto:{3}\">{4}</a>"
+		                         " {5}<br /><a href = \"{6}\">{0} Homepage</a>"
+		                         "</center>").format(APPNAME, APPVERSION, DESCRIPTION, 
+		                                             EMAIL, AUTHOR, YEAR, PAGE)
+		                        )
 
 	def show_help(self):
 		print("Stubbing out")
@@ -853,50 +864,51 @@ class ChronosLNX(QtGui.QMainWindow):
 	def update(self):
 		self.now = clnxcfg.observer.obvdate
 		updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
-		#self.astroClock.signData=[self.houses,self.zodiac]
+		#self.astroClock.signData = [self.houses,self.zodiac]
 		if self.now >= self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
 		if clnxcfg.show_house_of_moment:
-			hom=self.zodiac[0].m.house_info.num
+			hom = self.zodiac[0].m.house_info.num
 			if hom == 1:
-				suffix="st"
+				suffix = "st"
 			elif hom == 2:
-				suffix="nd"
+				suffix = "nd"
 			elif hom == 3:
-				suffix="rd"
+				suffix = "rd"
 			else:
-				suffix="th"
-			house_of_moment_string="<br />The sun is in the {}<sup>{}</sup> house".format(hom,suffix)
+				suffix = "th"
+			house_of_moment_string = "<br />The sun is in the {}<sup>{}</sup> house".format(hom, suffix)
 		else:
-			house_of_moment_string=""
+			house_of_moment_string = ""
 		if clnxcfg.show_sign:
-			sign_string="<br />The sign of the month is {}".format(self.zodiac[0].m.signData['name'])
+			sign_string = "<br />The sign of the month is {}".format(self.zodiac[0].m.signData['name'])
 		else:
-			sign_string=""
+			sign_string = ""
 		if clnxcfg.show_moon:
-			phase=grab_phase(self.now)
-			moon_phase="<br />{}: {} illuminated".format(state_to_string(phase,
-								swisseph.MOON), phase[2])
+			phase = grab_phase(self.now)
+			moon_phase = "<br />{}: {} illuminated".format(state_to_string(phase, swisseph.MOON), phase[2])
 		else:
-			moon_phase=""
+			moon_phase = ""
 
 		#probably get boolean of day/night out of model?
 		planets_string = "Day of {}, the hour of {}".format(self.pday, self.phour)
 
-		total_string="{}{}{}{}".format(planets_string, sign_string, 
-				moon_phase, house_of_moment_string)
+		total_string = "{}{}{}{}".format(planets_string, sign_string, 
+		                                 moon_phase, house_of_moment_string)
 
 		if clnxcfg.current_theme == "None":
-			sysicon=QtGui.QIcon(clnxcfg.grab_icon_path("misc","chronoslnx"))
+			sysicon = QtGui.QIcon(clnxcfg.grab_icon_path("misc", "chronoslnx"))
 		else:
-			sysicon=clnxcfg.main_icons[self.phour]
+			sysicon = clnxcfg.main_icons[self.phour]
 		self.trayIcon.setToolTip("{} - {}\n{}".format(self.now.strftime("%Y/%m/%d"), 
-					self.now.strftime("%H:%M:%S"),
-					total_string.replace("<br />","\n")\
-						.replace("<sup>","").replace("</sup>","")))
+		                                              self.now.strftime("%H:%M:%S"),
+		                                              total_string.replace("<br />", "\n")\
+		                                                          .replace("<sup>","")\
+		                                                          .replace("</sup>",""))
+		                        )
 		self.trayIcon.setIcon(sysicon)
 		#self.todayPicture.setPixmap(clnxcfg.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))
@@ -909,109 +921,108 @@ class ChronosLNX(QtGui.QMainWindow):
 		else: #event_type == "Textual reminder"
 			self.show_notification("Reminder", text, planet_trigger)
 
-	def parse_phour_args(self,string):
-		alist=None
-		args=len(findall("%\(prev\)s|%\(next\)s", string))
-		model=self.hoursToday.tree.model().sourceModel()
+	def parse_phour_args(self, string):
+		alist = None
+		args = len(findall("%\(prev\)s|%\(next\)s", string))
+		model = self.hoursToday.tree.model().sourceModel()
 		if args == 2:
 			if model.last_index > 0:
-				idx=model.last_index - 1
+				idx = model.last_index - 1
 			else:
-				idx=model.last_index + 6
-			prev_hour=model.get_planet(idx)
-			alist={'prev': prev_hour, "next": self.phour}
+				idx = model.last_index + 6
+			prev_hour = model.get_planet(idx)
+			alist = {'prev': prev_hour, "next": self.phour}
 		elif args == 1:
 			if match("%\(prev\)s"):
 				if model.last_index > 0:
-					idx=model.last_index - 1
+					idx = model.last_index - 1
 				else:
-					idx=model.last_index + 6
-				prev_hour=model.get_planet(idx)
-				alist={"prev": prev_hour}
+					idx = model.last_index + 6
+				prev_hour = model.get_planet(idx)
+				alist = {"prev": prev_hour}
 			else:
-				alist={"next": self.phour}
-		return alist,args
+				alist = {"next": self.phour}
+		return alist, args
 
-	def parse_hour_args(self,string):
-		alist=None
-		args=len(findall("%\(prev\)s|%\(next\)s", string))
+	def parse_hour_args(self, string):
+		alist = None
+		args = len(findall("%\(prev\)s|%\(next\)s", string))
 		if args == 2:
 			if self.now.hour == 0:
 				prev_hour = 23
 			else:
 				prev_hour = self.now.hour - 1
-			alist={'prev': prev_hour, "next": self.now.hour}
+			alist = {'prev': prev_hour, "next": self.now.hour}
 		elif args == 1:
 			if match("%\(prev\)s"):
 				if self.now.hour == 0:
 					prev_hour = 23
 				else:
 					prev_hour = self.now.hour - 1
-				alist={"prev": prev_hour}
+				alist = {"prev": prev_hour}
 			else:
-				alist={"next": self.now.hour}
-		return alist,args
+				alist = {"next": self.now.hour}
+		return alist, args
 
 	def check_alarm(self):
 		for i in range(clnxcfg.todays_schedule.rowCount()):
-			hour_trigger=False
-			pt=False
-			real_row = clnxcfg.todays_schedule.mapToSource(clnxcfg.todays_schedule.index(i,0)).row()
+			hour_trigger = False
+			pt = False
+			real_row = clnxcfg.todays_schedule.mapToSource(clnxcfg.todays_schedule.index(i, 0)).row()
 
-			enabled_item=clnxcfg.schedule.item(real_row,0)
+			enabled_item = clnxcfg.schedule.item(real_row, 0)
 			if enabled_item.checkState() == QtCore.Qt.Checked:
-				hour_item=clnxcfg.schedule.item(real_row,2).data(QtCore.Qt.UserRole)
-				txt=clnxcfg.schedule.item(real_row, 4).data(QtCore.Qt.EditRole)
-				args=0
-				if isinstance(hour_item,QtCore.QTime):
-					hour_trigger = compare_to_the_second(self.now ,hour_item.hour(), \
-								hour_item.minute(), 0)
+				hour_item = clnxcfg.schedule.item(real_row, 2).data(QtCore.Qt.UserRole)
+				txt = clnxcfg.schedule.item(real_row, 4).data(QtCore.Qt.EditRole)
+				args = 0
+				if isinstance(hour_item, QtCore.QTime):
+					hour_trigger = compare_to_the_second(self.now ,hour_item.hour(), 
+					                                     hour_item.minute(), 0)
 				else:
 					if hour_item == "Every planetary hour":
-						phm=self.hoursToday.tree.model().sourceModel()
+						phm = self.hoursToday.tree.model().sourceModel()
 						dt = phm.get_date(phm.last_index)
-						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
+						hour_trigger = compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						if hour_trigger:
-							pt=True
-							alist,args=self.parse_phour_args(txt)
+							pt = True
+							alist, args = self.parse_phour_args(txt)
 					elif self.phour == hour_item:
-						phm=self.hoursToday.tree.model().sourceModel()
+						phm = self.hoursToday.tree.model().sourceModel()
 						dt = phm.get_date(phm.last_index)
-						hour_trigger=compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
-						pt=True
+						hour_trigger = compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
+						pt = True
 					elif hour_item == "When the sun rises":
-						hour_trigger=compare_to_the_second(self.now, self.sunrise, \
-								self.sunrise.minute, self.sunrise.second)
+						hour_trigger = compare_to_the_second(self.now, self.sunrise,
+						                                     self.sunrise.minute, self.sunrise.second)
 					elif hour_item == "When the sun sets":
-						hour_trigger=compare_to_the_second(self.now, self.sunset.hour, \
-								self.sunset.minute, self.minute.second)
+						hour_trigger = compare_to_the_second(self.now, self.sunset.hour, 
+						                                     self.sunset.minute, self.minute.second)
 					elif hour_item == "Every normal hour":
-						hour_trigger=compare_to_the_second(self.now, self.now.hour,0,0)
-						alist,args=self.parse_hour_args(txt)
+						hour_trigger = compare_to_the_second(self.now, self.now.hour, 0, 0)
+						alist, args = self.parse_hour_args(txt)
 
 				if hour_trigger:
-					event_type_item=clnxcfg.schedule.item(real_row, 
-					3).data(QtCore.Qt.EditRole)
+					event_type_item = clnxcfg.schedule.item(real_row, 3).data(QtCore.Qt.EditRole)
 					if args > 0:
-						self.event_trigger(event_type_item,txt % alist,pt)
+						self.event_trigger(event_type_item, txt % alist, pt)
 					else:
-						self.event_trigger(event_type_item,txt,pt)
+						self.event_trigger(event_type_item, txt, pt)
 
 def main():
 	global app, clnxcfg, pynf
 	app = QtGui.QApplication(sys.argv)
 	app.setApplicationName(APPNAME)
 	app.setApplicationVersion(APPVERSION)
-	
+
 	app.setQuitOnLastWindowClosed(False)
 	clnxcfg = ChronosLNXConfig()
-	
+
 	app.setWindowIcon(clnxcfg.main_icons['logo'])
 	try:
-		retcode=call(['which','notify-send'])
-		pynf=True if retcode == 0 else False
+		retcode = call(['which', 'notify-send'])
+		pynf = True if retcode == 0 else False
 	except Exception as e:
-		pynf=False
+		pynf = False
 	if not pynf:
 		print("Warning, couldn't find notify-send! On Linux systems, the notifications might look ugly.")
 	chronoslnx = ChronosLNX()

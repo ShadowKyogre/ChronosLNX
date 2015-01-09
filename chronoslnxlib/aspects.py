@@ -2,28 +2,28 @@ from .measurements import format_zodiacal_difference
 from collections import OrderedDict as od
 
 ASPECTS = od([('conjunction', 0.0),
-('semi-sextile', 30.0),
-('semi-square', 45.0),
-('sextile', 60.0),
-('quintile', 72.0),
-('square', 90.0),
-('trine', 120.0),
-('sesiquadrate', 135.0),
-('biquintile', 144.0),
-('inconjunct', 150.0),
-('opposition', 180.0)])
+              ('semi-sextile', 30.0),
+              ('semi-square', 45.0),
+              ('sextile', 60.0),
+              ('quintile', 72.0),
+              ('square', 90.0),
+              ('trine', 120.0),
+              ('sesiquadrate', 135.0),
+              ('biquintile', 144.0),
+              ('inconjunct', 150.0),
+              ('opposition', 180.0)])
 
 DEFAULT_ORBS = od([('conjunction', 10.0),
-('semi-sextile', 3.0),
-('semi-square', 3.0),
-('sextile', 6.0),
-('quintile', 1.0),
-('square', 10.0),
-('trine', 10.0),
-('sesiquadrate', 3.0),
-('biquintile', 1.0),
-('inconjunct', 3.0),
-('opposition', 10.0)])
+                   ('semi-sextile', 3.0),
+                   ('semi-square', 3.0),
+                   ('sextile', 6.0),
+                   ('quintile', 1.0),
+                   ('square', 10.0),
+                   ('trine', 10.0),
+                   ('sesiquadrate', 3.0),
+                   ('biquintile', 1.0),
+                   ('inconjunct', 3.0),
+                   ('opposition', 10.0)])
 
 class Aspect:
 	def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
@@ -36,14 +36,14 @@ class Aspect:
 
 	@property
 	def diff(self):
-		return format_zodiacal_difference(self.planet1.m.projectedLon, \
-		self.planet2.m.projectedLon)
+		return format_zodiacal_difference(self.planet1.m.projectedLon, 
+		                                  self.planet2.m.projectedLon)
 
 	@property
 	def aspect(self):
 		for i in ASPECTS:
-			degrees=ASPECTS[i]
-			o=self.orbs[i]
+			degrees = ASPECTS[i]
+			o = self.orbs[i]
 			if degrees - o <= self.diff <= degrees + o:
 				return i
 		return "None"
@@ -61,11 +61,11 @@ class Aspect:
 
 	def __repr__(self):
 		return ("Planet 1 - %s | %s"
-		"\nPlanet 2 - %s | %s"
-		"\nRelationship - %s") \
-		%(self.planet1.realName, self.planet1.m.longitude, \
-		self.planet2.realName, self.planet2.m.longitude, \
-		self.aspect.title())
+		        "\nPlanet 2 - %s | %s"
+		        "\nRelationship - %s") \
+		        %(self.planet1.realName, self.planet1.m.longitude,
+		          self.planet2.realName, self.planet2.m.longitude,
+		          self.aspect.title())
 
 	def __eq__(self, pr):
 		if not pr:
@@ -77,12 +77,12 @@ class Aspect:
 
 class SpecialAspect:
 	def __init__(self, descriptors, name):
-		self.descriptors=descriptors
-		self.name=name
+		self.descriptors = descriptors
+		self.name = name
 
 	@property
 	def uniquePlanets(self):
-		planets=set()
+		planets = set()
 		for d in self.descriptors:
 			planets.add(d.planet1.realName)
 			planets.add(d.planet2.realName)
@@ -90,21 +90,20 @@ class SpecialAspect:
 
 	@property
 	def uniqueMeasurements(self):
-		measurements=set()
+		measurements = set()
 		for d in self.descriptors:
 			measurements.add(d.planet1.m.longitude)
 			measurements.add(d.planet2.m.longitude)
 		return measurements
 
 	def contains(self, sa):
-		otherplanets=sa.uniquePlanets
+		otherplanets = sa.uniquePlanets
 		return otherplanets.issubset(self.uniquePlanets)
 
 	def __eq__(self, sa):
 		if sa is None:
 			return False
-		return self.name == sa.name and \
-		self.uniquePlanets == sa.uniquePlanets
+		return self.name == sa.name and self.uniquePlanets == sa.uniquePlanets
 		#because they are the same points
 
 	def __ne__(self, sa):
@@ -115,4 +114,6 @@ class SpecialAspect:
 
 	def __repr__(self):
 		return "%s\nUnique angles:%s\nUnique planets:%s" \
-		%(self.name.title(), [ ("%.3f" %(i)) for i in list(self.uniqueMeasurements)], list(self.uniquePlanets))
+		        %(self.name.title(), 
+		          [ ("%.3f" %(i)) for i in list(self.uniqueMeasurements)], 
+		          list(self.uniquePlanets))
