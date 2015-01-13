@@ -1018,6 +1018,9 @@ def main():
 	app.setApplicationName(APPNAME)
 	app.setApplicationVersion(APPVERSION)
 
+	if os.name == 'nt':
+		QtGui.QIcon.setThemeSearchPaths(['/icons'])
+
 	app.setQuitOnLastWindowClosed(False)
 	clnxcfg = ChronosLNXConfig()
 
