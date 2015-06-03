@@ -7,7 +7,7 @@ import math
 
 from . import zonetab
 from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
-                          HouseMeasurement
+                          HouseMeasurement, ZODIAC
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .planet import Planet
 
