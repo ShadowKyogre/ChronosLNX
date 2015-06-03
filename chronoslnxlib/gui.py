@@ -872,6 +872,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		if self.now >= self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
+		if self.now.hour == 0 and self.now.minute == 0 and self.now.second == 0:
+			self.calendar.remarkToday()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
 		if clnxcfg.show_house_of_moment:

@@ -12,7 +12,7 @@ class TodayDelegate(QtGui.QStyledItemDelegate):
 	def paint(self, painter, option, idx):
 		super().paint(painter, option, idx)
 		date = idx.data(QtCore.Qt.UserRole)
-		if self._otherTodayCheck(date) or date == pydate.today():
+		if idx.data(QtCore.Qt.UserRole+1):
 			painter.save()
 			painter.setPen(self.coltoday)
 			optrect=option.rect
@@ -20,9 +20,6 @@ class TodayDelegate(QtGui.QStyledItemDelegate):
 			                     optrect.width()-2, optrect.height()-2)
 			painter.drawRect(rect)
 			painter.restore()
-
-	def _otherTodayCheck(self, date):
-		return False
 
 class CSSCalendar(QtGui.QWidget):
 	currentPageChanged = QtCore.pyqtSignal(int,int)
@@ -126,8 +123,22 @@ class CSSCalendar(QtGui.QWidget):
 
 	date = QtCore.pyqtProperty(pydate, date, setDate)
 
+	def remarkToday(self):
+		self._todayItem.setData(QtCore.Qt.UserRole+1, False)
+		nextcol = self._todayItem.column() + 1
+		nextcolmodu = nextcol % 7
+		row = self._todayItem.row()
+		if nextcol != nextcolmodu:
+			row += 1
+		self._todayItem = self.item(row, nexcolmodu)
+
+	def _isToday(self, date):
+		return date == pydate.today()
+
 	def _modifyDayItem(self, item):
-		pass
+		date = item.data(QtCore.Qt.UserRole)
+		isToday = self._isToday(date)
+		item.setData(QtCore.Qt.UserRole+1, isToday)
 
 	def _refillCells(self):
 		monthdates = list(self._calendar.itermonthdates(self._date.year, self._date.month))
@@ -146,6 +157,8 @@ class CSSCalendar(QtGui.QWidget):
 			if monthdates[i] == self._date:
 				idxs = (i/7,i%7)
 			self._modifyDayItem(item)
+			if item.data(QtCore.Qt.UserRole+1):
+				self._todayItem = item
 			self._table.setItem(i/7,i%7,item)
 		self._table.setCurrentCell(*idxs)
 		self._table.resizeColumnsToContents()

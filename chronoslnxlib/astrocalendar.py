@@ -42,8 +42,6 @@ class AstroCalendarDelegate(TodayDelegate):
 		if phase is not None:
 			icon = self.icons[phase]
 			icon.paint(painter, QtCore.QRect(rect.x() ,rect.y(), 14, 14))
-	def _otherTodayCheck(self, date):
-		return self.observer is not None and self.observer.obvdate.date() == date
 
 class AstroCalendar(CSSCalendar):
 	def __init__(self, *args):
@@ -200,11 +198,14 @@ class AstroCalendar(CSSCalendar):
 	solarReturnFG = QtCore.pyqtProperty("QBrush", solarFG, setSolarFG)
 	solarReturnFill = QtCore.pyqtProperty("QBrush", solarFill, setSolarFill)
 
+	def _isToday(self, date):
+		return hasattr(self, 'observer') and self.observer.obvdate.date() == date
+
 	def _modifyDayItem(self, item):
-		if not hasattr(self, 'observer'):
-			super()._modifyDayItem(item)
-			return
 		date = item.data(QtCore.Qt.UserRole)
+		super()._modifyDayItem(item)
+		if not hasattr(self, 'observer'):
+			return
 		tooltiptxt = ''
 		here = self.lunarReturn and date in self.here
 		item.setData(QtCore.Qt.UserRole+2, here)
