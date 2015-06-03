@@ -46,6 +46,7 @@ class ReusableDialog(QtGui.QDialog):
 class ChronosLNX(QtGui.QMainWindow):
 	def __init__(self, parent=None):
 		super().__init__(parent)
+		self.prevtime = None
 		self.timer = QtCore.QTimer(self)
 		self.draw_timer = QtCore.QTimer(self)
 		self.now = clnxcfg.observer.obvdate
@@ -872,7 +873,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		if self.now >= self.next_sunrise:
 			self.update_hours()
 			self.update_moon_cycle()
-		if self.now.hour == 0 and self.now.minute == 0 and self.now.second == 0:
+		if self.prevtime == (23, 59, 59) and self.now.hour == 0 and self.now.minute == 0 and self.now.second == 0:
 			self.calendar.remarkToday()
 		self.phour = self.hoursToday.grab_nearest_hour(self.now)
 		self.check_alarm()
@@ -918,6 +919,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.trayIcon.setIcon(sysicon)
 		#self.todayPicture.setPixmap(clnxcfg.main_pixmaps[str(self.phour)])
 		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))
+		self.prevtime = (self.now.hour, self.now.minute, self.now.second)
 
 	def event_trigger(self, event_type, text, planet_trigger):
 		if event_type == "Save to file":
