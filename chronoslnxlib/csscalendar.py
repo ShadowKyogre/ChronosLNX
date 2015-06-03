@@ -124,13 +124,17 @@ class CSSCalendar(QtGui.QWidget):
 	date = QtCore.pyqtProperty(pydate, date, setDate)
 
 	def remarkToday(self):
-		self._todayItem.setData(QtCore.Qt.UserRole+1, False)
-		nextcol = self._todayItem.column() + 1
-		nextcolmodu = nextcol % 7
-		row = self._todayItem.row()
-		if nextcol != nextcolmodu:
-			row += 1
-		self._todayItem = self.item(row, nexcolmodu)
+		if self._todayItem is not None:
+			self._todayItem.setData(QtCore.Qt.UserRole+1, False)
+			nextcol = self._todayItem.column() + 1
+			nextcolmodu = nextcol % 7
+			row = self._todayItem.row()
+			if nextcol != nextcolmodu:
+				row += 1
+			if row <= self._table.rowCount():
+				self._todayItem = self_table.item(row, nexcolmodu)
+			else:
+				self._todayItem = None
 
 	def _isToday(self, date):
 		return date == pydate.today()
