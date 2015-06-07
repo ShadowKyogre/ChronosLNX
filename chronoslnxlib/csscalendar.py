@@ -132,7 +132,7 @@ class CSSCalendar(QtGui.QWidget):
 			if nextcol != nextcolmodu:
 				row += 1
 			if row <= self._table.rowCount():
-				self._todayItem = self_table.item(row, nexcolmodu)
+				self._todayItem = self._table.item(row, nexcolmodu)
 			else:
 				self._todayItem = None
 
