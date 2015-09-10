@@ -24,7 +24,7 @@ from .astro_rewrite import previous_new_moon, updatePandC, get_signs, grab_phase
 from .astroclock import AstroClock
 from .astrocalendar import AstroCalendar
 from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, housesDialog
-from .eventplanner import EventsList
+from .eventplanner import EventsList, DayEventsModel
 from .chronostext import prepare_planetary_info, prepare_moon_cycle, prepare_sign_info, \
                          prepare_events, prepare_all
 from .guiconfig import ChronosLNXConfig
@@ -500,7 +500,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		date2 = None
 		date3 = None
 		tzone = clnxcfg.observer.timezone
-		date = datetime.fromordinal(day.toordinal())
+		date = datetime.datetime.fromordinal(day.toordinal())
 		date = date.replace(hour=12, minute=0, second=0, tzinfo=tzone)
 
 		if self.calendar.lunarReturn:
