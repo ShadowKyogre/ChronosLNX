@@ -299,36 +299,48 @@ def lunar_return(date, month, year, data, refinements=2): #data contains the ang
 
 	return revjul_to_datetime(swisseph.revjul(day))
 
+def target_direction(angle, target_angle):
+	# given an angle and a target angle where
+	# only distance matters, return the number of
+	# degrees needed to move to the desired angle
+	if angle == 0:
+		return angle
+	return target_angle-(abs(angle)/angle)*angle
+
 def get_moon_sun_diff(day):
 	degree1 = swisseph.calc_ut(day, swisseph.MOON)[0]
 	degree2 = swisseph.calc_ut(day, swisseph.SUN)[0]
 	swisseph.close()
-	#we need some imprecision due to some oddities involving new and full moons
-	diff = round(degree2-degree1)
+	diff = (degree2-degree1)
+	#print(degree1, degree2, revjul_to_datetime(swisseph.revjul(day)))
 	return diff
 
 def previous_full_moon(date, refinements=2):
 	days_since_nm = datetime_to_julian(date)-LAST_NM
-	cycles = int(days_since_nm/LUNAR_MONTH_DAYS)-0.5 #get a baseline
-	day = cycles*LUNAR_MONTH_DAYS+LAST_NM
+	cycles = int(days_since_nm/LUNAR_MONTH_DAYS)+0.5 #get a baseline
+	day = cycles*LUNAR_MONTH_DAYS+LAST_NM 
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		day = day+(angle-180.0)/360*LUNAR_MONTH_DAYS
+		angle = target_direction(angle, 180)
+		day = day+angle/360*LUNAR_MONTH_DAYS
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		sec = ((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		angle = target_direction(angle, 180)
+		sec = angle/LUNAR_DEGREE_SECOND/SECS_TO_DAYS
 		day = day+sec
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		msec = ((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		angle = target_direction(angle, 180)
+		msec = angle/LUNAR_DEGREE_MS/(SECS_TO_DAYS*1000)
 		day = day+msec
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		nsec = ((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		angle = target_direction(angle, 180)
+		nsec = angle/LUNAR_DEGREE_NS/(SECS_TO_DAYS*1000000)
 		day = day+nsec
 
 	return revjul_to_datetime(swisseph.revjul(day))
@@ -359,28 +371,32 @@ def previous_new_moon(date, refinements=2):
 
 	return revjul_to_datetime(swisseph.revjul(day))
 
-def next_full_moon(date):
-	days_since_nm = datetime_to_julian(date)-LAST_NM
-	cycles = int(days_since_nm/LUNAR_MONTH_DAYS)+0.5 #get a baseline
+def next_full_moon(date, refinements=2):
+	days_since_nm = datetime_to_julian(dat0e)-LAST_NM
+	cycles = int(days_since_nm/LUNAR_MONTH_DAYS)+1.5 #get a baseline
 	day = cycles*LUNAR_MONTH_DAYS+LAST_NM
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		day = day+(angle-180.0)/360*LUNAR_MONTH_DAYS
+		angle = target_direction(angle, 180)
+		day = day+angle/360*LUNAR_MONTH_DAYS
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		sec = ((angle-180)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
+		angle = target_direction(angle, 180)
+		sec = angle/LUNAR_DEGREE_SECOND/SECS_TO_DAYS
 		day = day+sec
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		msec = ((angle-180.0)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
+		angle = target_direction(angle, 180)
+		msec = angle/LUNAR_DEGREE_MS/(SECS_TO_DAYS*1000)
 		day = day+msec
 
 	for i in range(refinements):
 		angle = get_moon_sun_diff(day)
-		nsec = ((angle-180.0)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
+		angle = target_direction(angle, 180)
+		nsec = angle/LUNAR_DEGREE_NS/(SECS_TO_DAYS*1000000)
 		day = day+nsec
 	## sun
 	##/-----moon
@@ -585,6 +601,7 @@ def grab_phase(date, refinements=2):
 	else:
 		illumination = "Gibbous"
 	status = "Waning"
+	#print(date, previous_full_moon(date))
 	if LMONTH_HALF_TD < date - full_m < LMONTH_FULL_TD:
 		status = "Waxing"
 	swisseph.close()
