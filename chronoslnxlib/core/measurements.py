@@ -64,7 +64,6 @@ def format_zodiacal_difference(zodiacal1,zodiacal2):
 		difference=360.0-difference
 	return difference
 
-
 class HouseMeasurement:
 	def __init__(self, lon1, lon2, num=-1):
 		self.cusp=ActiveZodiacalMeasurement(lon1, 0.0, self, progress=0.0)

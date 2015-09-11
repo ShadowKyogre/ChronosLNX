@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from PyQt4 import QtCore, QtGui
-from .astro_rewrite import get_planet_day
+from .core.hours import get_planet_day
 ##Custom Widgets for both normal and planetary sensitive data
 
 class PlanetDateEditor(QtGui.QWidget):

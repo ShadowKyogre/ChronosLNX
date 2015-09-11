@@ -5,9 +5,12 @@ from PyQt4 import QtGui, QtCore
 from dateutil import tz
 from datetime import datetime
 
-from .astro_rewrite import *
-from .measurements import format_zodiacal_difference
-from .aspects import DEFAULT_ORBS
+from .core.charts import create_aspect_table, search_special_aspects, \
+                         get_signs, updatePandC
+from .core.hours import hours_for_day
+from .core.moon_phases import get_moon_cycle
+from .core.measurements import format_zodiacal_difference
+from .core.aspects import DEFAULT_ORBS
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 ##http://doc.qt.nokia.com/latest/widgets-analogclock.html
@@ -95,7 +98,7 @@ class MPModel(BookMarkedModel):
 		self.setHorizontalHeaderLabels(["Time", "Phase", "Illumination"])
 
 	def highlight_cycle_phase(self, date):
-		for i in range(self.last_index, 29):
+		for i in range(self.last_index, 5):
 			self._unhighlight_row(i)
 			if i <= 27:
 				cycling = self.get_date(i)
@@ -435,6 +438,7 @@ class SignsForDayList(QtGui.QWidget):
 		self.capricorn_alternate = cprc_alt
 		self.table = table
 		self.orbs = orbs
+
 	def showAspects(self):
 		aspectsDialog(self, self.z, self.table, self.icons, 
 		self.sign_icons, self.pluto_alternate, self.admi, 

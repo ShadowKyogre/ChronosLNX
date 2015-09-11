@@ -9,6 +9,7 @@
 import os
 import sys
 import datetime
+from datetime import timedelta
 import argparse
 from shlex import split
 from subprocess import call
@@ -18,9 +19,12 @@ from PyQt4 import QtGui, QtCore
 import swisseph
 
 from . import geolocationwidget ## from example, but modified a little
-from .astro_rewrite import previous_new_moon, updatePandC, get_signs, grab_phase,\
-                           state_to_string, get_sunrise_and_sunset, \
-                           compare_to_the_second, get_planet_day
+from .core import compare_to_the_second
+from .core.charts import updatePandC, get_signs
+from .core.hours import get_sunrise_and_sunset, get_planet_day
+#previous_new_moon -> predict_phase
+from .core.moon_phases import predict_phase, grab_phase, state_to_string
+
 from .astroclock import AstroClock
 from .astrocalendar import AstroCalendar
 from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, housesDialog
@@ -239,7 +243,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.signsToday.get_constellations(self.now, clnxcfg.observer)
 
 	def update_moon_cycle(self):
-		if previous_new_moon(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
+		if predict_phase(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
 			self.moonToday.clear()
 			self.moonToday.get_moon_cycle(self.now)
 		self.moonToday.highlight_cycle_phase(self.now)
