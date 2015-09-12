@@ -93,7 +93,7 @@ setup(
 	author_email = EMAIL,
 	description = DESCRIPTION,
 	url = PAGE,
-	packages = ['chronoslnxlib'],
+	packages = ['chronoslnxlib', 'chronoslnxlib.core'],
 	cmdclass={'install': install},
 	data_files = data_files,
 	scripts=['chronoslnx.py']
