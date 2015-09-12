@@ -98,9 +98,10 @@ class MPModel(BookMarkedModel):
 		self.setHorizontalHeaderLabels(["Time", "Phase", "Illumination"])
 
 	def highlight_cycle_phase(self, date):
-		for i in range(self.last_index, 5):
+		rowCount = self.rowCount()
+		for i in range(self.last_index, rowCount):
 			self._unhighlight_row(i)
-			if i <= 27:
+			if i <= rowCount-2:
 				cycling = self.get_date(i)
 				cycling2 = self.get_date(i+1)
 				if cycling.timetuple().tm_yday <= date.timetuple().tm_yday < cycling2.timetuple().tm_yday:
