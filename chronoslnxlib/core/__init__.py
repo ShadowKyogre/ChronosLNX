@@ -81,3 +81,33 @@ def utc_to_timezone(date):
 	dateutc = date.replace(tzinfo=tz.gettz('UTC'))
 	datenow = dateutc.astimezone(tz.gettz())
 	return datenow
+
+def angle_sub(target, source):
+	diff = (target-source)
+	if diff > 180:
+		diff -= 360
+	elif diff < -180:
+		diff += 360
+	return diff
+
+def date_to_solar_cycles(forecast_date, orig_date):
+	end_point = datetime_to_julian(forecast_date)
+	if type(orig_date) == float:
+		start_point = orig_date
+	else:
+		start_point =  datetime_to_julian(orig_date) 
+	cycle_with_part = (end_point-start_point)/SOLAR_YEAR_DAYS
+	return cycle_with_part
+
+def date_to_moon_cycles(forecast_date, orig_date=LAST_NM):
+	days_since_nm = datetime_to_julian(forecast_date)-orig_date
+	cycle_with_part = days_since_nm/LUNAR_MONTH_DAYS
+	return cycle_with_part
+
+def solar_cycles_to_jul(cycles, orig_date):
+	day = cycles*SOLAR_YEAR_DAYS+orig_date
+	return day
+
+def moon_cycles_to_jul(cycles, orig_date=LAST_NM):
+	day = cycles*LUNAR_MONTH_DAYS+orig_date
+	return day

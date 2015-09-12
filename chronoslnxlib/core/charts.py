@@ -4,27 +4,13 @@ from dateutil.relativedelta import relativedelta
 import swisseph
 
 from . import datetime_to_julian, revjul_to_datetime
+from . import date_to_moon_cycles, moon_cycles_to_jul
+from . import date_to_solar_cycles, solar_cycles_to_jul
+from . import angle_sub
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
                           HouseMeasurement, ZODIAC
 from .planet import Planet
-
-SOLAR_YEAR_SECONDS = 31556925.51 #source openastro.org
-SOLAR_DEGREE_SECOND = 1.1407955438685572e-05
-SOLAR_DEGREE_MS = 1.1407955438685574e-08
-SOLAR_YEAR_DAYS = 365.2421934027778
-
-LUNAR_MONTH_SECONDS = 2551442.8619520003
-LUNAR_DEGREE_SECOND = 0.00014109663413139473
-LUNAR_DEGREE_MS = 1.4109663413139472e-07
-LUNAR_DEGREE_NS = 1.410966341313947e-10
-LUNAR_MONTH_DAYS = 29.53058868
-LMONTH_IN_SYEAR = 12.368266591655964
-LMONTH_TO_MONTH = 0.9702248824500268
-LAST_NM = 2415021.077777778
-
-SECS_TO_DAYS=86400.0
-
 
 def get_transit(planet, observer, date):
 	day = datetime_to_julian(date)
@@ -204,48 +190,40 @@ def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
 		return aspect_table, comparison
 	return aspect_table
 
-def solar_return(date, year, data, refinements=2): #data contains the angule, date is for a reasonable baseline
-	day = datetime_to_julian(date)+(SOLAR_YEAR_DAYS*(year-date.year))
-
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.SUN)[0]
-		sec = ((data-angle)/SOLAR_DEGREE_SECOND)/SECS_TO_DAYS
-		day = day+sec
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.SUN)[0]
-		msec = ((data-angle)/SOLAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
-
-	return revjul_to_datetime(swisseph.revjul(day+msec))
-
-def lunar_return(date, month, year, data, refinements=2): #data contains the angle, date is for a reasonable baseline
-	day = datetime_to_julian(date)
-	progress, cycles = math.modf((day/LUNAR_MONTH_DAYS))
-
-	cycles = cycles+(year-date.year)*LMONTH_IN_SYEAR
-	cycles = cycles+(month-date.month)*LMONTH_TO_MONTH
-
-	day = (cycles)*LUNAR_MONTH_DAYS
-
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.MOON)[0]
-		day = day+(data-angle)/360*LUNAR_MONTH_DAYS
-
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.MOON)[0]
-		sec = ((data-angle)/LUNAR_DEGREE_SECOND)/SECS_TO_DAYS
-		day = day+sec
-
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.MOON)[0]
-		msec = ((data-angle)/LUNAR_DEGREE_MS)/(SECS_TO_DAYS*1000)
-		day = day+msec
-
-	for i in range(refinements):
-		angle = swisseph.calc_ut(day, swisseph.MOON)[0]
-		nsec = ((data-angle)/LUNAR_DEGREE_NS)/(SECS_TO_DAYS*1000000)
-		day = day+nsec
 
 	return revjul_to_datetime(swisseph.revjul(day))
+
+def lunar_return(date, birth_date, target_angle):
+	#print(repr(date), offset, target_angle)
+	bdate = datetime_to_julian(birth_date)
+	cycles_with_stuff = date_to_moon_cycles(date, orig_date=bdate)
+	cycles = round(cycles_with_stuff)
+	diff = float('inf')
+	#print("---", cycles_with_stuff)
+	while abs(diff) >= 1E-5:
+		rejulified = moon_cycles_to_jul(cycles, orig_date=bdate)
+		cur_angle = swisseph.calc_ut(rejulified, swisseph.MOON)[0]
+		angle_diff = angle_sub(target_angle, cur_angle)
+		#print(revjul_to_datetime(swisseph.revjul(rejulified)), cur_angle, angle_diff)
+		cycles += angle_diff / 360
+		diff = angle_diff
+	return revjul_to_datetime(swisseph.revjul(moon_cycles_to_jul(cycles, orig_date=bdate)))
+
+def solar_return(date, birth_date, target_angle):
+	#print(repr(date), offset, target_angle)
+	bdate = datetime_to_julian(birth_date)
+	cycles_with_stuff = date_to_solar_cycles(date, bdate)
+	cycles = round(cycles_with_stuff)
+	diff = float('inf')
+	#print("---", cycles_with_stuff)
+	while abs(diff) >= 1E-5:
+		rejulified = solar_cycles_to_jul(cycles, bdate)
+		cur_angle = swisseph.calc_ut(rejulified, swisseph.SUN)[0]
+		angle_diff = angle_sub(target_angle, cur_angle)
+		#print(revjul_to_datetime(swisseph.revjul(rejulified)), cur_angle, angle_diff)
+		cycles += angle_diff / 360
+		diff = angle_diff
+	return revjul_to_datetime(swisseph.revjul(solar_cycles_to_jul(cycles, bdate)))
 
 def fill_houses(date, observer, houses=None, data=None):
 	day = datetime_to_julian(date)

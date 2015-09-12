@@ -2,6 +2,8 @@ from PyQt4 import QtGui, QtCore
 from .core.charts import lunar_return, solar_return
 from .core.moon_phases import state_to_string, grab_phase
 from .csscalendar import CSSCalendar, TodayDelegate
+from datetime import datetime
+
 import swisseph
 
 ### CSS Themable Custom Widgets
@@ -128,16 +130,23 @@ class AstroCalendar(CSSCalendar):
 		#self.listidx=self.isLunarReturnsValid()
 
 	def updateSun(self, year):
-		self.solarReturnTime = solar_return(self.birthtime, year, self.natal_sun,
-		                                    refinements=self.refinements['Solar Return'])
+		self.solarReturnTime = solar_return(self.birthtime.replace(year=year), self.birthtime, self.natal_sun)
+		#print(self.solarReturnTime)
 
 	def updateMoon(self, year):
 		self.lunarReturns=[]
+		guesstimate_point = datetime(year-1, 12, 14, 12)
+		self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
+			                                      self.natal_moon))
 		for m in range(1, 13):
-			self.lunarReturns.append(lunar_return(self.birthtime, m, year, 
-			                                      self.natal_moon, 
-			                                      refinements=self.refinements['Lunar Return']))
+			guesstimate_point = datetime(year, m, 14, 12)
+			self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
+			                                      self.natal_moon))
+		guesstimate_point = datetime(year+1, 1, 14, 12)
+		self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
+			                                      self.natal_moon))
 		self.lunarReturnss = set([d.date() for d in self.lunarReturns])
+		#print(self.lunarReturns)
 
 	def isSolarReturnValid(self):
 		return self.solarReturnTime.year == self.yearShown()

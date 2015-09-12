@@ -1,58 +1,10 @@
 import swisseph
 
-from . import datetime_to_julian, revjul_to_datetime
+from . import datetime_to_julian, revjul_to_datetime, angle_sub
+from . import date_to_moon_cycles, moon_cycles_to_jul
 from . import LUNAR_MONTH_DAYS, LAST_NM
 
 ### UTILITY FUNCTIONS FOR predict_phase ###
-"""
-def target_direction(angle, target_angle):
-	# given an angle and a target angle where
-	# only distance matters, return the number of
-	# degrees needed to move to the desired angle
-	if target_angle != 0:
-		if angle==0:
-			 return target_angle
-		if target_angle > 0:
-			return target_angle-(abs(angle)/angle)*angle
-		else:
-			return target_angle+(abs(angle)/angle)*angle
-	else:
-		if angle > 360:
-			angle-=360
-		elif target_angle < -360:
-			angle+=360
-		return angle
-"""
-
-def angle_sub(target, source):
-	diff = (target-source)
-	if diff > 180:
-		diff -= 360
-	elif diff < -180:
-		diff += 360
-	return diff
-
-def target_direction(angle, target_angle):
-	if target_angle == 0:
-		if angle > 360:
-			angle-=360
-		elif angle < -360:
-			angle+=360
-		return -angle
-	else:
-		if target_angle > 0:
-			return target_angle-(abs(angle)/angle)*angle
-		else:
-			return target_angle+(abs(angle)/angle)*angle
-
-def date_to_mooncycles(date):
-	days_since_nm = datetime_to_julian(date)-LAST_NM
-	cycle_with_part = days_since_nm/LUNAR_MONTH_DAYS
-	return cycle_with_part
-
-def mooncycles_to_jul(cycles):
-	day = cycles*LUNAR_MONTH_DAYS+LAST_NM
-	return day
 
 def get_moon_sun_diff(day):
 	degree1 = swisseph.calc_ut(day, swisseph.MOON)[0]
@@ -76,16 +28,16 @@ def predict_phase(date, offset=0, target_angle=0):
 	#print(repr(date), offset, target_angle)
 	if target_angle < -90 or target_angle > 180:
 		raise ValueError("No, you'll get something inaccurate...")
-	cycles_with_stuff = date_to_mooncycles(date)
+	cycles_with_stuff = date_to_moon_cycles(date)
 	cycles = int(cycles_with_stuff)+offset
 	diff = float('inf')
 	while abs(diff) >= 1E-3:
-		 angle_diff = get_moon_sun_diff(mooncycles_to_jul(cycles))
+		 angle_diff = get_moon_sun_diff(moon_cycles_to_jul(cycles))
 		 angle_diff = angle_sub(angle_diff, target_angle)
 		 #print(revjul_to_datetime(swisseph.revjul(mooncycles_to_jul(cycles))), get_moon_sun_diff(mooncycles_to_jul(cycles)), angle_diff)
 		 cycles += angle_diff / 360
 		 diff = angle_diff
-	return revjul_to_datetime(swisseph.revjul(mooncycles_to_jul(cycles)))
+	return revjul_to_datetime(swisseph.revjul(moon_cycles_to_jul(cycles)))
 
 def grab_phase(date, full_m=None, refinements=2):
 	day = datetime_to_julian(date)
