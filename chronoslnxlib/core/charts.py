@@ -190,9 +190,6 @@ def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
 		return aspect_table, comparison
 	return aspect_table
 
-
-	return revjul_to_datetime(swisseph.revjul(day))
-
 def lunar_return(date, birth_date, target_angle):
 	#print(repr(date), offset, target_angle)
 	bdate = datetime_to_julian(birth_date)

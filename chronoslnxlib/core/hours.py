@@ -7,9 +7,6 @@ from . import datetime_to_julian, revjul_to_datetime
 #http://packages.python.org/pyswisseph/
 #http://www.astrologyzine.com/what-is-a-house-cusp.shtml
 
-#LMONTH_HALF_TD = timedelta(days=14, hours=18, minutes=22, seconds=1, milliseconds=430)
-#LMONTH_FULL_TD = LMONTH_HALF_TD*2
-
 DAY_SEQUENCE = ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn")
 HOUR_SEQUENCE = ("Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars")
 
