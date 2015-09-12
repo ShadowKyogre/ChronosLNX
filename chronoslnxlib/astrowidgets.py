@@ -93,7 +93,7 @@ class PHModel(BookMarkedModel):
 		return model
 
 class MPModel(BookMarkedModel):
-	def __init__(self, parent = None):
+	def __init__(self, parent=None):
 		super().__init__(columns=3, parent=parent)
 		self.setHorizontalHeaderLabels(["Time", "Phase", "Illumination"])
 
@@ -119,8 +119,8 @@ class MPModel(BookMarkedModel):
 		return self.item(idx, 0).data(32)
 
 	@classmethod
-	def getMoonCycle(cls, date, icon_source, refinements=2):
-		moon_cycle = get_moon_cycle(date, refinements=refinements)
+	def getMoonCycle(cls, date, icon_source):
+		moon_cycle = get_moon_cycle(date)
 		model = cls()
 		for mc in moon_cycle:
 			mptitem = QtGui.QStandardItem(icon_source[mc[1]], mc[0].strftime("%H:%M:%S - %m/%d/%Y"))
@@ -160,7 +160,7 @@ class MoonCycleList(QtGui.QTreeView):
 		self.model().highlight_cycle_phase(date)
 
 	def get_moon_cycle(self, date):
-		self.setModel(MPModel.getMoonCycle(date, self.icons, self.refinement))
+		self.setModel(MPModel.getMoonCycle(date, self.icons))
 '''
 self.hoursToday.icons=clnxcfg.main_icons
 

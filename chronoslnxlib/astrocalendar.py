@@ -97,9 +97,6 @@ class AstroCalendar(CSSCalendar):
 		#self.updateSun()
 		#self.updateMoon()
 
-	def setRefinements(self, ref):
-		self.refinements = ref
-
 	def setNatalMoon(self, zodiacal_data):
 		if not self.birthtime:
 			raise RuntimeError("Cannot update natal moon without a birthtime!")
@@ -225,9 +222,7 @@ class AstroCalendar(CSSCalendar):
 			datetime = QtCore.QDateTime(date).toPyDateTime()\
 			                                 .replace(tzinfo=self.observer.timezone)\
 			                                 .replace(hour=12)
-			phase = state_to_string(grab_phase(datetime, 
-			                                   refinements=self.refinements['Moon Phase']), 
-			                        swisseph.MOON)
+			phase = state_to_string(grab_phase(datetime), swisseph.MOON)
 			item.setData(QtCore.Qt.UserRole+4, phase)
 		else:
 			item.setData(QtCore.Qt.UserRole+4, None)

@@ -39,11 +39,10 @@ def predict_phase(date, offset=0, target_angle=0):
 		 diff = angle_diff
 	return revjul_to_datetime(swisseph.revjul(moon_cycles_to_jul(cycles)))
 
-def grab_phase(date, full_m=None, refinements=2):
+def grab_phase(date, full_m=None):
 	day = datetime_to_julian(date)
 	if full_m is None:
 		full_m = predict_phase(date, target_angle=180)
-	#next_new = next_new_moon(date, refinements=refinements)
 	phase = swisseph.pheno_ut(day, swisseph.MOON)[1]*100
 
 	if 97.0 <= phase <= 100.0:
@@ -57,7 +56,6 @@ def grab_phase(date, full_m=None, refinements=2):
 	else:
 		illumination = "Gibbous"
 	status = "Waxing"
-	#print(date, date>full_m, next_full_moon(date), next_new_moon(date))
 	if date > full_m:
 		status = "Waning"
 	swisseph.close()
@@ -83,7 +81,7 @@ def state_to_string(state_line, planet):
 	swisseph.close()
 	return state
 
-def get_moon_cycle(date, refinements=2):
+def get_moon_cycle(date):
 	new_m_start = predict_phase(date, target_angle=0)
 	first_quarter = predict_phase(date, target_angle=-90)
 	full_m = predict_phase(date, target_angle=180)
@@ -94,7 +92,7 @@ def get_moon_cycle(date, refinements=2):
 	items = [new_m_start, first_quarter, full_m, last_quarter, new_m_end]
 
 	for i in items:
-		state_line = grab_phase(i, full_m=full_m, refinements=refinements)
+		state_line = grab_phase(i, full_m=full_m)
 		state = state_to_string(state_line, swisseph.MOON)
 		moon_phase.append([i, state, state_line[2]])
 	return moon_phase

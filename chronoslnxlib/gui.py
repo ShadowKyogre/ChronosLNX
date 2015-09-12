@@ -209,7 +209,6 @@ class ChronosLNX(QtGui.QMainWindow):
 				self.astroClock.init_colors()
 			self.draw_timer.start(60000)
 
-		self.calendar.setRefinements(clnxcfg.refinements)
 		self.calendar.setIcons(clnxcfg.moon_icons)
 		self.calendar.setShowPhase(clnxcfg.show_mcal)
 		self.calendar.setSolarReturn(clnxcfg.show_sr)
@@ -222,7 +221,6 @@ class ChronosLNX(QtGui.QMainWindow):
 
 		self.hoursToday.icons = clnxcfg.main_icons
 		self.moonToday.icons = clnxcfg.moon_icons
-		self.moonToday.refinement = clnxcfg.refinements['Moon Phase']
 
 		self.signsToday.table = clnxcfg.natal_data[1]
 		self.signsToday.icons = clnxcfg.main_icons
@@ -318,7 +316,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		hoursToday.icons = clnxcfg.main_icons
 
 		moonToday = MoonCycleList(info_dialog)
-		moonToday.refinement = clnxcfg.refinements['Moon Phase']
 		moonToday.icons = clnxcfg.moon_icons
 
 		signsToday = SignsForDayList(clnxcfg.main_icons, clnxcfg.sign_icons, 
@@ -604,10 +601,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		idx2 = self.settings_dialog.c_check.findText(clnxcfg.capricorn_alt)
 		self.settings_dialog.c_check.setCurrentIndex(idx2)
 
-		self.settings_dialog.solar.setValue(clnxcfg.refinements['Solar Return'])
-		self.settings_dialog.lunar.setValue(clnxcfg.refinements['Lunar Return'])
-		self.settings_dialog.phase.setValue(clnxcfg.refinements['Moon Phase'])
-
 		for i in self.settings_dialog.orbs:
 			self.settings_dialog.orbs[i].setValue(clnxcfg.orbs[i])
 
@@ -648,10 +641,6 @@ class ChronosLNX(QtGui.QMainWindow):
 		clnxcfg.capricorn_alt = cp
 		clnxcfg.use_css = self.settings_dialog.css_check.isChecked()
 		clnxcfg.show_aclk = self.settings_dialog.ac_check.isChecked()
-
-		clnxcfg.refinements['Solar Return'] = self.settings_dialog.solar.value()
-		clnxcfg.refinements['Lunar Return'] = self.settings_dialog.lunar.value()
-		clnxcfg.refinements['Moon Phase'] = self.settings_dialog.phase.value()
 
 		for i in self.settings_dialog.orbs:
 			clnxcfg.orbs[i] = self.settings_dialog.orbs[i].value()
@@ -795,25 +784,10 @@ class ChronosLNX(QtGui.QMainWindow):
 		tweak_grid.addWidget(self.settings_dialog.ac_check, 12, 1)
 
 		another_vbox = QtGui.QVBoxLayout(calculations_page)
-		gbox1 = QtGui.QGroupBox("Refinements")
-		another_vbox.addWidget(gbox1)
-		ggbox = QtGui.QGridLayout(gbox1)
 		gbox2 = QtGui.QGroupBox("Orbs")
 		another_vbox.addWidget(gbox2)
 		ggbox2 = QtGui.QGridLayout(gbox2)
 
-		self.settings_dialog.solar = QtGui.QSpinBox(calculations_page)
-		self.settings_dialog.lunar = QtGui.QSpinBox(calculations_page)
-		self.settings_dialog.phase = QtGui.QSpinBox(calculations_page)
-		ggbox.addWidget(QtGui.QLabel(("Adjust the number of refinements to perform\n"
-		                              "for each of these calculations")),
-		                0, 0, 1, 2)
-		ggbox.addWidget(QtGui.QLabel("Solar Return"), 1, 0, 1, 2)
-		ggbox.addWidget(self.settings_dialog.solar, 1, 2)
-		ggbox.addWidget(QtGui.QLabel("Lunar Return"), 2, 0, 1, 2)
-		ggbox.addWidget(self.settings_dialog.lunar, 2, 2)
-		ggbox.addWidget(QtGui.QLabel("Moon Phase"), 3, 0, 1, 2)
-		ggbox.addWidget(self.settings_dialog.phase, 3, 2)
 		self.settings_dialog.orbs = {}
 
 		for x, i in enumerate(list(clnxcfg.orbs.keys())):

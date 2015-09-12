@@ -170,12 +170,6 @@ class ChronosLNXConfig:
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Calculations")
-		self.settings.beginGroup("refinements")
-		self.refinements = {}
-		self.refinements['Solar Return'] = int(self.settings.value("solar", 2))
-		self.refinements['Lunar Return'] = int(self.settings.value("lunar", 2))
-		self.refinements['Moon Phase'] = int(self.settings.value("phase", 2))
-		self.settings.endGroup()
 		self.settings.beginGroup("orbs")
 		self.orbs = od()
 		for i in DEFAULT_ORBS:
@@ -323,11 +317,6 @@ class ChronosLNXConfig:
 		self.settings.endGroup()
 
 		self.settings.beginGroup("Calculations")
-		self.settings.beginGroup("refinements")
-		self.settings.setValue("solar", self.refinements['Solar Return'])
-		self.settings.setValue("lunar", self.refinements['Lunar Return'])
-		self.settings.setValue("phase", self.refinements['Moon Phase'])
-		self.settings.endGroup()
 		self.settings.beginGroup("orbs")
 		for i in self.orbs:
 			self.settings.setValue(i, self.orbs[i])
