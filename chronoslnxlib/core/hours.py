@@ -2,6 +2,7 @@
 import swisseph
 
 from . import datetime_to_julian, revjul_to_datetime
+from datetime import timedelta
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
@@ -70,6 +71,8 @@ def hours_for_day(date, observer):
 	day_type = int(date.strftime('%w'))
 	needed_planet = get_planet_day(day_type)
 	sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date, observer)
+	if date < sunrise:
+		sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date-timedelta(days=1), observer)
 	day_length = sunset - sunrise
 	night_length = next_sunrise - sunset
 	dayhour_length = day_length/12
