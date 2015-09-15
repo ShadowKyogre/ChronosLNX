@@ -850,6 +850,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		#self.astroClock.signData = [self.houses,self.zodiac]
 		if self.now >= self.next_sunrise:
 			self.update_hours()
+		if self.now >= self.moonToday.model().get_date(self.moonToday.model().rowCount()-1):
 			self.update_moon_cycle()
 		if self.prevtime == (23, 59, 59) and self.now.hour == 0 and self.now.minute == 0 and self.now.second == 0:
 			self.calendar.remarkToday()
