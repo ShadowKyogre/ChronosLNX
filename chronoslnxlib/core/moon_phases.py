@@ -39,27 +39,30 @@ def predict_phase(date, offset=0, target_angle=0):
 		 diff = angle_diff
 	return revjul_to_datetime(swisseph.revjul(moon_cycles_to_jul(cycles)))
 
-def grab_phase(date, full_m=None):
+def grab_phase(date):
 	day = datetime_to_julian(date)
-	if full_m is None:
-		full_m = predict_phase(date, target_angle=180)
-	phase = swisseph.pheno_ut(day, swisseph.MOON)[1]*100
+	#if full_m is None:
+	#	full_m = predict_phase(date, target_angle=180)
+	res = swisseph.pheno_ut(day, swisseph.MOON)
+	light = res[1]*100
+	elongation = res[2]
+	phase_angle = res[0]
 
-	if 97.0 <= phase <= 100.0:
-		illumination = "Full"
-	elif 0 <= phase <= 2.0:
+	if elongation <= 5.0:
 		illumination = "New"
-	elif 2.0 <= phase <= 47.0:
+	elif elongation <= 88.0:
 		illumination = "Crescent"
-	elif 47.0 <= phase <= 52.0:
+	elif elongation <= 94.0:
 		illumination = "Quarter"
-	else:
+	elif elongation <= 175.0:
 		illumination = "Gibbous"
+	else:
+		illumination = "Full"
 	status = "Waxing"
-	if date > full_m:
+	if 0 <= get_moon_sun_diff(day):
 		status = "Waning"
 	swisseph.close()
-	return status, illumination, "%.3f%%" %(phase)
+	return status, illumination, "%.3f%%" %(light)
 
 	#attr[0] = phase angle (earth-planet-sun)
 	#attr[1] = phase (illumined fraction of disc)
@@ -83,16 +86,21 @@ def state_to_string(state_line, planet):
 
 def get_moon_cycle(date):
 	new_m_start = predict_phase(date, target_angle=0)
+	wax_crescent = predict_phase(date, target_angle=-45)
 	first_quarter = predict_phase(date, target_angle=-90)
+	wax_gib = predict_phase(date, target_angle=-135)
 	full_m = predict_phase(date, target_angle=180)
+	wan_gib = predict_phase(date, offset=1, target_angle=135)
 	last_quarter = predict_phase(date, offset=1, target_angle=90)
+	wan_crescent = predict_phase(date, offset=1, target_angle=45)
 	new_m_end = predict_phase(date, offset=1, target_angle=0)
 
 	moon_phase = []
-	items = [new_m_start, first_quarter, full_m, last_quarter, new_m_end]
+	items = [new_m_start, wax_crescent, first_quarter, wax_gib,
+	         full_m, wan_gib, last_quarter, wan_crescent, new_m_end]
 
 	for i in items:
-		state_line = grab_phase(i, full_m=full_m)
+		state_line = grab_phase(i)
 		state = state_to_string(state_line, swisseph.MOON)
 		moon_phase.append([i, state, state_line[2]])
 	return moon_phase
