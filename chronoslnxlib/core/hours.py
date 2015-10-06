@@ -49,30 +49,30 @@ def get_sunrise_and_sunset(date, observer):
 	                                                                 alt=observer.elevation, 
 	                                                                 rsmi=swisseph.CALC_RISE)[1][0]
 	                                            )
-	                            )
+	                            ).astimezone(observer.timezone)
 
 	sunset = revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day, swisseph.SUN, 
 	                                                                observer.lng, observer.lat, 
 	                                                                observer.elevation, 
 	                                                                rsmi=swisseph.CALC_SET)[1][0]
 	                                           )
-	                           )
+	                           ).astimezone(observer.timezone)
 
 	next_sunrise = revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day, swisseph.SUN, 
 	                                                                      observer.lng, observer.lat, 
 	                                                                      observer.elevation, 
 	                                                                      rsmi=swisseph.CALC_RISE)[1][0]
 	                                                 )
-	                                 )
+	                                 ).astimezone(observer.timezone)
 	swisseph.close()
 	return sunrise, sunset, next_sunrise
 
 def hours_for_day(date, observer):
-	day_type = int(date.strftime('%w'))
-	needed_planet = get_planet_day(day_type)
 	sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date, observer)
 	if date < sunrise:
 		sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date-timedelta(days=1), observer)
+	day_type = int(sunrise.strftime('%w'))
+	needed_planet = get_planet_day(day_type)
 	day_length = sunset - sunrise
 	night_length = next_sunrise - sunset
 	dayhour_length = day_length/12

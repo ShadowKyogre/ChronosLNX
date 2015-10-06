@@ -247,9 +247,10 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.moonToday.highlight_cycle_phase(self.now)
 
 	def prepare_hours_for_today(self):
-		dayn = self.now.isoweekday() % 7
-		self.pday = get_planet_day(dayn)
 		self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(self.now, clnxcfg.observer)
+		dayn = self.sunrise.isoweekday() % 7
+		self.pday = get_planet_day(dayn)
+		print(self.sunrise, self.sunset, self.next_sunrise)
 		if self.astroClock is not None:
 			self.astroClock.nexts = self.next_sunrise
 		if self.now < self.sunrise:
