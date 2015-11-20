@@ -104,7 +104,7 @@ class HouseMeasurement:
 		return format_zodiacal_difference(self.cusp.longitude, \
 		self.end.longitude)
 
-	def __repr__(self):
+	def __str__(self):
 		return ("House %s"
 		"\nStarts at %s"
 		"\nEnds at %s") %(self.num, self.cusp, self.end)
@@ -174,7 +174,7 @@ class ZodiacalMeasurement (object):
 	def only_degs(self):
 		return '%s*%s\"%s (%s)' %(self.degrees, self.minutes, self.seconds, self.decstring)
 
-	def __repr__(self):
+	def __str__(self):
 		return '%s %s' %(ZODIAC[self.sign]['name'], self.only_degs())
 
 	def __eq__(self, zm):
