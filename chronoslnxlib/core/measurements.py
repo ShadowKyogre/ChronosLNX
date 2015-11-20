@@ -1,3 +1,5 @@
+from . import angle_sub
+
 ZODIAC =({'name':'Aries',
 'element':'fire',
 'mode':'cardinal',
@@ -58,12 +60,6 @@ ZODIAC =({'name':'Aries',
 'mode':'mutable',
 'decanates':[11,3,7],})
 
-def format_zodiacal_difference(zodiacal1,zodiacal2):
-	difference=abs(zodiacal1-zodiacal2)
-	if difference > 180.0:
-		difference=360.0-difference
-	return difference
-
 class HouseMeasurement:
 	def __init__(self, lon1, lon2, num=-1):
 		self.cusp=ActiveZodiacalMeasurement(lon1, 0.0, self, progress=0.0)
@@ -91,18 +87,15 @@ class HouseMeasurement:
 		ZODIAC[self.natRulerData['decanates'][1]]['name'],\
 		ZODIAC[self.natRulerData['decanates'][2]]['name']])
 
-
 	def getCuspDist(self, zd):
-		return format_zodiacal_difference(self.cusp.longitude, \
-		zd.longitude)
+		return abs(angle_sub(self.cusp.longitude, zd.longitude))
 
 	def getProgress(self,zd):
 		return self.getCuspDist(zd)/self.width*100.0
 
 	@property
 	def width(self):
-		return format_zodiacal_difference(self.cusp.longitude, \
-		self.end.longitude)
+		return abs(angle_sub(self.cusp.longitude, self.end.longitude))
 
 	def __str__(self):
 		return ("House %s"

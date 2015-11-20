@@ -9,7 +9,6 @@ from .core.charts import create_aspect_table, search_special_aspects, \
                          get_signs, update_planets_and_cusps
 from .core.hours import hours_for_day
 from .core.moon_phases import get_moon_cycle
-from .core.measurements import format_zodiacal_difference
 from .core.aspects import DEFAULT_ORBS
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum

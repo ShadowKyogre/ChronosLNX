@@ -1,4 +1,4 @@
-from .measurements import format_zodiacal_difference
+from . import angle_sub
 from collections import OrderedDict as od
 
 ASPECTS = od([('conjunction', 0.0),
@@ -36,8 +36,7 @@ class Aspect:
 
 	@property
 	def diff(self):
-		return format_zodiacal_difference(self.planet1.m.projectedLon, 
-		                                  self.planet2.m.projectedLon)
+		return abs(angle_sub(self.planet1.m.projectedLon, self.planet2.m.projectedLon))
 
 	@property
 	def aspect(self):
