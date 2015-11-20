@@ -18,7 +18,7 @@ class Observer:
 		self.lat = lat
 		self.lng = lng
 		self.elevation = elevation
-		self._dt = None
+		self.obvdate = dt
 	def set_dt(self, new_dt):
 		if new_dt is None:
 			self._dt = None
