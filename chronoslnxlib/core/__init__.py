@@ -2,7 +2,6 @@ from dateutil import tz
 import swisseph
 
 from datetime import datetime, timedelta
-from itertools import izip
 import math
 
 from .. import zonetab
@@ -99,7 +98,7 @@ def average(first, second):
 
 def zipped_func(first_list, second_list, func=average):
 	output=[]
-	for f, b in izip(first_list, second_list):
+	for f, b in zip(first_list, second_list):
 		output.append(func(f, b))
 	return output
 
