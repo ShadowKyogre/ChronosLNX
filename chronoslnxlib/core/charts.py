@@ -238,7 +238,7 @@ def fill_houses(date, observer, houses=None, data=None):
 			houses[i].end.longitude = data[(i+1)%12]
 		swisseph.close()
 
-def updatePandC(date, observer, houses, entries):
+def update_planets_and_cusps(date, observer, houses, entries):
 	day = datetime_to_julian(date)
 	obliquity = swisseph.calc_ut(day, swisseph.ECL_NUT)[0]
 	cusps, asmc = swisseph.houses(day, observer.lat, observer.lng)

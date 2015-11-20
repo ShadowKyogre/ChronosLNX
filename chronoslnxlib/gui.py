@@ -20,7 +20,7 @@ import swisseph
 
 from . import geolocationwidget ## from example, but modified a little
 from .core import compare_to_the_second
-from .core.charts import updatePandC, get_signs
+from .core.charts import update_planets_and_cusps, get_signs
 from .core.hours import get_sunrise_and_sunset, get_planet_day
 #previous_new_moon -> predict_phase
 from .core.moon_phases import predict_phase, grab_phase, state_to_string
@@ -847,7 +847,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def update(self):
 		self.now = clnxcfg.observer.obvdate
-		updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
+		update_planets_and_cusps(self.now, clnxcfg.observer, self.houses, self.zodiac)
 		#self.astroClock.signData = [self.houses,self.zodiac]
 		if self.now >= self.next_sunrise:
 			self.update_hours()

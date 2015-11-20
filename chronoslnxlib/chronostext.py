@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from .core.charts import updatePandC, get_signs
+from .core.charts import update_planets_and_cusps, get_signs
 from .core.hours import hours_for_day
 from .core.moon_phases import get_moon_cycle
 from .eventplanner import DayEventsModel
@@ -41,7 +41,7 @@ def prepare_sign_info(date, observer, nodes, admi):
 			                                             i.end.only_degs())
 			            )
 		date = date+timedelta(hours=1)
-		updatePandC(date, observer, houses, signs)
+		update_planets_and_cusps(date, observer, houses, signs)
 			#sinfo.append("\n")
 	return header+"\n".join(sinfo)
 

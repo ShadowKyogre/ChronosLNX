@@ -6,7 +6,7 @@ from dateutil import tz
 from datetime import datetime
 
 from .core.charts import create_aspect_table, search_special_aspects, \
-                         get_signs, updatePandC
+                         get_signs, update_planets_and_cusps
 from .core.hours import hours_for_day
 from .core.moon_phases import get_moon_cycle
 from .core.measurements import format_zodiacal_difference
@@ -487,7 +487,7 @@ class SignsForDayList(QtGui.QWidget):
 		if len(self.z) == 0:
 			self.h, self.z = get_signs(self.target_date, self.observer, self.nodes, self.admi)
 		else:
-			updatePandC(self.target_date, self.observer, self.h, self.z)
+			update_planets_and_cusps(self.target_date, self.observer, self.h, self.z)
 		self.assembleFromZodiac(self.z)
 
 	def get_constellations(self, date, observer):
