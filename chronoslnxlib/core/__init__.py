@@ -43,6 +43,20 @@ class Observer:
 	def dt_now(self):
 		utcdt = datetime.now(tz=tz.gettz('UTC'))
 		return utcdt.astimezone(self.timezone)
+	def average(self, other):
+		new_lat = (other.lat+self.lat)/2
+		new_lng = (other.lng+self.lng)/2
+		new_elevation = (other.elevation + self.elevation)/2
+		utc_dt = timezone_to_utc(self.obvdate)
+		other_utc_dt = timezone_to_utc(other.obvdate)
+		dt_delta = (utc_dt-other_utc_dt)/2
+		if dt_delta < timedelta(0):
+			new_dt = utc_dt+dt_delta
+		else:
+			new_dt = other_utc_dt+dt_delta
+		new_obv = Observer(lat=new_lat, lng=new_lng, elevation=new_elevation)
+		new_obv.obvdate = new_dt
+		return new_obv
 	obvdate = property(get_dt, set_dt)
 
 def compare_to_the_second(date, hour, minute, second):
