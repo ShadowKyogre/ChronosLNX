@@ -2,6 +2,7 @@ from dateutil import tz
 import swisseph
 
 from datetime import datetime, timedelta
+from itertools import izip
 import math
 
 from .. import zonetab
@@ -92,6 +93,15 @@ def utc_to_timezone(date):
 	dateutc = date.replace(tzinfo=tz.gettz('UTC'))
 	datenow = dateutc.astimezone(tz.gettz())
 	return datenow
+
+def average(first, second):
+	return (first+second)/2
+
+def zipped_func(first_list, second_list, func=average):
+	output=[]
+	for f, b in izip(first_list, second_list):
+		output.append(func(f, b))
+	return output
 
 def angle_sub(target, source):
 	diff = (target-source)
