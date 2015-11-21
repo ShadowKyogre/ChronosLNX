@@ -45,7 +45,7 @@ class Aspect:
 			o = self.orbs[i]
 			if degrees - o <= self.diff <= degrees + o:
 				return i
-		return "None"
+		return None
 
 	def isForPlanet(self, planet):
 		return self.planet1 == planet or self.planet2 == planet
@@ -58,13 +58,13 @@ class Aspect:
 		else:
 			return None
 
-	def __repr__(self):
+	def __str__(self):
 		return ("Planet 1 - %s | %s"
 		        "\nPlanet 2 - %s | %s"
 		        "\nRelationship - %s") \
 		        %(self.planet1.realName, self.planet1.m.longitude,
 		          self.planet2.realName, self.planet2.m.longitude,
-		          self.aspect.title())
+		          self.aspect.title() if self.aspect is not None else "No aspect")
 
 	def __eq__(self, pr):
 		if not pr:

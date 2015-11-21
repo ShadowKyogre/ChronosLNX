@@ -390,7 +390,7 @@ class AstroClock(QtGui.QWidget):
 		at, compare = create_aspect_table(self.signData[1], compare=self.natData[1], orbs=self.orbs)
 
 		for aspect in c:
-			if aspect.aspect == 'None':
+			if aspect.aspect is None:
 				continue
 			path = self.createAspectDoodle([aspect.planet1.m.projectedLon,
 			                                aspect.planet2.m.projectedLon], 
