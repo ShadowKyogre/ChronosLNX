@@ -66,7 +66,7 @@ class Planet:
 		self.signAsString(self.exalt), \
 		self.signAsString(self.fall))
 
-	def __repr__(self):
+	def __str__(self):
 		return ("%s"
 		"%s"
 		"\nMeasurements - %s"
