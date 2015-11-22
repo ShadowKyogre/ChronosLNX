@@ -1,12 +1,14 @@
-import math
-
 from dateutil.relativedelta import relativedelta
 import swisseph
+
+from bisect import bisect
+import math
 
 from . import datetime_to_julian, revjul_to_datetime
 from . import date_to_moon_cycles, moon_cycles_to_jul
 from . import date_to_solar_cycles, solar_cycles_to_jul
 from . import angle_sub
+from . import zipped_func, average
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
                           HouseMeasurement, ZODIAC
@@ -298,6 +300,33 @@ def update_planets_and_cusps(date, observer, houses, entries):
 #ascmc[5] =     "co-ascendant" (Walter Koch)
 #ascmc[6] =     "co-ascendant" (Michael Munkasey)
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
+
+def average_signs(houses1, entries1, houses2, entries2):
+	def average_house(x, y):
+		return HouseMeasurement(average(x.cusp.longitude, y.cusp.longitude),
+		                        average(x.end.longitude, y.cusp.longitude),
+		                        num=x.num)
+	houses = zipped_func(houses1, houses2, func=average_house)
+	house_keys = [house.cusp.longitude for house in houses]
+
+	def average_planet(x, y):
+		avglong = average(x.m.longitude, y.m.longitude)
+		avglat = average(x.m.latitude, y.m.latitude)
+		newhouse = bisect(house_keys, avglong) % 12
+		zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
+		zm.progress = houses[newhouse].getProgress(zm)
+		if x.retrograde == 'Not a Planet':
+			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
+			              m=zm, retrograde='Not a Planet')
+		else:
+			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
+			              m=zm, retrograde='Not Applicable')
+	
+	entries = zipped_func(entries1, entries2, func=average_planet)
+
+	return houses, entries
+
+
 def get_signs(date, observer, nodes, axes, prefix=None):
 	entries = []
 	houses = fill_houses(date, observer)
