@@ -351,7 +351,7 @@ def average_signs(houses1, entries1, houses2, entries2):
 		else:
 			avglong  = angle_average(x.m.longitude, y.m.longitude)
 			avglat   = angle_average(x.m.latitude, y.m.latitude)
-			newhouse = bisect(house_keys, avglong) % 12
+			newhouse = bisect(house_keys, avglong) - 1
 			zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
 			zm.progress = houses[newhouse].getProgress(zm)
 			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
