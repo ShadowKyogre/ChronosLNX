@@ -2,7 +2,7 @@ import swisseph
 
 from bisect import bisect_left, bisect_right
 
-from . import datetime_to_julian, angle_sub, zipped_func
+from . import datetime_to_julian, angle_average, zipped_func
 
 # Default list of fixed stars
 WANTED_STARS = [
@@ -64,7 +64,7 @@ def average_verify_fixed_star(fs1, fs2):
 		raise ValueError(("Can't average positions for different fixed stars: "
 	                      "{0} != {1}".format(fs1[0], fs2[0])))
 	else:
-		return fs1[0], average(fs1[1], fs2[1])
+		return fs1[0], angle_average(fs1[1], fs2[1])
 
 def average_fixed_stars(fixed_stars_1, fixed_stars_2):
 	fixed_stars_copy1 = fixed_stars_1[:]

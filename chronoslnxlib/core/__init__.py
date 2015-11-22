@@ -102,6 +102,16 @@ def zipped_func(first_list, second_list, func=average):
 		output.append(func(f, b))
 	return output
 
+def angle_average(first, second):
+	rfirst = math.radians(first)
+	rsecond = math.radians(second)
+	sin_sum = math.sin(rfirst) + math.sin(rsecond)
+	cos_sum = math.cos(rfirst) + math.cos(rsecond)
+	avg_angle = math.degrees(math.atan2(sin_sum/2, cos_sum/2))
+	if avg_angle < 0:
+		avg_angle += 360.
+	return avg_angle
+
 def angle_sub(target, source):
 	diff = (target-source)
 	if diff > 180:
