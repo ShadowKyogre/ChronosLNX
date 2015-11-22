@@ -1,7 +1,6 @@
 from dateutil.relativedelta import relativedelta
 import swisseph
 
-from bisect import bisect
 import math
 
 from . import datetime_to_julian, revjul_to_datetime
@@ -351,7 +350,13 @@ def average_signs(houses1, entries1, houses2, entries2):
 		else:
 			avglong  = angle_average(x.m.longitude, y.m.longitude)
 			avglat   = angle_average(x.m.latitude, y.m.latitude)
-			newhouse = bisect(house_keys, avglong) - 1
+			max_neg_dist = float('-inf')
+			newhouse = None
+			for i in range(12):
+				cur_dist = angle_sub(house_keys[i], avglong)
+				if cur_dist < 0 and cur_dist > max_neg_dist:
+					newhouse = i
+					max_neg_dist = cur_dist
 			zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
 			zm.progress = houses[newhouse].getProgress(zm)
 			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
