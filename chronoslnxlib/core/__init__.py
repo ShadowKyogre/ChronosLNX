@@ -62,7 +62,7 @@ class Observer:
 		       .format(self.lat, self.lng, self.elevation)
 	def __repr__(self):
 		return "Observer(lat={}, lng={}, elevation={}, dt={})" \
-		       .format(self.lat, self.lng, self.elevation, repr(self._dt))
+		       .format(repr(self.lat), repr(self.lng), repr(self.elevation), repr(self._dt))
 	obvdate = property(get_dt, set_dt)
 
 def compare_to_the_second(date, hour, minute, second):

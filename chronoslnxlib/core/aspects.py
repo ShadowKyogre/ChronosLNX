@@ -66,6 +66,11 @@ class Aspect:
 		          self.planet2.realName, self.planet2.m.longitude,
 		          self.aspect.title() if self.aspect is not None else "No aspect")
 
+	def __repr__(self):
+		return "Aspect({0}, {1}, orbs={2})".format(repr(self.planet1),
+		                                           repr(self.planet2),
+		                                           repr(self.orbs))
+
 	def __eq__(self, pr):
 		if not pr:
 			return False
@@ -112,6 +117,9 @@ class SpecialAspect:
 		return hash(frozenset(self.uniquePlanets))
 
 	def __repr__(self):
+		"SpecialAspect({0}, {1})".format(repr(self.descriptors), repr(self.name))
+
+	def __str__(self):
 		return "%s\nUnique angles:%s\nUnique planets:%s" \
 		        %(self.name.title(), 
 		          [ ("%.3f" %(i)) for i in list(self.uniqueMeasurements)], 

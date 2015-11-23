@@ -2,8 +2,9 @@ from .rulerships import RLIST,RTEMPLATE
 from .measurements import ZODIAC
 
 class Planet:
-	def __init__(self, name, m=None, prefix=None,\
-	table='Uranian', notes=None,retrograde='False'):
+	def __init__(self, name, m=None, prefix=None, table='Uranian', 
+	             notes=None, retrograde=False):
+		self.table = table
 		rules=RLIST[table]
 		self.name=name
 		definition=rules.get(name, RTEMPLATE)
@@ -17,7 +18,6 @@ class Planet:
 		if idx==None:
 			return None
 		return ZODIAC[idx]['name']
-
 
 	@property
 	def detriments(self):
@@ -65,6 +65,11 @@ class Planet:
 		self.signAsString(self.detriments[1])], \
 		self.signAsString(self.exalt), \
 		self.signAsString(self.fall))
+
+	def __repr__(self):
+		return ("Planet(name={0}, m={1}, prefix={2}, "
+		        "table={3}, retrograde={4})").format(repr(self.name), repr(self.m),
+		            repr(self.prefix), repr(self.table), repr(self.retrograde))
 
 	def __str__(self):
 		return ("%s"

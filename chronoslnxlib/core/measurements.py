@@ -102,6 +102,11 @@ class HouseMeasurement:
 		"\nStarts at %s"
 		"\nEnds at %s") %(self.num, self.cusp, self.end)
 
+	def __repr__(self):
+		return "HouseMeasurement({0}, {1}, num={2})".format(repr(self.cusp.longitude),
+		                                             repr(self.end.longitude),
+		                                             repr(self.num))
+
 class ZodiacalMeasurement (object):
 	__slots__ = ('latitude','longitude')
 	def __init__(self, l, a):
@@ -170,6 +175,9 @@ class ZodiacalMeasurement (object):
 	def __str__(self):
 		return '%s %s' %(ZODIAC[self.sign]['name'], self.only_degs())
 
+	def __repr__(self):
+		return "ZodiacalMeasurement({0}, {0})".format(repr(self.longitude), repr(self.latitude))
+
 	def __eq__(self, zm):
 		if not zm:
 			return False
@@ -181,6 +189,14 @@ class ActiveZodiacalMeasurement(ZodiacalMeasurement):
 		super().__init__(l,a)
 		self.house_info=house_info
 		self.progress=progress
+
+	def __repr__(self):
+		return "ActiveZodiacalMeasurement({0}, {1}, {2}, {3})".format(
+		           repr(self.longitude),
+		           repr(self.latitude),
+		           repr(self.house_info),
+		           repr(self.progress)
+		)
 
 	@property
 	def projectedLon(self):
