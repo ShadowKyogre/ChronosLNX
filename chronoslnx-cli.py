@@ -1,6 +1,7 @@
 from chronoslnxlib import core as astrocore
 from chronoslnxlib.core import charts
 from chronoslnxlib.core.measurements import ZodiacalMeasurement
+from chronoslnxlib.core.aspects import DEFAULT_ORBS
 
 try:
 	ignore_fixstars_opt = False
@@ -16,6 +17,7 @@ import swisseph
 
 from argparse import ArgumentParser, Action, RawTextHelpFormatter
 from collections import OrderedDict as od
+from copy import deepcopy
 import csv
 from datetime import datetime
 from os import path
@@ -54,6 +56,8 @@ OBSERVER_PARSE=re.compile(r'''
 	-?(?:[0-9]*.[0-9]+))?                         # ELEVATION
 )''', re.X)
 
+# UTILITY FUNCTIONS
+
 def string_to_observer(obvstr):
 	items = OBSERVER_PARSE.findall(obvstr)
 	if items:
@@ -75,6 +79,21 @@ def string_to_observer(obvstr):
 	else:
 		return None, None
 
+def file_to_orbs(fpath):
+	mimetype = subprocess.check_output(['file', '-L', '-b', '--mime-type', fpath]).decode('utf-8').strip()
+	if mimetype == 'text/plain':
+		with open(fpath, 'r', encoding='utf-8') as f:
+			new_orbs = deepcopy(DEFAULT_ORBS)
+			csvr = csv.reader(f, delimiter='\t')
+			for row in csvr:
+				if row[1] == '-inf':
+					new_orbs[row[0].lower()]=float('-inf')
+				else:
+					new_orbs[row[0].lower()]=min(29, abs(float(row[1])))
+		return new_orbs
+	else:
+		raise ValueError("Can't parse non-plaintext orbs file!")
+
 def nowified_label(o, o_dt):
 	if o.startswith('NOW_'):
 		olabel = '{}_{}'.format(o_dt.strftime('%Y-%m-%d_%H%M%S'), o[4:])
@@ -82,7 +101,10 @@ def nowified_label(o, o_dt):
 		olabel = o
 	return olabel
 
+# OUTPUT
+
 def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
+                        orbs=DEFAULT_ORBS, fsorb=3,
                         planet_poses=None, houses=None, precalced_stars=None,
                         aspect_table='table', print_houses=False, fixed_stars=False):
 	PHEADERS = ['Planet', 'Sign', 'Degree', 'Status', 'Retrograde?']
@@ -99,7 +121,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 			print('\t'.join(PHEADERS+['House #', 'Fixed Stars?']), file=output)
 			for planet_pos in planet_poses:
 				nfixstar = fixstars.nearest_fixed_star([planet_pos.m.longitude],
-				                                        keys, outs_and_keys)
+				                                        keys, outs_and_keys, orb=fsorb)
 				nfixstar = nfixstar.get(planet_pos.m.longitude, [])
 				print('{0}\t{1}\t{2}\t{3}\t{4}\tHouse {5}\t{6}'.format(planet_pos.name,
 					   planet_pos.m.signData['name'], planet_pos.m.only_degs(),
@@ -110,7 +132,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 			print('\t'.join(PHEADERS+['Fixed Stars?']), file=output)
 			for planet_pos in planet_poses:
 				nfixstar = fixstars.nearest_fixed_star([planet_pos.m.longitude],
-				                                        keys, outs_and_keys)
+				                                        keys, outs_and_keys, orb=fsorb)
 				nfixstar = nfixstar.get(planet_pos.m.longitude, [])
 				print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(planet_pos.name,
 					   planet_pos.m.signData['name'], planet_pos.m.only_degs(),
@@ -155,7 +177,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 
 	if aspect_table == 'table':
 		print('\n~~~~ Aspect Table ~~~~', file=output)
-		aspect_table = charts.create_aspect_table(planet_poses)
+		aspect_table = charts.create_aspect_table(planet_poses, orbs=orbs)
 		headers = [planet_pos.name for planet_pos in planet_poses]
 		print('\t'.join(['Aspected Planet']+headers), file=output)
 		
@@ -175,7 +197,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 
 	elif aspect_table == 'list':
 		print('\n~~~~ Aspect List ~~~~', file=output)
-		aspect_table = charts.create_aspect_table(planet_poses)
+		aspect_table = charts.create_aspect_table(planet_poses, orbs=orbs)
 		combos = set()
 		for arow in aspect_table:
 			aspect_id = frozenset((arow.planet1.name, arow.planet2.name))
@@ -188,7 +210,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 def output_paired_chart(pair_label,
                         houses1, planet_poses1, fixstars1,
                         houses2, planet_poses2, fixstars2,
-                        output=sys.stdout,
+                        output=sys.stdout, orbs=DEFAULT_ORBS,
                         aspect_table='table',
                         print_houses=False,
                         fixed_stars=False):
@@ -222,7 +244,7 @@ def output_paired_chart(pair_label,
 
 	if aspect_table == 'table':
 		print('\n~~~~ Aspect Table ~~~~', file=output)
-		_, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2)
+		_, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
 		headers = [planet_pos.realName for planet_pos in planet_poses2]
 		print('\t'.join(['Aspected Planet']+headers), file=output)
 		
@@ -242,7 +264,7 @@ def output_paired_chart(pair_label,
 
 	elif aspect_table == 'list':
 		print('\n~~~~ Aspect List ~~~~', file=output)
-		_, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2)
+		_, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
 		combos = set()
 		for arow in aspect_table:
 			aspect_id = frozenset((arow.planet1.realName, arow.planet2.realName))
@@ -254,17 +276,32 @@ def output_paired_chart(pair_label,
 
 # COMMAND CALLBACKS
 
-def debug_callback(observers, args):
+def debug_callback(observers, orbs, args):
 	if args.repr:
+		print('fsorb = {0}'.format(args.fixed_stars_orb))
+		print('orbs = OrderedDict([')
+		for k in orbs:
+			print('\t(', repr(k), ', ', repr(orbs[k]), ')', end=',\n', sep='')
+		print('])')
+		print('observers = OrderedDict([')
 		for o in observers:
 			o_obj = observers[o]
-			print(repr(o_obj))
+			print('\t(', repr(o), ', ', repr(o_obj) , ')', end=',\n', sep='')
+		print('])')
 	else:
+		print('# Fixed Star Orb')
+		print(args.fixed_stars_orb)
+		print("# Orbs")
+		for k in orbs:
+			if orbs[k] != DEFAULT_ORBS[k]:
+				print('!', end='')
+			print(k, orbs[k])
+		print("# Observers")
 		for o in observers:
 			o_obj = observers[o]
 			print(o, o_obj.lat, o_obj.lng, o_obj.elevation, '@', o_obj.obvdate)
 
-def radix_callback(observers, args):
+def radix_callback(observers, orbs, args):
 	for o in observers:
 		o_obj = observers[o]
 		o_dt = o_obj.obvdate
@@ -272,12 +309,12 @@ def radix_callback(observers, args):
 		out_fname = args.name_format.format(mode='radix', label=olabel)
 		with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
 			output_single_chart(olabel, o_dt, o_obj,
-			                    output=ofile,
+			                    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 			                    aspect_table=args.aspect_table,
 			                    houses=args.houses,
 			                    fixed_stars=args.fixed_stars)
 
-def paired_callback(observers, args):
+def paired_callback(observers, orbs, args):
 	pairings = []
 
 	if args.pairing_file is not None:
@@ -330,7 +367,7 @@ def paired_callback(observers, args):
 			out_fname = args.name_format.format(mode='composite', label=pairing_label)
 			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
 				output_single_chart(olabel, None, None,
-				                    output=ofile,
+				                    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 				                    houses=houses,
 				                    planet_poses=entries,
 				                    precalced_stars=pcstars,
@@ -352,7 +389,7 @@ def paired_callback(observers, args):
 			out_fname = args.name_format.format(mode='combine', label=olabel)
 			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
 				output_single_chart(olabel, o_dt, o_obj,
-				                    output=ofile,
+				                    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 				                    aspect_table=args.aspect_table,
 				                    print_houses=args.houses,
 				                    fixed_stars=args.fixed_stars)
@@ -391,12 +428,12 @@ def paired_callback(observers, args):
 				output_paired_chart(olabel,
 				    o1houses, o1entries, o1stars,
 				    o2houses, o2entries, o2stars,
-				    output=ofile,
+				    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 				    aspect_table=args.aspect_table,
 				    print_houses=args.houses,
 				    fixed_stars=args.fixed_stars)
 
-def returns_callback(observers, args):
+def returns_callback(observers, orbs, args):
 	bump_to_date = dparse(args.date, default=datetime.now(tz=tz.gettz()), fuzzy=True)
 	ret_cache = od([])
 	ret_res_cache = od([])
@@ -450,12 +487,12 @@ def returns_callback(observers, args):
 			out_fname = args.name_format.format(mode='return_{0}_{1}'.format(args.cbody, o_dt.strftime('%Y-%m-%d_%H%M%S')), label=olabel)
 			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
 				output_single_chart(olabel, o_dt, o_obj,
-				                    output=ofile,
+				                    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 				                    aspect_table=args.aspect_table,
 				                    print_houses=args.houses,
 				                    fixed_stars=args.fixed_stars)
 
-def progression_callback(observers, args):
+def progression_callback(observers, orbs, args):
 	bump_to_date = dparse(args.date, default=datetime.now(tz=tz.gettz()), fuzzy=True)
 	if args.bump:
 		for o in observers:
@@ -477,7 +514,7 @@ def progression_callback(observers, args):
 			out_fname = args.name_format.format(mode='progression_{}'.format(o_dt.strftime('%Y-%m-%d_%H%M%S')), label=olabel)
 			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
 				output_single_chart(olabel, o_dt, o_obj,
-				                    output=ofile,
+				                    output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
 				                    aspect_table=args.aspect_table,
 				                    print_houses=args.houses,
 				                    fixed_stars=args.fixed_stars)
@@ -488,13 +525,24 @@ obs_parser = ArgumentParser(add_help=False)
 obs_parser.add_argument('--observers-file', '-obvf', action='append',
                      help='Import observers from a file')
 obs_parser.add_argument('--orbs-file', '-orbf',
-                     help='Use orb settings from a file')
+                     help=('Use orb settings from a tab delimited file (One orb per row).\n'
+                           'The following names (case insensitive) followed\n'
+                           'by defaults are valid for override:\n'
+                           '    {0}\n'
+                           'You can disable any aspect by specifying\n'
+                           'infinity distance with -inf.')\
+                           .format('\n    '.join('{0}: {1}'\
+                                                 .format(k, DEFAULT_ORBS[k]) for k in DEFAULT_ORBS)
+                                  )
+                        )
 obs_parser.add_argument('observers', nargs='*',
                         help=('Additional observers to load.\n'
                               'Format is LABEL:YYYY-MM-DD/'
                               'HH:MM:SS@LAT,LNG[,ELV]\n'
                               'All times are written in '
                               'local time for that location.'))
+obs_parser.add_argument('--fixed-stars-orb',    '-fsorb', default=3,
+                     help='Use this orb for fixed stars', type=int)
 
 calcs_parser = ArgumentParser(add_help=False)
 calcs_parser.add_argument('--houses',         '-u', action='store_true',
@@ -578,6 +626,11 @@ progression_parser.set_defaults(func=progression_callback)
 args = aparser.parse_args()
 
 read_observers = od([])
+if args.orbs_file is not None:
+	read_orbs = file_to_orbs(args.orbs_file)
+else:
+	read_orbs = DEFAULT_ORBS
+
 for observer in args.observers:
 	label, o = string_to_observer(observer)
 	if label is not None and label not in read_observers:
@@ -618,4 +671,4 @@ if args.observers_file is not None:
 		else:
 			pass
 
-args.func(read_observers, args)
+args.func(read_observers, read_orbs, args)
