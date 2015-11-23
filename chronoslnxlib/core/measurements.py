@@ -77,15 +77,15 @@ class HouseMeasurement:
 		return ZODIAC[self.num-1]
 
 	def natRulerStr(self):
-		return ("Name %s"
-		"\nElement: %s"
-		"\nMode: %s"
-		"\nDecanates: %s") %(self.natRulerData['name'],\
-		self.natRulerData['element'].title(),\
-		self.natRulerData['mode'].title(),\
-		[ZODIAC[self.natRulerData['decanates'][0]]['name'],\
-		ZODIAC[self.natRulerData['decanates'][1]]['name'],\
-		ZODIAC[self.natRulerData['decanates'][2]]['name']])
+		return ("Name {0}"
+		"\nElement: {1}"
+		"\nMode: {2}"
+		"\nDecanates: {3}").format(self.natRulerData['name'],
+		                           self.natRulerData['element'].title(),
+		                           self.natRulerData['mode'].title(),
+		                           [ZODIAC[self.natRulerData['decanates'][0]]['name'],
+		                           ZODIAC[self.natRulerData['decanates'][1]]['name'],
+		                           ZODIAC[self.natRulerData['decanates'][2]]['name']])
 
 	def getCuspDist(self, zd):
 		return abs(angle_sub(self.cusp.longitude, zd.longitude))
@@ -98,9 +98,9 @@ class HouseMeasurement:
 		return abs(angle_sub(self.cusp.longitude, self.end.longitude))
 
 	def __str__(self):
-		return ("House %s"
-		"\nStarts at %s"
-		"\nEnds at %s") %(self.num, self.cusp, self.end)
+		return ("House {0}"
+		"\nStarts at {1}"
+		"\nEnds at {2}").format(self.num, self.cusp, self.end)
 
 	def __repr__(self):
 		return "HouseMeasurement({0}, {1}, num={2})".format(repr(self.cusp.longitude),
@@ -146,15 +146,15 @@ class ZodiacalMeasurement (object):
 		return ZODIAC[self.sign]
 
 	def dataAsText(self):
-		return ("Name %s"
-		"\nElement: %s"
-		"\nMode: %s"
-		"\nDecanates: %s") %(self.signData['name'],\
-		self.signData['element'].title(),\
-		self.signData['mode'].title(),\
-		[ZODIAC[self.signData['decanates'][0]]['name'],\
-		ZODIAC[self.signData['decanates'][1]]['name'],\
-		ZODIAC[self.signData['decanates'][2]]['name']])
+		return ("Name {0}"
+		"\nElement: {1}"
+		"\nMode: {2}"
+		"\nDecanates: {3}").format(self.signData['name'],
+		                           self.signData['element'].title(),
+		                           self.signData['mode'].title(),
+		                           [ZODIAC[self.signData['decanates'][0]]['name'],
+		                           ZODIAC[self.signData['decanates'][1]]['name'],
+		                           ZODIAC[self.signData['decanates'][2]]['name']])
 
 	@property
 	def decanateData(self):
@@ -167,16 +167,16 @@ class ZodiacalMeasurement (object):
 			suffix="st"
 		elif int(self.dn)==1:
 			suffix="nd"
-		return "%s%s decanate, %s" %(int(self.dn)+1,suffix,ZODIAC[self.decanate]['name'])
+		return "{0}{1} decanate, {2}".format(int(self.dn)+1,suffix,ZODIAC[self.decanate]['name'])
 
 	def only_degs(self):
-		return '%s*%s\"%s (%s)' %(self.degrees, self.minutes, self.seconds, self.decstring)
+		return '{0}*{1}\"{2} ({3})'.format(self.degrees, self.minutes, self.seconds, self.decstring)
 
 	def __str__(self):
-		return '%s %s' %(ZODIAC[self.sign]['name'], self.only_degs())
+		return '{0} {1}'.format(ZODIAC[self.sign]['name'], self.only_degs())
 
 	def __repr__(self):
-		return "ZodiacalMeasurement({0}, {0})".format(repr(self.longitude), repr(self.latitude))
+		return "ZodiacalMeasurement({0}, {1})".format(repr(self.longitude), repr(self.latitude))
 
 	def __eq__(self, zm):
 		if not zm:
@@ -205,13 +205,13 @@ class ActiveZodiacalMeasurement(ZodiacalMeasurement):
 		return (self.progress * self.house_info.width) + self.house_info.cusp.longitude
 
 	def status(self):
-		return ("Natural house number: %s"
-		"\nCurrent house number: %s"
-		"\nCurrent house ruler: %s"
-		"\nProgress away from current house cusp: %.3f%%"
-		"\nProjected longitude estimate: %s") \
-		%(self.nhouse,\
-		self.house_info.num, \
-		self.house_info.cusp.signData['name'],\
-		self.progress*100.0,\
-		self.projectedLon)
+		return ("Natural house number: {0}"
+		"\nCurrent house number: {1}"
+		"\nCurrent house ruler: {2}"
+		"\nProgress away from current house cusp: {3:.3f}%"
+		"\nProjected longitude estimate: {4}") \
+		.format(self.nhouse,
+		        self.house_info.num,
+		        self.house_info.cusp.signData['name'],
+		        self.progress*100.0,
+		        self.projectedLon)

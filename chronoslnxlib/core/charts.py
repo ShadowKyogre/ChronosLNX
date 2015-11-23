@@ -75,7 +75,7 @@ def search_special_aspects(aspect_table):
 				minitrines = [y for y in aspect_table \
 					if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					and y.aspect == 'trine']
-				if len(minitrines) > 0:
+				if not minitrines:
 					intersection_entries.append(trine_entries[i])
 					intersection_entries.append(trine_entries[i+1])
 				for j in minitrines:
@@ -95,7 +95,7 @@ def search_special_aspects(aspect_table):
 				              if (y.isForPlanet(otherp) or y.isForPlanet(otherp2)) \
 				              and y.aspect == "square" \
 				              and not y.isForPlanet(pn)]
-				if len(miniopposition) > 0 and len(minisquare) > 0:
+				if miniopposition and minisquare:
 					intersection_entries2.append(square_entries[i])
 					intersection_entries2.append(square_entries[i+1])
 					intersection_entries2.append(miniopposition[0])
@@ -111,7 +111,7 @@ def search_special_aspects(aspect_table):
 				miniopposition = [y for y in aspect_table \
 				                if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 				                and y.aspect == 'opposition']
-				if len(miniopposition) > 0:
+				if miniopposition:
 					intersection_entries3.append(square_entries[i])
 					intersection_entries3.append(square_entries[i+1])
 				for j in miniopposition:
@@ -131,7 +131,7 @@ def search_special_aspects(aspect_table):
 					b=[y for y in aspect_table \
 					   if y.isForPlanet(n.planet2) and not y.isForPlanet(pn) \
 					   and y.aspect == 'conjunction']
-				if len(b) > 0:
+				if b:
 					intersection_entries4.append(n)
 					for j in b:
 						intersection_entries4.append(j)
@@ -146,7 +146,7 @@ def search_special_aspects(aspect_table):
 				minisextiles=[y for y in aspect_table \
 					          if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
 					          and y.aspect == 'sextile']
-				if len(minisextiles) > 0:
+				if minisextiles:
 					intersection_entries5.append(inconjunct_entries[i])
 					intersection_entries5.append(inconjunct_entries[i+1])
 				for j in minisextiles:
@@ -166,7 +166,7 @@ def search_special_aspects(aspect_table):
 					break
 
 	#remove redundant entries in tsq that are described in gc
-	if len(tsq) > 0:
+	if tsq:
 		for i in tsq.copy():
 			for j in gc:
 				if j.contains(i):
@@ -187,7 +187,7 @@ def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
 			for j in compare:
 				pr = Aspect(i, j, orbs)
 				comparison.append(pr)
-	if len(comparison) > 0:
+	if comparison:
 		return aspect_table, comparison
 	return aspect_table
 
@@ -227,7 +227,7 @@ def fill_houses(date, observer, houses=None, data=None):
 	day = datetime_to_julian(date)
 	if not data:
 		data = swisseph.houses(day, observer.lat, observer.lng)[0]
-	if houses == None:
+	if houses is None:
 		houses = []
 		for i in range(12):
 			houses.append(HouseMeasurement(data[i], data[(i+1)%12], num=i+1))
@@ -345,7 +345,7 @@ def average_signs(houses1, entries1, houses2, entries2):
 				newhouse = 3
 			zm = ActiveZodiacalMeasurement(houses[newhouse].cusp.longitude, 0, houses[newhouse])
 			zm.progress = 0
-			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
+			return Planet(x.name, prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
 			              m=zm, retrograde='Not a Planet')
 		else:
 			avglong  = angle_average(x.m.longitude, y.m.longitude)
@@ -359,7 +359,7 @@ def average_signs(houses1, entries1, houses2, entries2):
 					max_neg_dist = cur_dist
 			zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
 			zm.progress = houses[newhouse].getProgress(zm)
-			return Planet(x.name, prefix='Composite {} {}'.format(x.prefix, y.prefix),
+			return Planet(x.name, prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
 			              m=zm, retrograde='Not Applicable')
 	
 	entries = zipped_func(entries1, entries2, func=average_planet)

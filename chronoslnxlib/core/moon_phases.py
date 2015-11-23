@@ -73,14 +73,14 @@ def grab_phase(date):
 def state_to_string(state_line, planet):
 	name = swisseph.get_planet_name(planet)
 	if state_line[1] == "New" or state_line[1] == "Full":
-		state = "%s %s" %(state_line[1], name)
+		state = "{0} {1}".format(state_line[1], name)
 	elif state_line[1] == "Quarter":
 		if state_line[0] == "Waning":
-			state = "Last %s %s" %(state_line[1], name)
+			state = "Last {0} {1}".format(state_line[1], name)
 		else:
-			state = "First %s %s" %(state_line[1], name)
+			state = "First {0} {1}".format(state_line[1], name)
 	else:
-		state = "%s %s %s" %(state_line[0], state_line[1], name)
+		state = "{0} {1} {2}".format(state_line[0], state_line[1], name)
 	swisseph.close()
 	return state
 

@@ -59,10 +59,10 @@ class Aspect:
 			return None
 
 	def __str__(self):
-		return ("Planet 1 - %s | %s"
-		        "\nPlanet 2 - %s | %s"
-		        "\nRelationship - %s") \
-		        %(self.planet1.realName, self.planet1.m.longitude,
+		return ("Planet 1 - {0} | {1}"
+		        "\nPlanet 2 - {2} | {3}"
+		        "\nRelationship - {4}") \
+		        .format(self.planet1.realName, self.planet1.m.longitude,
 		          self.planet2.realName, self.planet2.m.longitude,
 		          self.aspect.title() if self.aspect is not None else "No aspect")
 
@@ -120,7 +120,7 @@ class SpecialAspect:
 		"SpecialAspect({0}, {1})".format(repr(self.descriptors), repr(self.name))
 
 	def __str__(self):
-		return "%s\nUnique angles:%s\nUnique planets:%s" \
-		        %(self.name.title(), 
-		          [ ("%.3f" %(i)) for i in list(self.uniqueMeasurements)], 
+		return "{0}\nUnique angles:{1}\nUnique planets:{2}" \
+		       .format(self.name.title(), 
+		          [ ("{0:.3f}" %(i)) for i in list(self.uniqueMeasurements)], 
 		          list(self.uniquePlanets))

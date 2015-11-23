@@ -270,8 +270,8 @@ class AspectTableDisplay(QtGui.QWidget):
 			if i.aspect == None:
 				c = QtGui.QStandardItem("No aspect")
 			else:
-				c = QtGui.QStandardItem("%s" %(i.aspect.title()))
-			c.setToolTip("%s" %(i))
+				c = QtGui.QStandardItem(i.aspect.title())
+			c.setToolTip(str(i))
 			c.setData(i, 32)
 			self.tableAspects.setItem(self.headers.index(i.planet2.name), 
 			                          self.headers.index(i.planet1.name), c)
@@ -329,7 +329,7 @@ class AspectTableDisplay(QtGui.QWidget):
 				item.setIcon(self.icons[i])
 			item2 = QtGui.QStandardItem(item)
 			if self.comparative:
-				item2.setText("Natal %s" %i)
+				item2.setText("Natal {0}".format(i))
 			self.tableAspects.setHorizontalHeaderItem(v, item)
 			self.tableAspects.setVerticalHeaderItem(v, item2)
 
@@ -376,7 +376,7 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 	vbox.addWidget(tree)
 	for i in houses:
 		item = QtGui.QTreeWidgetItem()
-		item.setText(0, "%s" %(i.num))
+		item.setText(0, str(i.num))
 		item.setToolTip(0, str(i))
 		if i.natRulerData['name'] == "Capricorn":
 			item.setIcon(1, sign_icons[capricorn_alternate])
@@ -405,7 +405,7 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
 
 class SignsForDayList(QtGui.QWidget):
 	def __init__(self, icons, sign_icons, admi, nodes, pluto_alt, cprc_alt, 
-	             table=[], orbs=DEFAULT_ORBS, parent=None):
+	             table=None, orbs=DEFAULT_ORBS, parent=None):
 		super().__init__(parent=parent)
 		vbox = QtGui.QVBoxLayout(self)
 		grid = QtGui.QGridLayout()
@@ -436,7 +436,7 @@ class SignsForDayList(QtGui.QWidget):
 		self.nodes = nodes
 		self.pluto_alternate = pluto_alt
 		self.capricorn_alternate = cprc_alt
-		self.table = table
+		self.table = table or []
 		self.orbs = orbs
 
 	def showAspects(self):
@@ -454,7 +454,7 @@ class SignsForDayList(QtGui.QWidget):
 
 	def assembleFromZodiac(self, zodiac):
 		self.tree.clear()
-		if len(self.z) == 0:
+		if not self.z:
 			self.z = zodiac
 		for i in zodiac:
 			item = QtGui.QTreeWidgetItem()
@@ -483,7 +483,7 @@ class SignsForDayList(QtGui.QWidget):
 			self.tree.addTopLevelItem(item)
 
 	def _grab(self):
-		if len(self.z) == 0:
+		if not self.z:
 			self.h, self.z = get_signs(self.target_date, self.observer, self.nodes, self.admi)
 		else:
 			update_planets_and_cusps(self.target_date, self.observer, self.h, self.z)

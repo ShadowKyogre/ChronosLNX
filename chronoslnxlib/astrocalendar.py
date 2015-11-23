@@ -142,7 +142,7 @@ class AstroCalendar(CSSCalendar):
 		guesstimate_point = datetime(year+1, 1, 14, 12)
 		self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
 			                                      self.natal_moon))
-		self.lunarReturnss = set([d.date() for d in self.lunarReturns])
+		self.lunarReturnss = {d.date() for d in self.lunarReturns}
 		#print(self.lunarReturns)
 
 	def isSolarReturnValid(self):

@@ -35,10 +35,10 @@ class ChronosLNXConfig:
 
 	def grab_icon_path(self, icon_type, looking):
 		#icon type must be of following: planets, moonphase, signs, misc
-		return "skin:%s/%s.png" %(icon_type, looking)
+		return "skin:{0}/{1}.png".format(icon_type, looking)
 
 	def load_theme(self):
-		QtCore.QDir.setSearchPaths("skin", ["skins:%s" %(self.current_theme)])
+		QtCore.QDir.setSearchPaths("skin", ["skins:{0}".format(self.current_theme)])
 
 		css = QtCore.QFile("skin:ui.css")
 		clock_css = QtCore.QFile("skin:clock.css")
@@ -203,38 +203,40 @@ class ChronosLNXConfig:
 			from shutil import copyfile
 			sch = os.path.join(DATA_DIR, "schedule.csv")
 			copyfile(sch, path)
-		planner = csv.reader(open(path, "r"))
-		next(planner)
 
-		for entry in planner:
-			if len(entry) == 0:
-				continue
-			first_column = QtGui.QStandardItem()
-			second_column = QtGui.QStandardItem()
-			third_column = QtGui.QStandardItem()
-			fourth_column = QtGui.QStandardItem()
-			fifth_column = QtGui.QStandardItem()
-			first_column.setCheckable(True)
-			if literal_eval(entry[0]):
-				first_column.setCheckState(QtCore.Qt.Checked)
-			first_column.setEditable(False)
-			if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
-				#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
-				second_column.setData(QtCore.QDate.fromString(entry[1], "MM/dd/yyyy"), QtCore.Qt.UserRole)
-			else:
-				second_column.setData(entry[1], QtCore.Qt.UserRole)
-			second_column.setText(entry[1])
-			if QtCore.QTime.fromString(entry[2], "HH:mm").isValid():
-				third_column.setData(QtCore.QTime.fromString(entry[2], "HH:mm"), QtCore.Qt.UserRole)
-			else:
-				third_column.setData(entry[2], QtCore.Qt.UserRole)
-			third_column.setText(entry[2])
-			fourth_column.setText(entry[3])
-			fifth_column.setText(entry[4])
-			self.schedule.appendRow([first_column, second_column, third_column, fourth_column, fifth_column])
-		self.schedule.rowsInserted.connect(self.add_delete_update)
-		self.schedule.rowsRemoved.connect(self.add_delete_update)
-		self.schedule.itemChanged.connect(self.changed_update)
+		with open(path, "r", encoding='utf-8') as f:
+			planner = csv.reader(f)
+			next(planner)
+
+			for entry in planner:
+				if not entry:
+					continue
+				first_column = QtGui.QStandardItem()
+				second_column = QtGui.QStandardItem()
+				third_column = QtGui.QStandardItem()
+				fourth_column = QtGui.QStandardItem()
+				fifth_column = QtGui.QStandardItem()
+				first_column.setCheckable(True)
+				if literal_eval(entry[0]):
+					first_column.setCheckState(QtCore.Qt.Checked)
+				first_column.setEditable(False)
+				if QtCore.QDate.fromString(entry[1], "MM/dd/yyyy").isValid():
+					#second_column.setData(QtCore.Qt.UserRole,dateutil.parser.parse(entry[1]))
+					second_column.setData(QtCore.QDate.fromString(entry[1], "MM/dd/yyyy"), QtCore.Qt.UserRole)
+				else:
+					second_column.setData(entry[1], QtCore.Qt.UserRole)
+				second_column.setText(entry[1])
+				if QtCore.QTime.fromString(entry[2], "HH:mm").isValid():
+					third_column.setData(QtCore.QTime.fromString(entry[2], "HH:mm"), QtCore.Qt.UserRole)
+				else:
+					third_column.setData(entry[2], QtCore.Qt.UserRole)
+				third_column.setText(entry[2])
+				fourth_column.setText(entry[3])
+				fifth_column.setText(entry[4])
+				self.schedule.appendRow([first_column, second_column, third_column, fourth_column, fifth_column])
+			self.schedule.rowsInserted.connect(self.add_delete_update)
+			self.schedule.rowsRemoved.connect(self.add_delete_update)
+			self.schedule.itemChanged.connect(self.changed_update)
 
 	def changed_update(self, item):
 		self.save_schedule()
@@ -246,30 +248,29 @@ class ChronosLNXConfig:
 		rows = self.schedule.rowCount()
 		path = os.path.join(self.userconfdir, 'schedule.csv')
 		temppath = os.path.join(self.userconfdir, 'schedule_modified.csv')
-		f = open(temppath, "w")
-		planner = csv.writer(f)
-		planner.writerow(["Enabled", "Date", "Hour", "Event Type", "Text"])
-		for i in range(rows):
-			if self.schedule.item(i, 0).checkState() == QtCore.Qt.Checked:
-				first_column = "True"
-			else:
-				first_column = "False"
-			second_column = self.schedule.item(i, 1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
-			if isinstance(second_column, QtCore.QDate):
-				#print second_column
-				second_column = second_column.toString("MM/dd/yyyy")
-			else:
-				second_column = self.schedule.item(i, 1).data(QtCore.Qt.EditRole)
-			third_column = self.schedule.item(i, 2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
+		with open(temppath, "w", encoding='utf-8') as f:
+			planner = csv.writer(f)
+			planner.writerow(["Enabled", "Date", "Hour", "Event Type", "Text"])
+			for i in range(rows):
+				if self.schedule.item(i, 0).checkState() == QtCore.Qt.Checked:
+					first_column = "True"
+				else:
+					first_column = "False"
+				second_column = self.schedule.item(i, 1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
+				if isinstance(second_column, QtCore.QDate):
+					#print second_column
+					second_column = second_column.toString("MM/dd/yyyy")
+				else:
+					second_column = self.schedule.item(i, 1).data(QtCore.Qt.EditRole)
+				third_column = self.schedule.item(i, 2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
 
-			if isinstance(third_column, QtCore.QTime):
-				third_column = third_column.toString("HH:mm")
-			else:
-				third_column = self.schedule.item(i, 2).data(QtCore.Qt.EditRole)
-			fourth_column = self.schedule.item(i, 3).data(QtCore.Qt.EditRole)
-			fifth_column = self.schedule.item(i, 4).data(QtCore.Qt.EditRole)
-			planner.writerow([first_column, second_column, third_column, fourth_column, fifth_column])
-		f.close()
+				if isinstance(third_column, QtCore.QTime):
+					third_column = third_column.toString("HH:mm")
+				else:
+					third_column = self.schedule.item(i, 2).data(QtCore.Qt.EditRole)
+				fourth_column = self.schedule.item(i, 3).data(QtCore.Qt.EditRole)
+				fifth_column = self.schedule.item(i, 4).data(QtCore.Qt.EditRole)
+				planner.writerow([first_column, second_column, third_column, fourth_column, fifth_column])
 		os.remove(path)
 		os.renames(temppath, path)
 

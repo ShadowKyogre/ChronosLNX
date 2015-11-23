@@ -43,15 +43,14 @@ class install(_install):
 		for f in self.get_outputs():
 			# If is package __init__.py file holding some constants
 			if os.path.basename(f) == '__init__.py':
-				script = open(f, encoding='utf-8')
-				content = script.read()
-				script.close()
+				with open(f, encoding='utf-8') as script:
+					content = script.read()
 				const_begin = content.find('### CONSTANTS BEGIN ###')
 				const_end   = content.find('### CONSTANTS END ###')
 
 				# If needs constants
 				if (const_begin != -1) and (const_end != -1):
-					log.info("Setting constants of %s" % f)
+					log.info("Setting constants of {0}".format(f))
 
 					at = os.stat(f) # Store attributes
 
@@ -66,14 +65,13 @@ class install(_install):
 						consts = [['DATA_DIR', replace_me.replace(self.root[:-2],'')]]
 					else:
 						consts = [['DATA_DIR', replace_me.replace(self.root,'')]]
-					script = open(f, 'w', encoding='utf-8')
-					script.write(content[:const_begin] + \
-								 "### CONSTANTS BEGIN ###")
 
-					for const in consts:
-						script.write("\n{} = '{}'".format(const[0], const[1]))
-					script.write("\n" + content[const_end:])
-					script.close()
+					with open(f, 'w', encoding='utf-8') as script:
+						script.write(content[:const_begin] + "### CONSTANTS BEGIN ###")
+
+						for const in consts:
+							script.write("\n{0} = '{1}'".format(const[0], const[1]))
+						script.write("\n" + content[const_end:])
 
 					# Restore attributes
 					os.utime(f, (at[ST_ATIME], at[ST_MTIME]))

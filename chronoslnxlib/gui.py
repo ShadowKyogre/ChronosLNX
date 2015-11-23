@@ -299,12 +299,12 @@ class ChronosLNX(QtGui.QMainWindow):
 
 	def get_info_for_date(self, date, birth = False):
 		info_dialog = QtGui.QDialog(self)
-		dateinfo = "Info for %s" %(date.strftime("%m/%d/%Y"))
+		dateinfo = "Info for {0}".format(date.strftime("%m/%d/%Y"))
 		if birth:
 			ob = clnxcfg.baby
-			text = ("\nNote: This is for the birth timezone %s and this time."
+			text = ("\nNote: This is for the birth timezone {0} and this time."
 			        "\nIf you want adjust your birth time, go to Settings.") \
-			        % clnxcfg.baby.obvdate.tzname()
+			        .format(clnxcfg.baby.obvdate.tzname())
 		else:
 			ob = clnxcfg.observer
 			text = ""
@@ -482,17 +482,16 @@ class ChronosLNX(QtGui.QMainWindow):
 			text = prepare_planetary_info(date, clnxcfg.observer)
 		else:  #option == "Events"
 			text = prepare_events(date, clnxcfg.schedule)
-		if filename == None:
-			filename = QtGui.QFileDialog.getSaveFileName(self, caption="Saving %s for %s" \
-				                                         %(option, date.strftime("%m/%d/%Y")),
+		if filename is None:
+			filename = QtGui.QFileDialog.getSaveFileName(self, caption="Saving {0} for {1}" \
+				                                         .format(option, date.strftime("%m/%d/%Y")),
 				                                         filter="*.txt")
 		if filename is not None and filename != "":
-			f = open(filename, "w")
-			f.write(text)
-			if not suppress_notification:
-				self.show_notification("Saved", "%s has the %s you saved." \
-				                       %(filename, option), False)
-			f.close()
+			with open(filename, 'w', encoding='utf-8') as f:
+				f.write(text)
+				if not suppress_notification:
+					self.show_notification("Saved", "{0} has the {1} you saved." \
+					                       .format(filename, option), False)
 
 	def get_cal_menu(self, qpoint):
 		table = self.calendar._table
@@ -515,15 +514,15 @@ class ChronosLNX(QtGui.QMainWindow):
 		#self.calendar.setGridVisible(True)
 		menu = QtGui.QMenu(self.calendar)
 		if date2:
-			lritem = menu.addAction("Lunar Return for %s" %(date.strftime("%m/%d/%Y")))
+			lritem = menu.addAction("Lunar Return for {0}".format(date.strftime("%m/%d/%Y")))
 			lritem.triggered.connect(lambda: self.get_info_for_date(date2))
 			lritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 		if date3:
-			sritem = menu.addAction("Solar Return for %s" %(date.strftime("%m/%d/%Y")))
+			sritem = menu.addAction("Solar Return for {0}".format(date.strftime("%m/%d/%Y")))
 			sritem.triggered.connect(lambda: self.get_info_for_date(date3))
 			sritem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
-		infoitem = menu.addAction("Info for %s" %(date.strftime("%m/%d/%Y")))
+		infoitem = menu.addAction("Info for {0}".format(date.strftime("%m/%d/%Y")))
 		infoitem.triggered.connect(lambda: self.get_info_for_date(date))
 		infoitem.setIcon(QtGui.QIcon.fromTheme("dialog-information"))
 
@@ -714,7 +713,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.settings_dialog.css_check = QtGui.QCheckBox("Use the custom UI styling in the theme", appearance_page)
 		for theme in clnxcfg.get_available_themes():
 			#is it all right to format path here?
-			path = "skins:%s/misc/chronoslnx.png" %(theme)
+			path = "skins:{0}/misc/chronoslnx.png".format(theme)
 			icon = QtGui.QIcon(path)
 			self.settings_dialog.appearance_icons.addItem(icon, theme)
 
@@ -726,8 +725,8 @@ class ChronosLNX(QtGui.QMainWindow):
 		                                                  "are not showing.\n"
 		                                                  "This will take effect after "
 		                                                  "a restart of ChronosLNX.\n"
-		                                                  "Currently detected icon theme by system: %s") \
-		                                                    % clnxcfg.sys_icotheme)
+		                                                  "Currently detected icon theme by system: {0}") \
+		                                                  .format(clnxcfg.sys_icotheme))
 		grid.addWidget(QtGui.QLabel("UI Icon theme: "), 1, 0)
 		grid.addWidget(self.settings_dialog.override_ui_icon, 1, 1)
 		grid.addWidget(self.settings_dialog.css_check, 2, 0, 1, 2)
@@ -834,7 +833,7 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
 
 	def show_about(self):
-		QtGui.QMessageBox.about(self, "About {}".format(APPNAME),
+		QtGui.QMessageBox.about(self, "About {0}".format(APPNAME),
 		                        ("<center><big><b>{0} {1}</b></big>"
 		                         "<br />{2}<br />(C) <a href=\"mailto:{3}\">{4}</a>"
 		                         " {5}<br /><a href = \"{6}\">{0} Homepage</a>"
@@ -867,38 +866,37 @@ class ChronosLNX(QtGui.QMainWindow):
 				suffix = "rd"
 			else:
 				suffix = "th"
-			house_of_moment_string = "<br />The sun is in the {}<sup>{}</sup> house".format(hom, suffix)
+			house_of_moment_string = "<br />The sun is in the {0}<sup>{1}</sup> house".format(hom, suffix)
 		else:
 			house_of_moment_string = ""
 		if clnxcfg.show_sign:
-			sign_string = "<br />The sign of the month is {}".format(self.zodiac[0].m.signData['name'])
+			sign_string = "<br />The sign of the month is {0}".format(self.zodiac[0].m.signData['name'])
 		else:
 			sign_string = ""
 		if clnxcfg.show_moon:
 			phase = grab_phase(self.now)
-			moon_phase = "<br />{}: {} illuminated".format(state_to_string(phase, swisseph.MOON), phase[2])
+			moon_phase = "<br />{0}: {1} illuminated".format(state_to_string(phase, swisseph.MOON), phase[2])
 		else:
 			moon_phase = ""
 
 		#probably get boolean of day/night out of model?
-		planets_string = "Day of {}, the hour of {}".format(self.pday, self.phour)
+		planets_string = "Day of {0}, the hour of {1}".format(self.pday, self.phour)
 
-		total_string = "{}{}{}{}".format(planets_string, sign_string, 
+		total_string = "{0}{1}{2}{3}".format(planets_string, sign_string, 
 		                                 moon_phase, house_of_moment_string)
 
 		if clnxcfg.current_theme == "None":
 			sysicon = QtGui.QIcon(clnxcfg.grab_icon_path("misc", "chronoslnx"))
 		else:
 			sysicon = clnxcfg.main_icons[self.phour]
-		self.trayIcon.setToolTip("{} - {}\n{}".format(self.now.strftime("%Y/%m/%d"), 
-		                                              self.now.strftime("%H:%M:%S"),
-		                                              total_string.replace("<br />", "\n")\
+		self.trayIcon.setToolTip("{0}\n{1}".format(self.now.strftime("%Y/%m/%d - %H:%M:%S"), 
+		                                           total_string.replace("<br />", "\n")\
 		                                                          .replace("<sup>","")\
 		                                                          .replace("</sup>",""))
 		                        )
 		self.trayIcon.setIcon(sysicon)
 		#self.todayPicture.setPixmap(clnxcfg.main_pixmaps[str(self.phour)])
-		self.todayOther.setText("%s<br />%s" %(self.now.strftime("%H:%M:%S"), total_string))
+		self.todayOther.setText("{0}<br />{1}".format(self.now.strftime("%H:%M:%S"), total_string))
 		self.prevtime = (self.now.hour, self.now.minute, self.now.second)
 
 	def event_trigger(self, event_type, text, planet_trigger):

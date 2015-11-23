@@ -56,13 +56,14 @@ def distance(lat_1, long_1, lat_2, long_2):
     return 2 * math.asin(min(1, math.sqrt(a)))
         
 def timezones(zonetab=get_zonetab("/usr/share/zoneinfo/zone.tab"),
-              exclude=[]):
+              exclude=None):
     """iterate over timezones in zone.tab; yield (country, (lat, lon), name)
 
     @param zonetab: filename of zone.tab file
     @param exclude: exclude timezones with these strings in the name,
                     e.g. convexity exceptions like Indiana
     """
+    exclude = exclude or []
     for line in open(zonetab):
         if line.startswith("#"): continue
         values = line.split()
@@ -82,7 +83,7 @@ def stdtime(tz, year, month, day, hour, min, sec):
     '2007-04-02T21:53:27-05:00'
     """
     return datetime(year, month, day, hour, min, sec,
-                    tzinfo=zoneinfo.gettz("%s" % (tz))
+                    tzinfo=zoneinfo.gettz("{0}".format(tz))
                     )
     
 

@@ -15,7 +15,7 @@ class Planet:
 		self.retrograde=retrograde
 
 	def signAsString(self,idx):
-		if idx==None:
+		if idx is None:
 			return None
 		return ZODIAC[idx]['name']
 
@@ -28,20 +28,20 @@ class Planet:
 
 	@property
 	def fall(self):
-		if self.exalt == None:
+		if self.exalt is None:
 			return None
 		return (self.exalt+6)%12
 
 	@property
 	def realName(self):
-		if self.prefix != None:
-			return "%s %s" %(self.prefix, self.name)
+		if self.prefix is not None:
+			return "{0} {1}".format(self.prefix, self.name)
 		else:
 			return self.name
 
 	@property
 	def status(self):
-		if self.m == None:
+		if self.m is None:
 			return None
 		if self.m.sign == self.fall:
 			return "Fallen"
@@ -55,16 +55,16 @@ class Planet:
 			return None
 
 	def stats(self):
-		return ("\nRules %s"
-		"\nDetriment in %s"
-		"\nExalted in %s"
-		"\nFall in %s") \
-		%([self.signAsString(self.rules[0]),\
-		self.signAsString(self.rules[1])],\
-		[self.signAsString(self.detriments[0]), \
-		self.signAsString(self.detriments[1])], \
-		self.signAsString(self.exalt), \
-		self.signAsString(self.fall))
+		return ("\nRules {0}"
+		"\nDetriment in {1}"
+		"\nExalted in {2}"
+		"\nFall in {3}") \
+		.format([self.signAsString(self.rules[0]),
+		         self.signAsString(self.rules[1])],
+		         [self.signAsString(self.detriments[0]),
+		          self.signAsString(self.detriments[1])],
+		         self.signAsString(self.exalt),
+		         self.signAsString(self.fall))
 
 	def __repr__(self):
 		return ("Planet(name={0}, m={1}, prefix={2}, "
@@ -72,12 +72,12 @@ class Planet:
 		            repr(self.prefix), repr(self.table), repr(self.retrograde))
 
 	def __str__(self):
-		return ("%s"
-		"%s"
-		"\nMeasurements - %s"
-		"\nStatus - %s"
-		"\nRetrograde - %s") \
-		%(self.realName, self.stats(), self.m, self.status, self.retrograde)
+		return ("{0}"
+		"{1}"
+		"\nMeasurements - {2}"
+		"\nStatus - {3}"
+		"\nRetrograde - {4}") \
+		.format(self.realName, self.stats(), self.m, self.status, self.retrograde)
 
 	def __eq__(self, planet):
 		if isinstance(planet, str):
