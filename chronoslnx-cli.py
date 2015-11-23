@@ -18,6 +18,7 @@ from argparse import ArgumentParser, Action, RawTextHelpFormatter
 from collections import OrderedDict as od
 import csv
 from datetime import datetime
+from os import path
 import re
 import subprocess
 import sqlite3
@@ -131,22 +132,22 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 			zm = ZodiacalMeasurement(key, 0)
 			print('{0}\t{1}\t{2}'.format(output, zm.signData['name'], zm.only_degs()), file=output)
 	else:
-		print('~~~~ Planets ~~~~')
+		print('~~~~ Planets ~~~~', file=output)
 		if print_houses:
-			print('\t'.join(PHEADERS+['House #']))
+			print('\t'.join(PHEADERS+['House #']), file=output)
 			for planet_pos in planet_poses:
 				print('{0}\t{1}\t{2}\t{3}\t{4}\tHouse {5}'.format(planet_pos.name,
 					   planet_pos.m.signData['name'], planet_pos.m.only_degs(),
 					   planet_pos.status, planet_pos.retrograde,
 					   planet_pos.m.house_info.num), file=output)
 		else:
-			print('\t'.join(PHEADERS))
+			print('\t'.join(PHEADERS), file=output)
 			for planet_pos in planet_poses:
 				print('{0}\t{1}\t{2}\t{3}\t{4}'.format(planet_pos.name,
 					   planet_pos.m.signData['name'], planet_pos.m.only_degs(),
 					   planet_pos.status, planet_pos.retrograde), file=output)
 		if print_houses:
-			print('\n~~~~ Houses ~~~~')
+			print('\n~~~~ Houses ~~~~', file=output)
 			print('\t'.join(HHEADERS))
 			for house_pos in houses:
 				print('House {0}\t{1}\t{2}'.format(house_pos.num,
@@ -268,10 +269,13 @@ def radix_callback(observers, args):
 		o_obj = observers[o]
 		o_dt = o_obj.obvdate
 		olabel = nowified_label(o, o_dt)
-		output_single_chart(olabel, o_dt, o_obj,
-		                    aspect_table=args.aspect_table,
-		                    houses=args.houses,
-		                    fixed_stars=args.fixed_stars)
+		out_fname = args.name_format.format(mode='radix', label=olabel)
+		with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+			output_single_chart(olabel, o_dt, o_obj,
+			                    output=ofile,
+			                    aspect_table=args.aspect_table,
+			                    houses=args.houses,
+			                    fixed_stars=args.fixed_stars)
 
 def paired_callback(observers, args):
 	pairings = []
@@ -323,13 +327,16 @@ def paired_callback(observers, args):
 			else:
 				pcstars = None
 
-			output_single_chart(olabel, None, None,
-			                    houses=houses,
-			                    planet_poses=entries,
-			                    precalced_stars=pcstars,
-			                    aspect_table=args.aspect_table,
-			                    print_houses=args.houses,
-			                    fixed_stars=args.fixed_stars)
+			out_fname = args.name_format.format(mode='composite', label=pairing_label)
+			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+				output_single_chart(olabel, None, None,
+				                    output=ofile,
+				                    houses=houses,
+				                    planet_poses=entries,
+				                    precalced_stars=pcstars,
+				                    aspect_table=args.aspect_table,
+				                    print_houses=args.houses,
+				                    fixed_stars=args.fixed_stars)
 
 	elif args.pairing_mode == 'combine':
 		for pair in pairings:
@@ -342,10 +349,13 @@ def paired_callback(observers, args):
 			olabel = args.pairing_label.format(first=olabel1, second=olabel2)
 
 			o_dt = o_obj.obvdate
-			output_single_chart(olabel, o_dt, o_obj,
-			                    aspect_table=args.aspect_table,
-			                    print_houses=args.houses,
-			                    fixed_stars=args.fixed_stars)
+			out_fname = args.name_format.format(mode='combine', label=olabel)
+			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+				output_single_chart(olabel, o_dt, o_obj,
+				                    output=ofile,
+				                    aspect_table=args.aspect_table,
+				                    print_houses=args.houses,
+				                    fixed_stars=args.fixed_stars)
 
 	elif args.pairing_mode == 'compare':
 		for pair in pairings:
@@ -376,12 +386,15 @@ def paired_callback(observers, args):
 
 			olabel = args.pairing_label.format(first=olabel1, second=olabel2)
 
-			output_paired_chart(olabel,
-			    o1houses, o1entries, o1stars,
-			    o2houses, o2entries, o2stars,
-			    aspect_table=args.aspect_table,
-			    print_houses=args.houses,
-			    fixed_stars=args.fixed_stars)
+			out_fname = args.name_format.format(mode='compare', label=olabel)
+			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+				output_paired_chart(olabel,
+				    o1houses, o1entries, o1stars,
+				    o2houses, o2entries, o2stars,
+				    output=ofile,
+				    aspect_table=args.aspect_table,
+				    print_houses=args.houses,
+				    fixed_stars=args.fixed_stars)
 
 def returns_callback(observers, args):
 	bump_to_date = dparse(args.date, default=datetime.now(tz=tz.gettz()), fuzzy=True)
@@ -434,10 +447,13 @@ def returns_callback(observers, args):
 			o_obj.obvdate = bumped_date
 			o_dt = o_obj.obvdate
 			olabel = nowified_label(o, o_dt)
-			output_single_chart(olabel, o_dt, o_obj,
-			                    aspect_table=args.aspect_table,
-			                    print_houses=args.houses,
-			                    fixed_stars=args.fixed_stars)
+			out_fname = args.name_format.format(mode='return_{0}_{1}'.format(args.cbody, o_dt.strftime('%Y-%m-%d_%H%M%S')), label=olabel)
+			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+				output_single_chart(olabel, o_dt, o_obj,
+				                    output=ofile,
+				                    aspect_table=args.aspect_table,
+				                    print_houses=args.houses,
+				                    fixed_stars=args.fixed_stars)
 
 def progression_callback(observers, args):
 	bump_to_date = dparse(args.date, default=datetime.now(tz=tz.gettz()), fuzzy=True)
@@ -458,10 +474,13 @@ def progression_callback(observers, args):
 			o_obj.obvdate = o_obj.obvdate+rdelta(days=rd.years)
 			o_dt = o_obj.obvdate
 			olabel = nowified_label(o, o_dt)
-			output_single_chart(olabel, o_dt, o_obj,
-			                    aspect_table=args.aspect_table,
-			                    print_houses=args.houses,
-			                    fixed_stars=args.fixed_stars)
+			out_fname = args.name_format.format(mode='progression_{}'.format(o_dt.strftime('%Y-%m-%d_%H%M%S')), label=olabel)
+			with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
+				output_single_chart(olabel, o_dt, o_obj,
+				                    output=ofile,
+				                    aspect_table=args.aspect_table,
+				                    print_houses=args.houses,
+				                    fixed_stars=args.fixed_stars)
 
 aparser = ArgumentParser()
 
@@ -488,7 +507,7 @@ calcs_parser.add_argument('--aspect-table',    '-at', default='table',
 calcs_parser.add_argument('--name-format',    '-nf', 
                      help='Use this name format for writing files',
                      default='{mode}_-_{label}.txt')
-calcs_parser.add_argument('--output-dir',     '-odir',
+calcs_parser.add_argument('--output-dir', '-odir', default='.',
                      help='Write files to this directory')
 
 bumpable_parser = ArgumentParser(add_help=False)
