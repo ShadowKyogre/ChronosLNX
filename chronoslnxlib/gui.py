@@ -254,10 +254,14 @@ class ChronosLNX(QtGui.QMainWindow):
 		if self.astroClock is not None:
 			self.astroClock.nexts = self.next_sunrise
 		if self.now < self.sunrise:
-			self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(self.now-timedelta(days = 1), clnxcfg.observer)
+			recalced_day = self.now.replace(hour=12) - timedelta(days=1)
+			self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(
+				recalced_day,
+				clnxcfg.observer
+			)
 			if self.astroClock is not None:
 				self.astroClock.nexts = self.next_sunrise
-			self.hoursToday.prepareHours(self.now-timedelta(days = 1), clnxcfg.observer)
+			self.hoursToday.prepareHours(recalced_day, clnxcfg.observer)
 			self.pday = get_planet_day(dayn-1)
 		else:
 			self.hoursToday.prepareHours(self.now, clnxcfg.observer)
