@@ -51,7 +51,8 @@ class AstroClock(QtGui.QWidget):
 		self.timer.start(1000)
 
 	def init_colors(self):
-		bg = QtGui.QColor(self.palette().color(QtGui.QPalette.Window))
+		palette = self.palette()
+		bg = QtGui.QColor(palette.color(QtGui.QPalette.Window))
 		pbg = bg.lighter(250)
 		prettybg = QtGui.QRadialGradient()
 		prettybg.setCoordinateMode(QtGui.QGradient.ObjectBoundingMode)
@@ -61,7 +62,7 @@ class AstroClock(QtGui.QWidget):
 		prettybg.setColorAt(0, pbg)
 		prettybg.setColorAt(1, bg)
 
-		ibg = QtGui.QColor(self.palette().color(QtGui.QPalette.Base))
+		ibg = QtGui.QColor(palette.color(QtGui.QPalette.Base))
 		pibg = ibg.lighter(250)
 		prettyibg = QtGui.QRadialGradient()
 		prettyibg.setCoordinateMode(QtGui.QGradient.ObjectBoundingMode)
@@ -72,25 +73,27 @@ class AstroClock(QtGui.QWidget):
 		prettyibg.setColorAt(1, ibg)
 
 		self.__outerBG = QtGui.QBrush(prettybg)
-		self.__outerF = QtGui.QBrush(QtGui.QColor(self.palette().color(QtGui.QPalette.WindowText)))
+		self.__outerF = QtGui.QBrush(QtGui.QColor(palette.color(QtGui.QPalette.WindowText)))
 
 		self.__innerBG = QtGui.QBrush(prettyibg)
-		self.__innerF = QtGui.QBrush(QtGui.QColor(self.palette().color(QtGui.QPalette.Text)))
+		self.__innerF = QtGui.QBrush(QtGui.QColor(palette.color(QtGui.QPalette.Text)))
 
-		self.__innerH = QtGui.QBrush(QtGui.QColor(self.palette().color(QtGui.QPalette.WindowText)))
-		self.__outerH = QtGui.QBrush(QtGui.QColor(self.palette().color(QtGui.QPalette.WindowText)))
+		self.__innerH = QtGui.QBrush(QtGui.QColor(palette.color(QtGui.QPalette.WindowText)))
+		self.__outerH = QtGui.QBrush(QtGui.QColor(palette.color(QtGui.QPalette.WindowText)))
 
-		self.__aspectBrushes = {'conjunction': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'semi-sextile': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'semi-square': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'sextile': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'quintile': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'square': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'trine': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'sesiquadrate': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'biquintile': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'inconjunct': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),
-		                        'opposition': QtGui.QColor(self.palette().color(QtGui.QPalette.BrightText)),}
+		self.__aspectBrushes = {
+			'conjunction': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'semi-sextile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'semi-square': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'sextile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'quintile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'square': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'trine': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'sesiquadrate': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'biquintile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'inconjunct': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+			'opposition': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+		}
 
 	def __outerFill(self):
 		return self.__outerBG

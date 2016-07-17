@@ -22,7 +22,7 @@ from .core.aspects import DEFAULT_ORBS
 #http://ubuntuforums.org/showthread.php?t=1110989
 #http://www.commandprompt.com/community/pyqt/x6082
 class BookMarkedModel(QtGui.QStandardItemModel):
-	def __init__(self,  rows=0, columns=0, parent = None):
+	def __init__(self, rows=0, columns=0, parent=None):
 		super().__init__(rows, columns, parent)
 		color = QtGui.QPalette().color(QtGui.QPalette.Midlight)
 		color.setAlpha(64)
@@ -216,13 +216,16 @@ class PlanetaryHoursList(QtGui.QWidget):
 
 	def prepareHours(self, date, observer):
 		planetary_hours = hours_for_day(date, observer)
-		self.tree.model().setSourceModel(PHModel.prepareHours(date, observer, self.icons))
+		ph_model = PHModel.prepareHours(date, observer, self.icons)
+		self.tree.model().setSourceModel(ph_model)
 
 	def filter_hours(self, idx):
 		if 0 == idx:
 			self.tree.model().setFilterFixedString("")
 		else:
-			self.tree.model().setFilterFixedString(self.filter_hour.itemText(idx)) #set filter based on planet name
+			planet_name = self.filter_hour.itemText(idx)
+			#set filter based on planet name
+			self.tree.model().setFilterFixedString(planet_name)
 
 	def grab_nearest_hour(self, date):
 		return self.tree.model().sourceModel().grab_nearest_hour(date)
@@ -323,7 +326,7 @@ class AspectTableDisplay(QtGui.QWidget):
 			item = QtGui.QStandardItem(i)
 			if self.pluto_alternate and i == "Pluto":
 				item.setIcon(0, self.icons['Pluto 2'])
-			elif (i == "Ascendant" or i == "Descendant" or i == "MC" or i == "IC"):
+			elif i in {"Ascendant", "Descendant", "MC", "IC"}:
 				item.setIcon(self.sign_icons[i])
 			else:
 				item.setIcon(self.icons[i])
@@ -333,8 +336,9 @@ class AspectTableDisplay(QtGui.QWidget):
 			self.tableAspects.setHorizontalHeaderItem(v, item)
 			self.tableAspects.setVerticalHeaderItem(v, item2)
 
-def aspectsDialog(widget, zodiac, other_table, icons, 
-	              sign_icons, pluto_alternate, admi, nodes, orbs):
+def aspectsDialog(widget, zodiac, other_table,
+		icons, sign_icons, pluto_alternate,
+		admi, nodes, orbs):
 	info_dialog = QtGui.QDialog(widget)
 	info_dialog.setWindowTitle("Aspectarian")
 	tabs = QtGui.QTabWidget(info_dialog)
@@ -449,7 +453,11 @@ class SignsForDayList(QtGui.QWidget):
 
 	def update_degrees(self, time):
 		self.tree.clear()
-		self.target_date = self.target_date.replace(hour=time.hour(), minute=time.minute(), second=time.second())
+		self.target_date = self.target_date.replace(
+			hour=time.hour(),
+			minute=time.minute(),
+			second=time.second()
+		)
 		self._grab()
 
 	def assembleFromZodiac(self, zodiac):
@@ -460,8 +468,7 @@ class SignsForDayList(QtGui.QWidget):
 			item = QtGui.QTreeWidgetItem()
 			if self.pluto_alternate and i.name == "Pluto":
 				item.setIcon(0, self.icons['Pluto 2'])
-			elif (i.name == "Ascendant" or i.name == "Descendant" or \
-			i.name == "MC" or i.name == "IC"):
+			elif i.name in {"Ascendant", "Descendant", "MC", "IC"}:
 				item.setIcon(0, self.sign_icons[i.name])
 			else:
 				item.setIcon(0, self.icons[i.name])
@@ -474,9 +481,11 @@ class SignsForDayList(QtGui.QWidget):
 			item.setText(1, i.m.signData['name'])
 			item.setToolTip(1, i.m.dataAsText())
 			item.setText(2, i.m.only_degs())
-			item.setToolTip(2, ("The real longitude is %.3f degrees"
-			"\nOr %.3f, if ecliptic latitude is considered.")\
-			%(i.m.longitude, i.m.projectedLon))
+			coord_tooltip = (
+				"The real longitude is {0:.3f} degrees"
+				"\nOr {1:.3f}, if ecliptic latitude is considered."
+			).format(i.m.longitude, i.m.projectedLon)
+			item.setToolTip(2, coord_tooltip)
 			item.setText(3, i.retrograde)
 			item.setText(4, str(i.m.house_info.num))
 			item.setToolTip(4, i.m.status())

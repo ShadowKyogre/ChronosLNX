@@ -70,7 +70,7 @@ def get_sunrise_and_sunset(date, observer):
 def hours_for_day(date, observer):
 	sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date, observer)
 	if date < sunrise:
-		sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date-timedelta(days=1), observer)
+		sunrise, sunset, next_sunrise = get_sunrise_and_sunset(date.replace(hour=12)-timedelta(days=1), observer)
 	day_type = int(sunrise.strftime('%w'))
 	needed_planet = get_planet_day(day_type)
 	day_length = sunset - sunrise

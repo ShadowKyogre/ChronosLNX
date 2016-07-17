@@ -53,7 +53,7 @@ class GeoLocationWidget(QWidget):
 
     __pyqtSignals__ = ("latitudeChanged(double)", "longitudeChanged(double)", "elevationChanged(double)")
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         latitudeLabel = QLabel(self.tr("Latitude:"))

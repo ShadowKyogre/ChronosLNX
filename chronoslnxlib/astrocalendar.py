@@ -127,18 +127,27 @@ class AstroCalendar(CSSCalendar):
 		#self.listidx=self.isLunarReturnsValid()
 
 	def updateSun(self, year):
-		self.solarReturnTime = solar_return(self.birthtime.replace(year=year), self.birthtime, self.natal_sun)
+		self.solarReturnTime = solar_return(
+			self.birthtime.replace(year=year),
+			self.birthtime,
+			self.natal_sun
+		)
 		#print(self.solarReturnTime)
 
 	def updateMoon(self, year):
-		self.lunarReturns=[]
+		self.lunarReturns = []
 		guesstimate_point = datetime(year-1, 12, 14, 12)
 		self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
 			                                      self.natal_moon))
 		for m in range(1, 13):
 			guesstimate_point = datetime(year, m, 14, 12)
-			self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
-			                                      self.natal_moon))
+			self.lunarReturns.append(
+				lunar_return(
+					guesstimate_point,
+					self.birthtime,
+					self.natal_moon
+				)
+			)
 		guesstimate_point = datetime(year+1, 1, 14, 12)
 		self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
 			                                      self.natal_moon))

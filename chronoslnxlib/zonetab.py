@@ -3,13 +3,14 @@
 """ convert lat/long to timezone, offset using the zoneinfo database
 
 see http://www.twinsun.com/tz/tz-link.htm ,
-    http://en.wikipedia.org/wiki/Zoneinfo
+	http://en.wikipedia.org/wiki/Zoneinfo
 """
 
 import re, struct, math
 from datetime import datetime
 from dateutil.tz import tzfile
 from dateutil import zoneinfo
+
 from os import path
 import sys
 
@@ -17,7 +18,7 @@ def get_zonetab(p):
 	if path.exists(p):
 		return p
 	else:
-		return path.join(sys.path[0],'zone.tab')
+		return path.join(sys.path[0], 'zone.tab')
 
 def nearest_tz(lat, lon, zones):
     """
@@ -47,12 +48,18 @@ def distance(lat_1, long_1, lat_2, long_2):
     # thanks http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/393241
     # Submitter: Kevin Ryan (other recipes)
     # Last Updated: 2006/04/25 
-    lat_1, long_1, lat_2, long_2 = [ v * math.pi / 180.0
-                                     for v in (lat_1, long_1, lat_2, long_2)]
+    lat_1, long_1, lat_2, long_2 = [
+        v * math.pi / 180.0
+        for v in (lat_1, long_1, lat_2, long_2)
+    ]
     dlong = long_2 - long_1
     dlat = lat_2 - lat_1
-    a = (math.sin(dlat / 2))**2 + math.cos(lat_1) * math.cos(lat_2) \
+    a = (
+        (math.sin(dlat / 2))**2
+        + math.cos(lat_1)
+        * math.cos(lat_2)
         * (math.sin(dlong / 2))**2
+    )
     return 2 * math.asin(min(1, math.sqrt(a)))
         
 def timezones(zonetab=get_zonetab("/usr/share/zoneinfo/zone.tab"),
@@ -82,10 +89,15 @@ def stdtime(tz, year, month, day, hour, min, sec):
     >>> stdtime("America/Chicago", "2007-04-02T21:53:27")
     '2007-04-02T21:53:27-05:00'
     """
-    return datetime(year, month, day, hour, min, sec,
-                    tzinfo=zoneinfo.gettz("{0}".format(tz))
-                    )
-    
+    return datetime(
+        year,
+        month,
+        day,
+        hour,
+        min,
+        sec,
+        tzinfo=zoneinfo.gettz("{0}".format(tz))
+    )
 
 
 def latlong(coords):
@@ -136,4 +148,4 @@ def dms(o, d, m, s):
     True
     """
     return (o in ('N', 'E') and 1 or -1) * (d + \
-	(m + float(s)/60)/60)
+    (m + float(s)/60)/60)
