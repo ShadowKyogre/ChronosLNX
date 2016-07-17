@@ -1,0 +1,8 @@
+[TYPECHECK]
+ignored-modules=PyQt4.QtCore,PyQt4.QtGui,swisseph
+
+[MESSAGES CONTROL]
+disable=
+
+[REPORTS]
+output-format=colorized
