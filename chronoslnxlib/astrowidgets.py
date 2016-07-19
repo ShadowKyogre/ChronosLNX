@@ -7,7 +7,7 @@ from datetime import datetime
 
 from .core.charts import create_aspect_table, search_special_aspects, \
                          get_signs, update_planets_and_cusps
-from .core.hours import hours_for_day
+from .core.hours import AstrologicalDay
 from .core.moon_phases import get_moon_cycle
 from .core.aspects import DEFAULT_ORBS
 
@@ -76,8 +76,12 @@ class PHModel(BookMarkedModel):
 		return self.item(idx, 0).data(32)
 
 	@classmethod
-	def prepareHours(cls, date, observer, icon_source):
-		planetary_hours = hours_for_day(date, observer)
+	def prepareHours(cls, icon_source, date=None, observer=None, astro_day=None):
+		if astro_day is None:
+			if observer is None:
+				raise ValueError("If no astro day specified, observer must not be None!")
+			astro_day = AstrologicalDay(observer, date=date)
+		planetary_hours = astro_day.hours_for_day()
 		model = cls()
 		for ph in planetary_hours:
 			icon = icon_source[ph[1]]
@@ -160,25 +164,7 @@ class MoonCycleList(QtGui.QTreeView):
 
 	def get_moon_cycle(self, date):
 		self.setModel(MPModel.getMoonCycle(date, self.icons))
-'''
-self.hoursToday.icons=clnxcfg.main_icons
 
-	def prepare_hours_for_today(self):
-		dayn=self.now.isoweekday()%7
-		self.pday = get_planet_day(dayn)
-		self.sunrise, self.sunset, self.next_sunrise=get_sunrise_and_sunset(self.now, clnxcfg.observer)
-		self.astroClock.nexts=self.next_sunrise
-		if self.now < self.sunrise:
-			self.sunrise, self.sunset, self.next_sunrise=get_sunrise_and_sunset(self.now-timedelta(days=1), clnxcfg.observer)
-			self.astroClock.nexts=self.next_sunrise
-			self.hoursToday.prepareHours(self.now-timedelta(days=1), clnxcfg.observer)
-			self.pday = get_planet_day(dayn-1)
-		else:
-			self.hoursToday.prepareHours(self.now, clnxcfg.observer)
-#updatey
-	if self.now >= self.next_sunrise:
-		self.update_hours()
-'''
 class PlanetaryHoursList(QtGui.QWidget):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -214,9 +200,14 @@ class PlanetaryHoursList(QtGui.QWidget):
 	def clear(self):
 		self.tree.model().sourceModel().clear()
 
-	def prepareHours(self, date, observer):
-		planetary_hours = hours_for_day(date, observer)
-		ph_model = PHModel.prepareHours(date, observer, self.icons)
+	def prepareHours(self, date=None, observer=None, astro_day=None):
+		if astro_day is None:
+			if observer is None:
+				raise ValueError("If no astro day specified, observer must not be None!")
+			astro_day = AstrologicalDay(observer, date=date)
+
+		planetary_hours = astro_day.hours_for_day()
+		ph_model = PHModel.prepareHours(self.icons, astro_day=astro_day)
 		self.tree.model().setSourceModel(ph_model)
 
 	def filter_hours(self, idx):

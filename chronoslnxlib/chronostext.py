@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from .core.charts import update_planets_and_cusps, get_signs
-from .core.hours import hours_for_day
+from .core.hours import AstrologicalDay
 from .core.moon_phases import get_moon_cycle
 from .eventplanner import DayEventsModel
 from PyQt4 import QtGui ,QtCore
@@ -8,7 +8,7 @@ from datetime import timedelta
 import swisseph
 
 def prepare_planetary_info(date, observer):
-	phinfo = hours_for_day(date, observer)
+	phinfo = AstrologicalDay(obvserver, date=date).hours_for_day()
 	sphinfo = []
 	header = "Planetary hours for {0}, {1}, {2} - {3}"\
 	         .format(observer.lat, observer.lng,

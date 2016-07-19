@@ -21,7 +21,7 @@ import swisseph
 from . import geolocationwidget ## from example, but modified a little
 from .core import compare_to_the_second
 from .core.charts import update_planets_and_cusps, get_signs
-from .core.hours import get_sunrise_and_sunset, get_planet_day
+from .core.hours import AstrologicalDay, get_planet_day
 #previous_new_moon -> predict_phase
 from .core.moon_phases import predict_phase, grab_phase, state_to_string
 
@@ -247,26 +247,19 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.moonToday.highlight_cycle_phase(self.now)
 
 	def prepare_hours_for_today(self):
-		self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(self.now, clnxcfg.observer)
-		dayn = self.sunrise.isoweekday() % 7
+		self.astro_day = AstrologicalDay(clnxcfg.observer, date=self.now)
+		dayn = self.astro_day.sunrise.isoweekday() % 7
 		self.pday = get_planet_day(dayn)
-		print(self.sunrise, self.sunset, self.next_sunrise)
+		print(
+			self.astro_day.sunrise,
+			self.astro_day.sunset,
+			self.astro_day.next_sunrise
+		)
 		if self.astroClock is not None:
-			self.astroClock.nexts = self.next_sunrise
-		if self.now < self.sunrise:
-			recalced_day = self.now.replace(hour=12) - timedelta(days=1)
-			self.sunrise, self.sunset, self.next_sunrise = get_sunrise_and_sunset(
-				recalced_day,
-				clnxcfg.observer
-			)
-			if self.astroClock is not None:
-				self.astroClock.nexts = self.next_sunrise
-			self.hoursToday.prepareHours(recalced_day, clnxcfg.observer)
-			self.pday = get_planet_day(dayn-1)
-		else:
-			self.hoursToday.prepareHours(self.now, clnxcfg.observer)
-			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
-			#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
+			self.astroClock.nexts = self.astro_day.next_sunrise
+		self.hoursToday.prepareHours(astro_day=self.astro_day)
+		#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
+		#http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
 	def show_notification(self, title, text, ptrigger):
 			if pynf:
@@ -306,9 +299,10 @@ class ChronosLNX(QtGui.QMainWindow):
 		dateinfo = "Info for {0}".format(date.strftime("%m/%d/%Y"))
 		if birth:
 			ob = clnxcfg.baby
-			text = ("\nNote: This is for the birth timezone {0} and this time."
-			        "\nIf you want adjust your birth time, go to Settings.") \
-			        .format(clnxcfg.baby.obvdate.tzname())
+			text = (
+				"\nNote: This is for the birth timezone {0} and this time."
+				"\nIf you want adjust your birth time, go to Settings."
+			).format(clnxcfg.baby.obvdate.tzname())
 		else:
 			ob = clnxcfg.observer
 			text = ""
@@ -852,7 +846,7 @@ class ChronosLNX(QtGui.QMainWindow):
 		self.now = clnxcfg.observer.obvdate
 		update_planets_and_cusps(self.now, clnxcfg.observer, self.houses, self.zodiac)
 		#self.astroClock.signData = [self.houses,self.zodiac]
-		if self.now >= self.next_sunrise:
+		if self.now >= self.astro_day.next_sunrise:
 			self.update_hours()
 		if self.now >= self.moonToday.model().get_date(self.moonToday.model().rowCount()-1):
 			self.update_moon_cycle()
@@ -982,13 +976,26 @@ class ChronosLNX(QtGui.QMainWindow):
 						hour_trigger = compare_to_the_second(self.now, dt.hour, dt.minute, dt.second+1)
 						pt = True
 					elif hour_item == "When the sun rises":
-						hour_trigger = compare_to_the_second(self.now, self.sunrise,
-						                                     self.sunrise.minute, self.sunrise.second)
+						hour_trigger = compare_to_the_second(
+							self.now,
+							self.astro_day.sunrise.hour,
+							self.astro_day.sunrise.minute,
+							self.astro_day.sunrise.second
+						)
 					elif hour_item == "When the sun sets":
-						hour_trigger = compare_to_the_second(self.now, self.sunset.hour, 
-						                                     self.sunset.minute, self.minute.second)
+						hour_trigger = compare_to_the_second(
+							self.now,
+							self.astro_day.sunset.hour,
+							self.astro_day.sunset.minute,
+							self.minute.second
+						)
 					elif hour_item == "Every normal hour":
-						hour_trigger = compare_to_the_second(self.now, self.now.hour, 0, 0)
+						hour_trigger = compare_to_the_second(
+							self.now,
+							self.now.hour,
+							0,
+							0
+						)
 						alist, args = self.parse_hour_args(txt)
 
 				if hour_trigger:
