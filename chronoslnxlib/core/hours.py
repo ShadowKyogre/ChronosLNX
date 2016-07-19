@@ -28,7 +28,8 @@ HOUR_SEQUENCE = (
 	"Mars"
 )
 
-#http://www.guidingstar.com/Articles/Rulerships.html ? Either this or just mod Uranus, Neptune, and Pluto to have just one sign
+# http://www.guidingstar.com/Articles/Rulerships.html
+# Either this or just mod Uranus, Neptune, and Pluto to have just one sign
 
 					  ##Formalhaut
 #FIXED_STARS=["Aldebaran", "Regulus", "Antares", "Fomalhaut", \#major stars
@@ -68,10 +69,10 @@ class AstrologicalDay:
 			swisseph.revjul(
 				swisseph.rise_trans(
 					day-1,
-					swisseph.SUN, 
+					swisseph.SUN,
 					observer.lng,
-					observer.lat, 
-					observer.elevation, 
+					observer.lat,
+					observer.elevation,
 					rsmi=swisseph.CALC_RISE
 				)[1][0]
 			)
@@ -87,7 +88,7 @@ class AstrologicalDay:
 					swisseph.SUN,
 					observer.lng,
 					observer.lat,
-					alt=observer.elevation, 
+					alt=observer.elevation,
 					rsmi=swisseph.CALC_RISE
 				)[1][0]
 			)
@@ -100,7 +101,7 @@ class AstrologicalDay:
 					swisseph.SUN,
 					observer.lng,
 					observer.lat,
-					observer.elevation, 
+					observer.elevation,
 					rsmi=swisseph.CALC_SET
 				)[1][0]
 			)
@@ -113,7 +114,7 @@ class AstrologicalDay:
 					swisseph.SUN,
 					observer.lng,
 					observer.lat,
-					observer.elevation, 
+					observer.elevation,
 					rsmi=swisseph.CALC_RISE
 				)[1][0]
 			)

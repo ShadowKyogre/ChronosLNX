@@ -32,11 +32,15 @@ def predict_phase(date, offset=0, target_angle=0):
 	cycles = int(cycles_with_stuff)+offset
 	diff = float('inf')
 	while abs(diff) >= 1E-3:
-		 angle_diff = get_moon_sun_diff(moon_cycles_to_jul(cycles))
-		 angle_diff = angle_sub(angle_diff, target_angle)
-		 #print(revjul_to_datetime(swisseph.revjul(mooncycles_to_jul(cycles))), get_moon_sun_diff(mooncycles_to_jul(cycles)), angle_diff)
-		 cycles += angle_diff / 360
-		 diff = angle_diff
+		angle_diff = get_moon_sun_diff(moon_cycles_to_jul(cycles))
+		angle_diff = angle_sub(angle_diff, target_angle)
+		#print(
+		#	revjul_to_datetime(swisseph.revjul(mooncycles_to_jul(cycles))),
+		#	get_moon_sun_diff(mooncycles_to_jul(cycles)),
+		#	angle_diff
+		#)
+		cycles += angle_diff / 360
+		diff = angle_diff
 	return revjul_to_datetime(swisseph.revjul(moon_cycles_to_jul(cycles)))
 
 def grab_phase(date):
@@ -96,8 +100,17 @@ def get_moon_cycle(date):
 	new_m_end = predict_phase(date, offset=1, target_angle=0)
 
 	moon_phase = []
-	items = [new_m_start, wax_crescent, first_quarter, wax_gib,
-	         full_m, wan_gib, last_quarter, wan_crescent, new_m_end]
+	items = [
+		new_m_start,
+		wax_crescent,
+		first_quarter,
+		wax_gib,
+		full_m,
+		wan_gib,
+		last_quarter,
+		wan_crescent,
+		new_m_end
+	]
 
 	for i in items:
 		state_line = grab_phase(i)

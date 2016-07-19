@@ -233,7 +233,13 @@ class ChronosLNXConfig:
 				third_column.setText(entry[2])
 				fourth_column.setText(entry[3])
 				fifth_column.setText(entry[4])
-				self.schedule.appendRow([first_column, second_column, third_column, fourth_column, fifth_column])
+				self.schedule.appendRow([
+					first_column,
+					second_column,
+					third_column,
+					fourth_column,
+					fifth_column,
+				])
 			self.schedule.rowsInserted.connect(self.add_delete_update)
 			self.schedule.rowsRemoved.connect(self.add_delete_update)
 			self.schedule.itemChanged.connect(self.changed_update)
@@ -250,19 +256,27 @@ class ChronosLNXConfig:
 		temppath = os.path.join(self.userconfdir, 'schedule_modified.csv')
 		with open(temppath, "w", encoding='utf-8') as f:
 			planner = csv.writer(f)
-			planner.writerow(["Enabled", "Date", "Hour", "Event Type", "Text"])
+			planner.writerow([
+				"Enabled",
+				"Date",
+				"Hour",
+				"Event Type",
+				"Text"
+			])
 			for i in range(rows):
 				if self.schedule.item(i, 0).checkState() == QtCore.Qt.Checked:
 					first_column = "True"
 				else:
 					first_column = "False"
-				second_column = self.schedule.item(i, 1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
+				#need format like this: %m/%d/%Y
+				second_column = self.schedule.item(i, 1).data(QtCore.Qt.UserRole)
 				if isinstance(second_column, QtCore.QDate):
 					#print second_column
 					second_column = second_column.toString("MM/dd/yyyy")
 				else:
 					second_column = self.schedule.item(i, 1).data(QtCore.Qt.EditRole)
-				third_column = self.schedule.item(i, 2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
+				#need format like this: %H:%M
+				third_column = self.schedule.item(i, 2).data(QtCore.Qt.UserRole)
 
 				if isinstance(third_column, QtCore.QTime):
 					third_column = third_column.toString("HH:mm")
@@ -270,7 +284,13 @@ class ChronosLNXConfig:
 					third_column = self.schedule.item(i, 2).data(QtCore.Qt.EditRole)
 				fourth_column = self.schedule.item(i, 3).data(QtCore.Qt.EditRole)
 				fifth_column = self.schedule.item(i, 4).data(QtCore.Qt.EditRole)
-				planner.writerow([first_column, second_column, third_column, fourth_column, fifth_column])
+				planner.writerow([
+					first_column,
+					second_column,
+					third_column,
+					fourth_column,
+					fifth_column
+				])
 		os.remove(path)
 		os.renames(temppath, path)
 
