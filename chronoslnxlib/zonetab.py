@@ -3,7 +3,7 @@
 """ convert lat/long to timezone, offset using the zoneinfo database
 
 see http://www.twinsun.com/tz/tz-link.htm ,
-	http://en.wikipedia.org/wiki/Zoneinfo
+    http://en.wikipedia.org/wiki/Zoneinfo
 """
 
 import re, struct, math
@@ -15,10 +15,10 @@ from os import path
 import sys
 
 def get_zonetab(p):
-	if path.exists(p):
-		return p
-	else:
-		return path.join(sys.path[0], 'zone.tab')
+    if path.exists(p):
+        return p
+    else:
+        return path.join(sys.path[0], 'zone.tab')
 
 def nearest_tz(lat, lon, zones):
     """

@@ -26,101 +26,101 @@ DEFAULT_ORBS = od([('conjunction', 10.0),
                    ('opposition', 10.0)])
 
 class Aspect:
-	def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
-		if not hasattr(p1, 'm') or \
-		not hasattr(p2, 'm'):
-			raise ValueError("Cannot form a relationship without measurements")
-		self.planet1=p1
-		self.planet2=p2
-		self.orbs=orbs
+    def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
+        if not hasattr(p1, 'm') or \
+        not hasattr(p2, 'm'):
+            raise ValueError("Cannot form a relationship without measurements")
+        self.planet1=p1
+        self.planet2=p2
+        self.orbs=orbs
 
-	@property
-	def diff(self):
-		return abs(angle_sub(self.planet1.m.projectedLon, self.planet2.m.projectedLon))
+    @property
+    def diff(self):
+        return abs(angle_sub(self.planet1.m.projectedLon, self.planet2.m.projectedLon))
 
-	@property
-	def aspect(self):
-		for i in ASPECTS:
-			degrees = ASPECTS[i]
-			o = self.orbs[i]
-			if degrees - o <= self.diff <= degrees + o:
-				return i
-		return None
+    @property
+    def aspect(self):
+        for i in ASPECTS:
+            degrees = ASPECTS[i]
+            o = self.orbs[i]
+            if degrees - o <= self.diff <= degrees + o:
+                return i
+        return None
 
-	def isForPlanet(self, planet):
-		return self.planet1 == planet or self.planet2 == planet
+    def isForPlanet(self, planet):
+        return self.planet1 == planet or self.planet2 == planet
 
-	def partnerPlanet(self, planet):
-		if self.planet1 == planet:
-			return self.planet2.realName
-		elif self.planet2 == planet:
-			return self.planet1.realName
-		else:
-			return None
+    def partnerPlanet(self, planet):
+        if self.planet1 == planet:
+            return self.planet2.realName
+        elif self.planet2 == planet:
+            return self.planet1.realName
+        else:
+            return None
 
-	def __str__(self):
-		return ("Planet 1 - {0} | {1}"
-		        "\nPlanet 2 - {2} | {3}"
-		        "\nRelationship - {4}") \
-		        .format(self.planet1.realName, self.planet1.m.longitude,
-		          self.planet2.realName, self.planet2.m.longitude,
-		          self.aspect.title() if self.aspect is not None else "No aspect")
+    def __str__(self):
+        return ("Planet 1 - {0} | {1}"
+                "\nPlanet 2 - {2} | {3}"
+                "\nRelationship - {4}") \
+                .format(self.planet1.realName, self.planet1.m.longitude,
+                  self.planet2.realName, self.planet2.m.longitude,
+                  self.aspect.title() if self.aspect is not None else "No aspect")
 
-	def __repr__(self):
-		return "Aspect({0}, {1}, orbs={2})".format(repr(self.planet1),
-		                                           repr(self.planet2),
-		                                           repr(self.orbs))
+    def __repr__(self):
+        return "Aspect({0}, {1}, orbs={2})".format(repr(self.planet1),
+                                                   repr(self.planet2),
+                                                   repr(self.orbs))
 
-	def __eq__(self, pr):
-		if not pr:
-			return False
-		return self.isForPlanet(pr.planet1.realName) and self.isForPlanet(pr.planet2.realName)
+    def __eq__(self, pr):
+        if not pr:
+            return False
+        return self.isForPlanet(pr.planet1.realName) and self.isForPlanet(pr.planet2.realName)
 
-	def __ne__(self, pr):
-		return not self.__eq__(pr)
+    def __ne__(self, pr):
+        return not self.__eq__(pr)
 
 class SpecialAspect:
-	def __init__(self, descriptors, name):
-		self.descriptors = descriptors
-		self.name = name
+    def __init__(self, descriptors, name):
+        self.descriptors = descriptors
+        self.name = name
 
-	@property
-	def uniquePlanets(self):
-		planets = set()
-		for d in self.descriptors:
-			planets.add(d.planet1.realName)
-			planets.add(d.planet2.realName)
-		return planets
+    @property
+    def uniquePlanets(self):
+        planets = set()
+        for d in self.descriptors:
+            planets.add(d.planet1.realName)
+            planets.add(d.planet2.realName)
+        return planets
 
-	@property
-	def uniqueMeasurements(self):
-		measurements = set()
-		for d in self.descriptors:
-			measurements.add(d.planet1.m.longitude)
-			measurements.add(d.planet2.m.longitude)
-		return measurements
+    @property
+    def uniqueMeasurements(self):
+        measurements = set()
+        for d in self.descriptors:
+            measurements.add(d.planet1.m.longitude)
+            measurements.add(d.planet2.m.longitude)
+        return measurements
 
-	def contains(self, sa):
-		otherplanets = sa.uniquePlanets
-		return otherplanets.issubset(self.uniquePlanets)
+    def contains(self, sa):
+        otherplanets = sa.uniquePlanets
+        return otherplanets.issubset(self.uniquePlanets)
 
-	def __eq__(self, sa):
-		if sa is None:
-			return False
-		return self.name == sa.name and self.uniquePlanets == sa.uniquePlanets
-		#because they are the same points
+    def __eq__(self, sa):
+        if sa is None:
+            return False
+        return self.name == sa.name and self.uniquePlanets == sa.uniquePlanets
+        #because they are the same points
 
-	def __ne__(self, sa):
-		return not self.__eq__(sa)
+    def __ne__(self, sa):
+        return not self.__eq__(sa)
 
-	def __hash__(self):
-		return hash(frozenset(self.uniquePlanets))
+    def __hash__(self):
+        return hash(frozenset(self.uniquePlanets))
 
-	def __repr__(self):
-		"SpecialAspect({0}, {1})".format(repr(self.descriptors), repr(self.name))
+    def __repr__(self):
+        "SpecialAspect({0}, {1})".format(repr(self.descriptors), repr(self.name))
 
-	def __str__(self):
-		return "{0}\nUnique angles:{1}\nUnique planets:{2}" \
-		       .format(self.name.title(), 
-		          [ ("{0:.3f}" %(i)) for i in list(self.uniqueMeasurements)], 
-		          list(self.uniquePlanets))
+    def __str__(self):
+        return "{0}\nUnique angles:{1}\nUnique planets:{2}" \
+               .format(self.name.title(), 
+                  [ ("{0:.3f}" %(i)) for i in list(self.uniqueMeasurements)], 
+                  list(self.uniquePlanets))
