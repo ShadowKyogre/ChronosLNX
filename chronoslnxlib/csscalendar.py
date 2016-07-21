@@ -2,6 +2,9 @@ from PyQt4 import QtGui, QtCore
 import calendar
 from datetime import date as pydate
 
+def _isToday(date):
+    return date == pydate.today()
+
 class TodayDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -132,16 +135,13 @@ class CSSCalendar(QtGui.QWidget):
             if nextcol != nextcolmodu:
                 row += 1
             if row <= self._table.rowCount():
-                self._todayItem = self._table.item(row, nexcolmodu)
+                self._todayItem = self._table.item(row, nextcolmodu)
             else:
                 self._todayItem = None
 
-    def _isToday(self, date):
-        return date == pydate.today()
-
     def _modifyDayItem(self, item):
         date = item.data(QtCore.Qt.UserRole)
-        isToday = self._isToday(date)
+        isToday = _isToday(date)
         item.setData(QtCore.Qt.UserRole+1, isToday)
 
     def _refillCells(self):
@@ -191,67 +191,95 @@ class CSSCalendar(QtGui.QWidget):
                     self._table.item(i, day-1).setForeground(fg)
                     self._table.item(i, day-1).setBackground(fill)
 
-    def __setDayFG(self, day, fg):
+    def setDayFG(self, day, fg):
         self.weekdayFGs[day-1] = fg
         for i in range(self._table.rowCount()):
             self._table.item(i,day-1).setForeground(fg)
 
-    def __setDayFill(self, day, fill):
+    def setDayFill(self, day, fill):
         self.weekdayBGs[day-1] = fill
         for i in range(self._table.rowCount()):
             self._table.item(i,day-1).setBackground(fill)
 
-    def __dayFG(self, day):
+    def _dayFG(self, day):
         return self.weekdayFGs[day-1]
 
-    def __dayFill(self, day):
+    def _dayFill(self, day):
         return self.weekdayBGs[day-1]
 
-    sundayFill = QtCore.pyqtProperty("QBrush", 
-                                     lambda self: self.__dayFill(QtCore.Qt.Sunday),
-                                     lambda self, fill: self.__setDayFill(QtCore.Qt.Sunday, fill))
-    mondayFill = QtCore.pyqtProperty("QBrush", 
-                                     lambda self: self.__dayFill(QtCore.Qt.Monday), 
-                                     lambda self, fill: self.__setDayFill(QtCore.Qt.Monday,fill))
-    tuesdayFill = QtCore.pyqtProperty("QBrush", 
-                                      lambda self: self.__dayFill(QtCore.Qt.Tuesday), 
-                                      lambda self,fill: self.__setDayFill(QtCore.Qt.Tuesday,fill))
-    wednesdayFill = QtCore.pyqtProperty("QBrush", 
-                                        lambda self: self.__dayFill(QtCore.Qt.Wednesday), 
-                                        lambda self,fill: self.__setDayFill(QtCore.Qt.Wednesday,fill))
-    thursdayFill = QtCore.pyqtProperty("QBrush", 
-                                       lambda self: self.__dayFill(QtCore.Qt.Thursday), 
-                                       lambda self,fill: self.__setDayFill(QtCore.Qt.Thursday,fill))
-    fridayFill = QtCore.pyqtProperty("QBrush", 
-                                     lambda self: self.__dayFill(QtCore.Qt.Friday), 
-                                     lambda self,fill: self.__setDayFill(QtCore.Qt.Friday,fill))
-    saturdayFill = QtCore.pyqtProperty("QBrush", 
-                                       lambda self: self.__dayFill(QtCore.Qt.Saturday), 
-                                       lambda self,fill: self.__setDayFill(QtCore.Qt.Saturday,fill))
+    sundayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Sunday),
+        lambda self, fill: self._setDayFill(QtCore.Qt.Sunday, fill)
+    )
+    mondayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Monday), 
+        lambda self, fill: self._setDayFill(QtCore.Qt.Monday,fill)
+    )
+    tuesdayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Tuesday), 
+        lambda self,fill: self._setDayFill(QtCore.Qt.Tuesday,fill)
+    )
+    wednesdayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Wednesday), 
+        lambda self,fill: self._setDayFill(QtCore.Qt.Wednesday,fill)
+    )
+    thursdayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Thursday), 
+        lambda self,fill: self._setDayFill(QtCore.Qt.Thursday,fill)
+    )
+    fridayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Friday), 
+        lambda self,fill: self._setDayFill(QtCore.Qt.Friday,fill)
+    )
+    saturdayFill = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFill(QtCore.Qt.Saturday), 
+        lambda self,fill: self._setDayFill(QtCore.Qt.Saturday,fill)
+    )
 
-    sundayFG = QtCore.pyqtProperty("QBrush", 
-                                   lambda self: self.__dayFG(QtCore.Qt.Sunday), 
-                                   lambda self,fill: self.__setDayFG(QtCore.Qt.Sunday,fill))
-    mondayFG = QtCore.pyqtProperty("QBrush", 
-                                   lambda self: self.__dayFG(QtCore.Qt.Monday), 
-                                   lambda self,fill: self.__setDayFG(QtCore.Qt.Monday,fill))
-    tuesdayFG = QtCore.pyqtProperty("QBrush", 
-                                    lambda self: self.__dayFG(QtCore.Qt.Tuesday), 
-                                    lambda self,fill: self.__setDayFG(QtCore.Qt.Tuesday,fill))
-    wednesdayFG = QtCore.pyqtProperty("QBrush", 
-                                      lambda self: self.__dayFG(QtCore.Qt.Wednesday), 
-                                      lambda self,fill: self.__setDayFG(QtCore.Qt.Wednesday,fill))
-    thursdayFG = QtCore.pyqtProperty("QBrush", 
-                                     lambda self: self.__dayFG(QtCore.Qt.Thursday), 
-                                     lambda self,fill: self.__setDayFG(QtCore.Qt.Thursday,fill))
-    fridayFG = QtCore.pyqtProperty("QBrush", 
-                                   lambda self: self.__dayFG(QtCore.Qt.Friday), 
-                                   lambda self,fill: self.__setDayFG(QtCore.Qt.Friday,fill))
-    saturdayFG = QtCore.pyqtProperty("QBrush", 
-                                     lambda self: self.__dayFG(QtCore.Qt.Saturday), 
-                                     lambda self,fill: self.__setDayFG(QtCore.Qt.Saturday,fill))
+    sundayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Sunday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Sunday,fill)
+    )
+    mondayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self.__dayFG(QtCore.Qt.Monday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Monday,fill)
+    )
+    tuesdayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Tuesday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Tuesday,fill)
+    )
+    wednesdayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Wednesday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Wednesday,fill)
+    )
+    thursdayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Thursday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Thursday,fill)
+    )
+    fridayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Friday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Friday,fill)
+    )
+    saturdayFG = QtCore.pyqtProperty(
+        "QBrush",
+        lambda self: self._dayFG(QtCore.Qt.Saturday), 
+        lambda self,fill: self._setDayFG(QtCore.Qt.Saturday,fill)
+    )
     '''
-    weekNFG=QtCore.pyqtProperty("QBrush", __weekNFG, __setWeekNFG)
-    weekNFill=QtCore.pyqtProperty("QBrush", __weekNFill, __setWeekNFill)
+    weekNFG=QtCore.pyqtProperty("QBrush", _weekNFG, _setWeekNFG)
+    weekNFill=QtCore.pyqtProperty("QBrush", _weekNFill, _setWeekNFill)
     '''
     useCSS = QtCore.pyqtProperty("bool", useCSS, setUseCSS)
