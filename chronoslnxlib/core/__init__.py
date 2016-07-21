@@ -107,9 +107,10 @@ def filtered_groups(iterable, key_func):
     return groups
 
 def zipped_func(first_list, second_list, func=average):
-    output=[]
-    for f, b in zip(first_list, second_list):
-        output.append(func(f, b))
+    output = [
+        func(f, b)
+        for f, b in zip(first_list, second_list)
+    ]
     return output
 
 def angle_average(first, second):
