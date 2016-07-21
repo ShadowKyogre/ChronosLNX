@@ -10,7 +10,7 @@ from . import angle_sub
 from . import zipped_func, angle_average
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
-                          HouseMeasurement, ZODIAC
+                          HouseMeasurement, Zodiac
 from .planet import Planet
 
 def get_transit(planet, observer, date):
@@ -430,7 +430,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
 
 def yearly_profection(date, birthdate, ascendant):
     years = relativedelta(date, birthdate).years
-    yp = ZODIAC[(years+ascendant.signData['decanates'][0])%12]['name']
+    yp = Zodiac((years+ascendant.signData.decanates[0])%12).name
     return yp
 
 def get_sun_sign(date, observer):

@@ -373,25 +373,25 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
         item = QtGui.QTreeWidgetItem()
         item.setText(0, str(i.num))
         item.setToolTip(0, str(i))
-        if i.natRulerData['name'] == "Capricorn":
+        if i.natRulerData.name == "Capricorn":
             item.setIcon(1, sign_icons[capricorn_alternate])
         else:
-            item.setIcon(1, sign_icons[i.natRulerData['name']])
-        item.setText(1, i.natRulerData['name'])
+            item.setIcon(1, sign_icons[i.natRulerData.name])
+        item.setText(1, i.natRulerData.name)
         item.setToolTip(1, i.natRulerStr())
-        if i.cusp.signData['name'] == "Capricorn":
+        if i.cusp.signData.name == "Capricorn":
             item.setIcon(2, sign_icons[capricorn_alternate])
         else:
-            item.setIcon(2, sign_icons[i.cusp.signData['name']])
-        item.setText(2, i.cusp.signData['name'])
+            item.setIcon(2, sign_icons[i.cusp.signData.name])
+        item.setText(2, i.cusp.signData.name)
         item.setToolTip(2, i.cusp.dataAsText())
         item.setText(3, i.cusp.only_degs())
         item.setToolTip(3, "The real longitude is %.3f degrees" %(i.cusp.longitude))
-        if i.end.signData['name'] == "Capricorn":
+        if i.end.signData.name == "Capricorn":
             item.setIcon(4, sign_icons[capricorn_alternate])
         else:
-            item.setIcon(4, sign_icons[i.end.signData['name']])
-        item.setText(4, i.end.signData['name'])
+            item.setIcon(4, sign_icons[i.end.signData.name])
+        item.setText(4, i.end.signData.name)
         item.setToolTip(4, i.end.dataAsText())
         item.setText(5, i.end.only_degs())
         item.setToolTip(5, "The real longitude is %.3f degrees" %(i.end.longitude))
@@ -465,11 +465,11 @@ class SignsForDayList(QtGui.QWidget):
                 item.setIcon(0, self.icons[i.name])
             item.setText(0, i.name)
             item.setToolTip(0, str(i))
-            if i.m.signData['name'] == "Capricorn":
+            if i.m.signData.name == "Capricorn":
                 item.setIcon(1, self.sign_icons[self.capricorn_alternate])
             else:
-                item.setIcon(1, self.sign_icons[i.m.signData['name']])
-            item.setText(1, i.m.signData['name'])
+                item.setIcon(1, self.sign_icons[i.m.signData.name])
+            item.setText(1, i.m.signData.name)
             item.setToolTip(1, i.m.dataAsText())
             item.setText(2, i.m.only_degs())
             coord_tooltip = (

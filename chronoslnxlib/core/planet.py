@@ -1,5 +1,5 @@
 from .rulerships import RLIST,RTEMPLATE
-from .measurements import ZODIAC
+from .measurements import Zodiac
 
 class Planet:
     def __init__(self, name, m=None, prefix=None, table='Uranian', 
@@ -17,7 +17,7 @@ class Planet:
     def signAsString(self,idx):
         if idx is None:
             return None
-        return ZODIAC[idx]['name']
+        return Zodiac(idx).name
 
     @property
     def detriments(self):
@@ -55,16 +55,23 @@ class Planet:
             return None
 
     def stats(self):
-        return ("\nRules {0}"
-        "\nDetriment in {1}"
-        "\nExalted in {2}"
-        "\nFall in {3}") \
-        .format([self.signAsString(self.rules[0]),
-                 self.signAsString(self.rules[1])],
-                 [self.signAsString(self.detriments[0]),
-                  self.signAsString(self.detriments[1])],
-                 self.signAsString(self.exalt),
-                 self.signAsString(self.fall))
+        return (
+            "\nRules {0}"
+            "\nDetriment in {1}"
+            "\nExalted in {2}"
+            "\nFall in {3}"
+        ).format(
+            [
+                self.signAsString(self.rules[0]),
+                self.signAsString(self.rules[1]),
+            ],
+            [
+                self.signAsString(self.detriments[0]),
+                self.signAsString(self.detriments[1]),
+            ],
+            self.signAsString(self.exalt),
+            self.signAsString(self.fall)
+        )
 
     def __repr__(self):
         return ("Planet(name={0}, m={1}, prefix={2}, "

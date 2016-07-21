@@ -124,7 +124,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
                                                         keys, outs_and_keys, orb=fsorb)
                 nfixstar = nfixstar.get(planet_pos.m.longitude, [])
                 print('{0}\t{1}\t{2}\t{3}\t{4}\tHouse {5}\t{6}'.format(planet_pos.name,
-                       planet_pos.m.signData['name'], planet_pos.m.only_degs(),
+                       planet_pos.m.signData.name, planet_pos.m.only_degs(),
                        planet_pos.status, planet_pos.retrograde,
                        planet_pos.m.house_info.num,
                        ', '.join([fs[0] for fs in nfixstar])), file=output)
@@ -135,7 +135,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
                                                         keys, outs_and_keys, orb=fsorb)
                 nfixstar = nfixstar.get(planet_pos.m.longitude, [])
                 print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(planet_pos.name,
-                       planet_pos.m.signData['name'], planet_pos.m.only_degs(),
+                       planet_pos.m.signData.name, planet_pos.m.only_degs(),
                        planet_pos.status, planet_pos.retrograde,
                        ', '.join([fs[0] for fs in nfixstar])), file=output)
         if print_houses:
@@ -146,34 +146,34 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
                                                         keys, outs_and_keys)
                 nfixstar = nfixstar.get(planet_pos.m.longitude, [])
                 print('House {0}\t{1}\t{2}\t{3}'.format(house_pos.num,
-                       house_pos.cusp.signData['name'], house_pos.cusp.only_degs(),
+                       house_pos.cusp.signData.name, house_pos.cusp.only_degs(),
                        ', '.join([fs[0] for fs in nfixstar])), file=output)
         print('\n~~~~ Fixed stars ~~~~', file=output)
         print('\t'.join(['Fixed Star', 'Sign', 'Degree']), file=output)
         for output, key in outs_and_keys:
             zm = ZodiacalMeasurement(key, 0)
-            print('{0}\t{1}\t{2}'.format(output, zm.signData['name'], zm.only_degs()), file=output)
+            print('{0}\t{1}\t{2}'.format(output, zm.signData.name, zm.only_degs()), file=output)
     else:
         print('~~~~ Planets ~~~~', file=output)
         if print_houses:
             print('\t'.join(PHEADERS+['House #']), file=output)
             for planet_pos in planet_poses:
                 print('{0}\t{1}\t{2}\t{3}\t{4}\tHouse {5}'.format(planet_pos.name,
-                       planet_pos.m.signData['name'], planet_pos.m.only_degs(),
+                       planet_pos.m.signData.name, planet_pos.m.only_degs(),
                        planet_pos.status, planet_pos.retrograde,
                        planet_pos.m.house_info.num), file=output)
         else:
             print('\t'.join(PHEADERS), file=output)
             for planet_pos in planet_poses:
                 print('{0}\t{1}\t{2}\t{3}\t{4}'.format(planet_pos.name,
-                       planet_pos.m.signData['name'], planet_pos.m.only_degs(),
+                       planet_pos.m.signData.name, planet_pos.m.only_degs(),
                        planet_pos.status, planet_pos.retrograde), file=output)
         if print_houses:
             print('\n~~~~ Houses ~~~~', file=output)
             print('\t'.join(HHEADERS))
             for house_pos in houses:
                 print('House {0}\t{1}\t{2}'.format(house_pos.num,
-                       house_pos.cusp.signData['name'], house_pos.cusp.only_degs()), file=output)
+                       house_pos.cusp.signData.name, house_pos.cusp.only_degs()), file=output)
 
     if aspect_table == 'table':
         print('\n~~~~ Aspect Table ~~~~', file=output)

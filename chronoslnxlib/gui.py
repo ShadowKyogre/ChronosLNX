@@ -1049,7 +1049,7 @@ class ChronosLNX(QtGui.QMainWindow):
         else:
             house_of_moment_string = ""
         if clnxcfg.show_sign:
-            sign_string = "<br />The sign of the month is {0}".format(self.zodiac[0].m.signData['name'])
+            sign_string = "<br />The sign of the month is {0}".format(self.zodiac[0].m.signData.name)
         else:
             sign_string = ""
         if clnxcfg.show_moon:

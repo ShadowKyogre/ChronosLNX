@@ -1,64 +1,48 @@
 from . import angle_sub
 
-ZODIAC =({'name':'Aries',
-'element':'fire',
-'mode':'cardinal',
-'decanates':[0,4,8],},
+from enum import Enum, unique
 
-{'name':'Taurus',
-'element':'earth',
-'mode':'fixed',
-'decanates':[1,5,9],},
+@unique
+class ZodiacalMode(Enum):
+    Cardinal = 0
+    Fixed = 1
+    Mutable = 2
 
-{'name':'Gemini',
-'element':'air',
-'mode':'mutable',
-'decanates':[2,6,10],},
+    def __repr__(self):
+        return("ZodiacalMode.{0}".format(self.name))
 
-{'name':'Cancer',
-'element':'water',
-'mode':'cardinal',
-'decanates':[3,7,11],},
+@unique
+class ZodiacalElement(Enum):
+    Fire = 0
+    Earth = 1
+    Air = 2
+    Water = 3
 
-{'name':'Leo',
-'element':'fire',
-'mode':'fixed',
-'decanates':[4,8,0],},
+    def __repr__(self):
+        return("ZodiacalElement.{0}".format(self.name))
 
-{'name':'Virgo',
-'element':'earth',
-'mode':'mutable',
-'decanates':[5,9,1],},
+@unique
+class Zodiac(Enum):
+    Aries = 0
+    Taurus = 1
+    Gemini = 2
+    Cancer = 3
+    Leo = 4
+    Virgo = 5
+    Libra = 6
+    Scorpio = 7
+    Sagittarius = 8
+    Capricorn = 9
+    Aquarius = 10
+    Pisces = 11
 
-{'name':'Libra',
-'element':'air',
-'mode':'cardinal',
-'decanates':[6,10,2],},
+    def __init__(self, value):
+        self.element = ZodiacalElement(self.value % 4)
+        self.mode = ZodiacalMode(self.value % 3)
+        self.decanates = [ (self.value + i) % 12 for i in range(0, 12, 4) ]
 
-{'name':'Scorpio',
-'element':'water',
-'mode':'fixed',
-'decanates':[7,11,3],},
-
-{'name':'Sagittarius',
-'element':'fire',
-'mode':'mutable',
-'decanates':[8,0,4],},
-
-{'name':'Capricorn',
-'element':'earth',
-'mode':'cardinal',
-'decanates':[9,1,5],},
-
-{'name':'Aquarius',
-'element':'air',
-'mode':'fixed',
-'decanates':[10,2,6],},
-
-{'name':'Pisces',
-'element':'water',
-'mode':'mutable',
-'decanates':[11,3,7],})
+    def __repr__(self):
+        return("Zodiac.{0}".format(self.name))
 
 class HouseMeasurement:
     def __init__(self, lon1, lon2, num=-1):
@@ -67,25 +51,32 @@ class HouseMeasurement:
         self.num=num
 
     def encompassedSigns(self):
-        signs=[]
-        for i in range(int(self.width/30.0)):
-            signs.append(ZODIAC[(self.cusp.sign+i)%12])
+        signs=[
+            Zodiac((self.cusp.sign + i) % 12)
+            for i in range(int(self.width/30.0))
+        ]
         return signs
 
     @property
     def natRulerData(self):
-        return ZODIAC[self.num-1]
+        return Zodiac(self.num-1)
 
     def natRulerStr(self):
-        return ("Name {0}"
-        "\nElement: {1}"
-        "\nMode: {2}"
-        "\nDecanates: {3}").format(self.natRulerData['name'],
-                                   self.natRulerData['element'].title(),
-                                   self.natRulerData['mode'].title(),
-                                   [ZODIAC[self.natRulerData['decanates'][0]]['name'],
-                                   ZODIAC[self.natRulerData['decanates'][1]]['name'],
-                                   ZODIAC[self.natRulerData['decanates'][2]]['name']])
+        return (
+            "Name {0}"
+            "\nElement: {1}"
+            "\nMode: {2}"
+            "\nDecanates: {3}"
+        ).format(
+           self.natRulerData.name,
+           self.natRulerData.element.name.title(),
+           self.natRulerData.mode.name.title(),
+           [
+               Zodiac(self.natRulerData.decanates[0]).name,
+               Zodiac(self.natRulerData.decanates[1]).name,
+               Zodiac(self.natRulerData.decanates[2]).name,
+           ]
+       )
 
     def getCuspDist(self, zd):
         return abs(angle_sub(self.cusp.longitude, zd.longitude))
@@ -139,26 +130,30 @@ class ZodiacalMeasurement (object):
 
     @property
     def decanate(self):
-        return self.signData['decanates'][int(self.dn)]
+        return self.signData.decanates[int(self.dn)]
 
     @property
     def signData(self):
-        return ZODIAC[self.sign]
+        return Zodiac(self.sign)
 
     def dataAsText(self):
         return ("Name {0}"
         "\nElement: {1}"
         "\nMode: {2}"
-        "\nDecanates: {3}").format(self.signData['name'],
-                                   self.signData['element'].title(),
-                                   self.signData['mode'].title(),
-                                   [ZODIAC[self.signData['decanates'][0]]['name'],
-                                   ZODIAC[self.signData['decanates'][1]]['name'],
-                                   ZODIAC[self.signData['decanates'][2]]['name']])
+        "\nDecanates: {3}").format(
+           self.signData.name,
+           self.signData.element.name.title(),
+           self.signData.mode.name.title(),
+           [
+               Zodiac(self.signData.decanates[0]).name,
+               Zodiac(self.signData.decanates[1]).name,
+               Zodiac(self.signData.decanates[2]).name,
+           ]
+       )
 
     @property
     def decanateData(self):
-        return ZODIAC[self.decanate]
+        return Zodiac(self.decanate)
 
     @property
     def decstring(self):
@@ -167,16 +162,31 @@ class ZodiacalMeasurement (object):
             suffix="st"
         elif int(self.dn)==1:
             suffix="nd"
-        return "{0}{1} decanate, {2}".format(int(self.dn)+1,suffix,ZODIAC[self.decanate]['name'])
+        return "{0}{1} decanate, {2}".format(
+            int(self.dn) + 1,
+            suffix,
+            Zodiac(self.decanate).name
+        )
 
     def only_degs(self):
-        return '{0}*{1}\"{2} ({3})'.format(self.degrees, self.minutes, self.seconds, self.decstring)
+        return '{0}*{1}\"{2} ({3})'.format(
+            self.degrees,
+            self.minutes,
+            self.seconds,
+            self.decstring
+        )
 
     def __str__(self):
-        return '{0} {1}'.format(ZODIAC[self.sign]['name'], self.only_degs())
+        return '{0} {1}'.format(
+            Zodiac(self.sign).name,
+            self.only_degs()
+        )
 
     def __repr__(self):
-        return "ZodiacalMeasurement({0}, {1})".format(repr(self.longitude), repr(self.latitude))
+        return "ZodiacalMeasurement({0}, {1})".format(
+            repr(self.longitude),
+            repr(self.latitude)
+        )
 
     def __eq__(self, zm):
         if not zm:
@@ -184,18 +194,18 @@ class ZodiacalMeasurement (object):
         return self.longitude==zm.longitude
 
 class ActiveZodiacalMeasurement(ZodiacalMeasurement):
-    __slots__ = ('house_info','progress')
+    __slots__ = ('house_info', 'progress')
     def __init__(self, l, a, house_info, progress=None):
-        super().__init__(l,a)
+        super().__init__(l, a)
         self.house_info=house_info
         self.progress=progress
 
     def __repr__(self):
         return "ActiveZodiacalMeasurement({0}, {1}, {2}, {3})".format(
-                   repr(self.longitude),
-                   repr(self.latitude),
-                   repr(self.house_info),
-                   repr(self.progress)
+           repr(self.longitude),
+           repr(self.latitude),
+           repr(self.house_info),
+           repr(self.progress)
         )
 
     @property
@@ -205,13 +215,16 @@ class ActiveZodiacalMeasurement(ZodiacalMeasurement):
         return (self.progress * self.house_info.width) + self.house_info.cusp.longitude
 
     def status(self):
-        return ("Natural house number: {0}"
-        "\nCurrent house number: {1}"
-        "\nCurrent house ruler: {2}"
-        "\nProgress away from current house cusp: {3:.3f}%"
-        "\nProjected longitude estimate: {4}") \
-        .format(self.nhouse,
-                self.house_info.num,
-                self.house_info.cusp.signData['name'],
-                self.progress*100.0,
-                self.projectedLon)
+        return (
+            "Natural house number: {0}"
+            "\nCurrent house number: {1}"
+            "\nCurrent house ruler: {2}"
+            "\nProgress away from current house cusp: {3:.3f}%"
+            "\nProjected longitude estimate: {4}"
+        ).format(
+            self.nhouse,
+            self.house_info.num,
+            self.house_info.cusp.signData.name,
+            self.progress*100.0,
+            self.projectedLon
+        )

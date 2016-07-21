@@ -2,7 +2,7 @@ from PyQt4 import QtGui, QtCore
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from .core.measurements import ZODIAC
+from .core.measurements import Zodiac
 from .core.charts import create_aspect_table, yearly_profection
 
 LEVELS=(('Sun', 'Moon', 'Venus', 'Mercury'),
@@ -272,10 +272,10 @@ class AstroClock(QtGui.QWidget):
             angle = n*30+15
             p = self.getPointAt(self.outer_circle, angle, offset=-20)
             self.adjustPoint(p, angle)
-            if n==9:
+            if n == 9:
                 icon = self.sign_icons[self.capricorn_alternate]
             else:
-                icon = self.sign_icons[ZODIAC[n]['name']]
+                icon = self.sign_icons[Zodiac(n).name]
             icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
             for j in range(1, 30):
                 tick = angle/30*30+j
