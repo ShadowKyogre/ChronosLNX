@@ -15,6 +15,11 @@ from . import zonetab
 #from dateutil.parser import *
 from . import DATA_DIR, THEMES, AUTHOR, APPNAME
 
+
+def grab_icon_path(icon_type, looking):
+    #icon type must be of following: planets, moonphase, signs, misc
+    return "skin:{0}/{1}.png".format(icon_type, looking)
+
 class ChronosLNXConfig:
     def __init__(self):
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
@@ -33,10 +38,6 @@ class ChronosLNXConfig:
         self.reset_settings()
         self.load_schedule()
 
-    def grab_icon_path(self, icon_type, looking):
-        #icon type must be of following: planets, moonphase, signs, misc
-        return "skin:{0}/{1}.png".format(icon_type, looking)
-
     def load_theme(self):
         QtCore.QDir.setSearchPaths("skin", ["skins:{0}".format(self.current_theme)])
 
@@ -47,15 +48,15 @@ class ChronosLNXConfig:
         if self.use_css and css_isopen and clock_css_isopen:
             self.stylesheet = str(css.readAll()+clock_css.readAll(),
                                 encoding = os.sys.getdefaultencoding())
-            make_icon = lambda g, n: QtGui.QIcon(self.grab_icon_path(g, n))
+            make_icon = lambda g, n: QtGui.QIcon(grab_icon_path(g, n))
         elif clock_css_isopen:
             self.stylesheet = str(clock_css.readAll(), encoding = os.sys.getdefaultencoding())
             make_icon = lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
-                                                         QtGui.QIcon(self.grab_icon_path(g, n)))
+                                                         QtGui.QIcon(grab_icon_path(g, n)))
         else:
             self.stylesheet = ""
             make_icon = lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
-                                                         QtGui.QIcon(self.grab_icon_path(g, n)))
+                                                         QtGui.QIcon(grab_icon_path(g, n)))
         css.close()
         clock_css.close()
 

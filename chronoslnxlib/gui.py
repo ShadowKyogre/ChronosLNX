@@ -31,7 +31,7 @@ from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, ho
 from .eventplanner import EventsList, DayEventsModel
 from .chronostext import prepare_planetary_info, prepare_moon_cycle, prepare_sign_info, \
                          prepare_events, prepare_all
-from .guiconfig import ChronosLNXConfig
+from .guiconfig import ChronosLNXConfig, grab_icon_path
 from . import APPNAME, APPVERSION, DESCRIPTION, EMAIL, AUTHOR, YEAR, PAGE
 pynf = True
 
@@ -318,9 +318,9 @@ class ChronosLNX(QtGui.QMainWindow):
             if pynf:
                 fldr = QtCore.QDir("skin:/")
                 if ptrigger:
-                    path = clnxcfg.grab_icon_path("planets", self.phour.lower())
+                    path = grab_icon_path("planets", self.phour.lower())
                 else:
-                    path = clnxcfg.grab_icon_path("misc", "chronoslnx")
+                    path = grab_icon_path("misc", "chronoslnx")
                 path = fldr.absoluteFilePath(path.replace("skin:", ""))
                 call(['notify-send', '-t', '10000', '-a', APPNAME,
                       '-i', path, title, text])
@@ -1072,7 +1072,7 @@ class ChronosLNX(QtGui.QMainWindow):
         )
 
         if clnxcfg.current_theme == "None":
-            sysicon = QtGui.QIcon(clnxcfg.grab_icon_path("misc", "chronoslnx"))
+            sysicon = QtGui.QIcon(grab_icon_path("misc", "chronoslnx"))
         else:
             sysicon = clnxcfg.main_icons[self.phour]
         self.trayIcon.setToolTip(
