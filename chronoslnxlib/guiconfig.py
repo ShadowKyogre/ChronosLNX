@@ -20,7 +20,7 @@ def grab_icon_path(icon_type, looking):
     #icon type must be of following: planets, moonphase, signs, misc
     return "skin:{0}/{1}.png".format(icon_type, looking)
 
-def get_available_themes(self):
+def get_available_themes():
     themes = set()
     ath = QtCore.QDir("skins:")
     for at in ath.entryList():
