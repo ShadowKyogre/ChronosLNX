@@ -7,6 +7,18 @@ from datetime import datetime
 import chronoslnxlib
 from chronoslnxlib.core.moon_phases import predict_phase
 
+def tuplify(date):
+    date = date.astimezone(tz.gettz('UTC'))
+
+    date_tup = (
+        date.year,
+        date.month,
+        date.day,
+        date.hour,
+        date.minute + round(date.second/60),
+    )
+    return date_tup
+
 class TestMoonPhases(unittest.TestCase):
     NEW_MOON_KEY      = (0, 0)
     FIRST_QUARTER_KEY = (0, -90)
@@ -35,57 +47,61 @@ class TestMoonPhases(unittest.TestCase):
             },
         }
 
-    def compare_to_the_minute(self, date1, date2):
-        date1 = date1.astimezone(tz.gettz('UTC'))
-        date2 = date2.astimezone(tz.gettz('UTC'))
-
-        date1_tup = (
-            date1.year,
-            date1.month,
-            date1.day,
-            date1.hour,
-            date1.minute + round(date1.second/60),
-        )
-        date2_tup = (
-            date2.year,
-            date2.month,
-            date2.day,
-            date2.hour,
-            date2.minute + round(date2.second/60),
-        )
-        return date1_tup == date2_tup
-
     def test_new_moon(self):
+        moon_phase_key = TestMoonPhases.NEW_MOON_KEY
         for date in self.test_cases:
-            answer = self.test_cases[date][TestMoonPhases.NEW_MOON_KEY]
-            computed_answer = predict_phase(date, offset=TestMoonPhases.NEW_MOON_KEY[0], 
-                target_angle=TestMoonPhases.NEW_MOON_KEY[1])
-            print(date, TestMoonPhases.NEW_MOON_KEY, answer, computed_answer, sep='\t')
-            self.assertTrue(self.compare_to_the_minute(answer, computed_answer))
+            with self.subTest(date=date, moon_phase=moon_phase_key):
+                answer = self.test_cases[date][moon_phase_key]
+                computed_answer = predict_phase(
+                    date,
+                    offset=moon_phase_key[0], 
+                    target_angle=moon_phase_key[1]
+                )
+                answer_tup = tuplify(answer)
+                computed_answer_tup = tuplify(computed_answer)
+                self.assertEqual(answer_tup, computed_answer_tup)
 
     def test_first_quarter(self):
+        moon_phase_key = TestMoonPhases.FIRST_QUARTER_KEY
         for date in self.test_cases:
-            answer = self.test_cases[date][TestMoonPhases.FIRST_QUARTER_KEY]
-            computed_answer = predict_phase(date, offset=TestMoonPhases.FIRST_QUARTER_KEY[0], 
-                target_angle=TestMoonPhases.FIRST_QUARTER_KEY[1])
-            print(date, TestMoonPhases.FIRST_QUARTER_KEY, answer, computed_answer, sep='\t')
-            self.assertTrue(self.compare_to_the_minute(answer, computed_answer))
+            with self.subTest(date=date, moon_phase=moon_phase_key):
+                answer = self.test_cases[date][moon_phase_key]
+                computed_answer = predict_phase(
+                    date,
+                    offset=moon_phase_key[0], 
+                    target_angle=moon_phase_key[1]
+                )
+                answer_tup = tuplify(answer)
+                computed_answer_tup = tuplify(computed_answer)
+                self.assertEqual(answer_tup, computed_answer_tup)
 
     def test_full_moon(self):
+        moon_phase_key = TestMoonPhases.FULL_MOON_KEY
         for date in self.test_cases:
-            answer = self.test_cases[date][TestMoonPhases.FULL_MOON_KEY]
-            computed_answer = predict_phase(date, offset=TestMoonPhases.FULL_MOON_KEY[0], 
-                target_angle=TestMoonPhases.FULL_MOON_KEY[1])
-            print(date, TestMoonPhases.FULL_MOON_KEY, answer, computed_answer, sep='\t')
-            self.assertTrue(self.compare_to_the_minute(answer, computed_answer))
+            with self.subTest(date=date, moon_phase=moon_phase_key):
+                answer = self.test_cases[date][moon_phase_key]
+                computed_answer = predict_phase(
+                    date,
+                    offset=moon_phase_key[0], 
+                    target_angle=moon_phase_key[1]
+                )
+                answer_tup = tuplify(answer)
+                computed_answer_tup = tuplify(computed_answer)
+                self.assertEqual(answer_tup, computed_answer_tup)
 
     def test_last_quarter(self):
+        moon_phase_key = TestMoonPhases.LAST_QUARTER_KEY
         for date in self.test_cases:
-            answer = self.test_cases[date][TestMoonPhases.LAST_QUARTER_KEY]
-            computed_answer = predict_phase(date, offset=TestMoonPhases.LAST_QUARTER_KEY[0], 
-                target_angle=TestMoonPhases.LAST_QUARTER_KEY[1])
-            print(date, TestMoonPhases.LAST_QUARTER_KEY, answer, computed_answer, sep='\t')
-            self.assertTrue(self.compare_to_the_minute(answer, computed_answer))
+            with self.subTest(date=date, moon_phase=moon_phase_key):
+                answer = self.test_cases[date][moon_phase_key]
+                computed_answer = predict_phase(
+                    date,
+                    offset=moon_phase_key[0], 
+                    target_angle=moon_phase_key[1]
+                )
+                answer_tup = tuplify(answer)
+                computed_answer_tup = tuplify(computed_answer)
+                self.assertEqual(answer_tup, computed_answer_tup)
 
 if __name__ == '__main__':
     unittest.main()
