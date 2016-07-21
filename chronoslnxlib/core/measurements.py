@@ -37,18 +37,18 @@ class Zodiac(Enum):
     Pisces = 11
 
     def __init__(self, value):
-        self.element = ZodiacalElement(self.value % 4)
-        self.mode = ZodiacalMode(self.value % 3)
-        self.decanates = [ (self.value + i) % 12 for i in range(0, 12, 4) ]
+        self.element = ZodiacalElement(value % 4)
+        self.mode = ZodiacalMode(value % 3)
+        self.decanates = [ (value + i) % 12 for i in range(0, 12, 4) ]
 
     def __repr__(self):
         return("Zodiac.{0}".format(self.name))
 
 class HouseMeasurement:
-    def __init__(self, lon1, lon2, num=-1):
-        self.cusp=ActiveZodiacalMeasurement(lon1, 0.0, self, progress=0.0)
-        self.end=ActiveZodiacalMeasurement(lon2, 0.0, self, progress=1.0)
-        self.num=num
+    def __init__(self, cusp, end, num=-1):
+        self.cusp = ActiveZodiacalMeasurement(cusp, 0.0, self, progress=0.0)
+        self.end =ActiveZodiacalMeasurement(end, 0.0, self, progress=1.0)
+        self.num =num
 
     def encompassedSigns(self):
         signs=[
@@ -100,9 +100,9 @@ class HouseMeasurement:
 
 class ZodiacalMeasurement (object):
     __slots__ = ('latitude','longitude')
-    def __init__(self, l, a):
-        self.longitude=l%360.0
-        self.latitude=a
+    def __init__(self, lng, lat):
+        self.longitude = lng % 360.0
+        self.latitude = lat
 
     @property
     def sign(self):
@@ -195,10 +195,10 @@ class ZodiacalMeasurement (object):
 
 class ActiveZodiacalMeasurement(ZodiacalMeasurement):
     __slots__ = ('house_info', 'progress')
-    def __init__(self, l, a, house_info, progress=None):
-        super().__init__(l, a)
-        self.house_info=house_info
-        self.progress=progress
+    def __init__(self, lng, lat, house_info, progress=None):
+        super().__init__(lng, lat)
+        self.house_info = house_info
+        self.progress = progress
 
     def __repr__(self):
         return "ActiveZodiacalMeasurement({0}, {1}, {2}, {3})".format(
