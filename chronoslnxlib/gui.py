@@ -320,34 +320,34 @@ class ChronosLNX(QtGui.QMainWindow):
         #http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
     def show_notification(self, title, text, ptrigger):
-            if pynf:
-                fldr = QtCore.QDir("skin:/")
-                if ptrigger:
-                    path = grab_icon_path("planets", self.phour.lower())
-                else:
-                    path = grab_icon_path("misc", "chronoslnx")
-                path = fldr.absoluteFilePath(path.replace("skin:", ""))
-                call(['notify-send', '-t', '10000', '-a', APPNAME,
-                      '-i', path, title, text])
+        if pynf:
+            fldr = QtCore.QDir("skin:/")
+            if ptrigger:
+                path = grab_icon_path("planets", self.phour.lower())
             else:
-                if self.trayIcon.supportsMessages():
-                    if ptrigger:
-                        self.trayIcon.showMessage(title, text, msecs=10000)
-                              #clnxcfg.main_icons[self.phour],msecs = 10000)
-                    else:
-                        self.trayIcon.showMessage(title, text, msecs=10000)
-                              #clnxcfg.main_icons['logo'],msecs = 10000)
+                path = grab_icon_path("misc", "chronoslnx")
+            path = fldr.absoluteFilePath(path.replace("skin:", ""))
+            call(['notify-send', '-t', '10000', '-a', APPNAME,
+                  '-i', path, title, text])
+        else:
+            if self.trayIcon.supportsMessages():
+                if ptrigger:
+                    self.trayIcon.showMessage(title, text, msecs=10000)
+                          #clnxcfg.main_icons[self.phour],msecs = 10000)
                 else:
-                    #last resort, as popup dialogs are annoying
-                    if ptrigger:
-                        pixmap = self.main_pixmaps[self.phour]
-                    else:
-                        pixmap = self.main_pixmaps['logo']
-                    dialog = QtGui.QMessageBox(self)
-                    dialog.setTitle(title)
-                    dialog.setTitle(text)
-                    dialog.setIconPixmap(pixmap)
-                    dialog.open()
+                    self.trayIcon.showMessage(title, text, msecs=10000)
+                          #clnxcfg.main_icons['logo'],msecs = 10000)
+            else:
+                #last resort, as popup dialogs are annoying
+                if ptrigger:
+                    pixmap = self.main_pixmaps[self.phour]
+                else:
+                    pixmap = self.main_pixmaps['logo']
+                dialog = QtGui.QMessageBox(self)
+                dialog.setTitle(title)
+                dialog.setTitle(text)
+                dialog.setIconPixmap(pixmap)
+                dialog.open()
 
 ##datepicking related
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/

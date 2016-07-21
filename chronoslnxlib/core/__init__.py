@@ -37,9 +37,9 @@ class Observer:
         return self._dt
     @property
     def timezone(self):
-         zt = zonetab.nearest_tz(self.lat, self.lng, zonetab.timezones())[2]
-         #print(zt)
-         return tz.gettz(zt)
+        zt = zonetab.nearest_tz(self.lat, self.lng, zonetab.timezones())[2]
+        #print(zt)
+        return tz.gettz(zt)
     def dt_now(self):
         utcdt = datetime.now(tz=tz.gettz('UTC'))
         return utcdt.astimezone(self.timezone)

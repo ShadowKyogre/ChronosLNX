@@ -187,11 +187,11 @@ class DateEditorDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         if not editor.dateplanned.isHidden():
-                model.setData(index, editor.curDate(), QtCore.Qt.UserRole)
-                model.setData(index, editor.curDate().toString("MM/dd/yyyy"), QtCore.Qt.EditRole)
+            model.setData(index, editor.curDate(), QtCore.Qt.UserRole)
+            model.setData(index, editor.curDate().toString("MM/dd/yyyy"), QtCore.Qt.EditRole)
         else:
-                model.setData(index, editor.text(), QtCore.Qt.UserRole)
-                model.setData(index, editor.text(), QtCore.Qt.EditRole)
+            model.setData(index, editor.text(), QtCore.Qt.UserRole)
+            model.setData(index, editor.text(), QtCore.Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
