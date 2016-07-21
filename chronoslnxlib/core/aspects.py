@@ -27,8 +27,7 @@ DEFAULT_ORBS = od([('conjunction', 10.0),
 
 class Aspect:
     def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
-        if not hasattr(p1, 'm') or \
-        not hasattr(p2, 'm'):
+        if not hasattr(p1, 'm') or not hasattr(p2, 'm'):
             raise ValueError("Cannot form a relationship without measurements")
         self.planet1=p1
         self.planet2=p2
@@ -59,12 +58,15 @@ class Aspect:
             return None
 
     def __str__(self):
-        return ("Planet 1 - {0} | {1}"
-                "\nPlanet 2 - {2} | {3}"
-                "\nRelationship - {4}") \
-                .format(self.planet1.realName, self.planet1.m.longitude,
-                  self.planet2.realName, self.planet2.m.longitude,
-                  self.aspect.title() if self.aspect is not None else "No aspect")
+        return (
+            "Planet 1 - {0} | {1}"
+            "\nPlanet 2 - {2} | {3}"
+            "\nRelationship - {4}"
+            ).format(
+                self.planet1.realName, self.planet1.m.longitude,
+                self.planet2.realName, self.planet2.m.longitude,
+                self.aspect.title() if self.aspect is not None else "No aspect"
+            )
 
     def __repr__(self):
         return "Aspect({0}, {1}, orbs={2})".format(repr(self.planet1),
@@ -117,10 +119,14 @@ class SpecialAspect:
         return hash(frozenset(self.uniquePlanets))
 
     def __repr__(self):
-        "SpecialAspect({0}, {1})".format(repr(self.descriptors), repr(self.name))
+        "SpecialAspect({0}, {1})".format(
+            repr(self.descriptors),
+            repr(self.name)
+        )
 
     def __str__(self):
-        return "{0}\nUnique angles:{1}\nUnique planets:{2}" \
-               .format(self.name.title(), 
-                  [ ("{0:.3f}" %(i)) for i in list(self.uniqueMeasurements)], 
-                  list(self.uniquePlanets))
+        return "{0}\nUnique angles:{1}\nUnique planets:{2}".format(
+            self.name.title(),
+            [ "{0:.3f}".format(i) for i in list(self.uniqueMeasurements)],
+            list(self.uniquePlanets)
+        )

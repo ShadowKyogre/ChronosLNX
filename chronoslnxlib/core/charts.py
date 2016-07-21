@@ -9,28 +9,41 @@ from . import date_to_solar_cycles, solar_cycles_to_jul
 from . import angle_sub
 from . import zipped_func, angle_average
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
-from .measurements import ZodiacalMeasurement, ActiveZodiacalMeasurement, \
-                          HouseMeasurement, Zodiac
+from .measurements import (
+    ZodiacalMeasurement,
+    ActiveZodiacalMeasurement,
+    HouseMeasurement,
+    Zodiac
+)
 from .planet import Planet
 
 def get_transit(planet, observer, date):
     day = datetime_to_julian(date)
     if observer.lat < 0:
-        transit = revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, planet,
-                                                                       observer.lng, 
-                                                                       observer.lat, 
-                                                                       alt=observer.elevation, 
-                                                                       rsmi=swisseph.CALC_MTRANSIT)[1][0]
-                                                  )
-                                  )
+        transit = revjul_to_datetime(
+            swisseph.revjul(
+                swisseph.rise_trans(
+                    day-1,
+                    planet,
+                    observer.lng,
+                    observer.lat,
+                    alt=observer.elevation,
+                    rsmi=swisseph.CALC_MTRANSIT
+                )[1][0]
+            )
+        )
     else:
-        transit = revjul_to_datetime(swisseph.revjul(swisseph.rise_trans(day-1, planet, 
-                                                                       observer.lng, 
-                                                                       observer.lat, 
-                                                                       alt=observer.elevation, 
-                                                                       rsmi=swisseph.CALC_ITRANSIT)[1][0]
-                                                  )
-                                  )
+        transit = revjul_to_datetime(
+            swisseph.revjul(
+                swisseph.rise_trans(
+                day-1,
+                planet,
+                observer.lng,
+                observer.lat,
+                alt=observer.elevation,
+                rsmi=swisseph.CALC_ITRANSIT)[1][0]
+            )
+        )
     swisseph.close()
     return transit
 
@@ -44,23 +57,36 @@ def search_special_aspects(aspect_table):
     for i in range(10):
         pn = swisseph.get_planet_name(i)
 
-        trine_entries = [y for y in aspect_table \
-                         if y.isForPlanet(pn) and y.aspect == 'trine']
+        trine_entries = []
+        square_entries = []
+        sextile_entries = []
+        conjunction_entries = []
+        inconjunct_entries = []
+        opposition_entries = []
 
-        square_entries = [y for y in aspect_table 
-                          if y.isForPlanet(pn) and y.aspect  == 'square']
+        for y in aspect_table:
+            target_list = None
 
-        sextile_entries = [y for y in aspect_table \
-                           if y.isForPlanet(pn) and y.aspect  == 'sextile']
+            if y.aspect == 'trine':
+                target_list = trine_entries
 
-        conjunction_entries = [y for y in aspect_table \
-                               if y.isForPlanet(pn) and y.aspect  == 'conjunction']
+            elif y.aspect == 'square':
+                target_list = square_entries
 
-        inconjunct_entries = [y for y in aspect_table \
-                              if y.isForPlanet(pn) and y.aspect  == 'inconjunct']
+            elif y.aspect == 'sextile':
+                target_list = sextile_entries
 
-        opposition_entries = [y for y in aspect_table \
-                              if y.isForPlanet(pn) and y.aspect  == 'opposition']
+            elif y.aspect == 'conjunction':
+                target_list = conjunction_entries
+
+            elif y.aspect == 'inconjunct':
+                target_list = inconjunct_entries
+
+            elif y.aspect == 'opposition':
+                target_list = opposition_entries
+
+            if target_list is not None:
+                target_list.append(y)
 
         intersection_entries = []
         intersection_entries2 = []
@@ -72,9 +98,11 @@ def search_special_aspects(aspect_table):
             for i in range(len(trine_entries)-1):
                 otherp = trine_entries[i].partnerPlanet(pn)
                 otherp2 = trine_entries[i+1].partnerPlanet(pn)
-                minitrines = [y for y in aspect_table \
-                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
-                    and y.aspect == 'trine']
+                minitrines = [
+                    y for y in aspect_table
+                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
+                    and y.aspect == 'trine'
+                ]
                 if not minitrines:
                     intersection_entries.append(trine_entries[i])
                     intersection_entries.append(trine_entries[i+1])
@@ -88,13 +116,17 @@ def search_special_aspects(aspect_table):
             for i in range(len(square_entries)-1):
                 otherp = square_entries[i].partnerPlanet(pn)
                 otherp2 = square_entries[i+1].partnerPlanet(pn)
-                miniopposition = [y for y in aspect_table \
-                                  if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
-                                  and y.aspect == 'opposition']
-                minisquare = [y for y in aspect_table \
-                              if (y.isForPlanet(otherp) or y.isForPlanet(otherp2)) \
-                              and y.aspect == "square" \
-                              and not y.isForPlanet(pn)]
+                miniopposition = [
+                    y for y in aspect_table
+                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
+                                  and y.aspect == 'opposition'
+                ]
+                minisquare = [
+                    y for y in aspect_table
+                    if (y.isForPlanet(otherp) or y.isForPlanet(otherp2))
+                    and y.aspect == "square"
+                    and not y.isForPlanet(pn)
+                ]
                 if miniopposition and minisquare:
                     intersection_entries2.append(square_entries[i])
                     intersection_entries2.append(square_entries[i+1])
@@ -108,9 +140,11 @@ def search_special_aspects(aspect_table):
             for i in range(len(square_entries)-1):
                 otherp = square_entries[i].partnerPlanet(pn)
                 otherp2 = square_entries[i+1].partnerPlanet(pn)
-                miniopposition = [y for y in aspect_table \
-                                if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
-                                and y.aspect == 'opposition']
+                miniopposition = [
+                    y for y in aspect_table
+                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
+                    and y.aspect == 'opposition'
+                ]
                 if miniopposition:
                     intersection_entries3.append(square_entries[i])
                     intersection_entries3.append(square_entries[i+1])
@@ -124,13 +158,17 @@ def search_special_aspects(aspect_table):
             for n in conjunction_entries:
                 #Check for other conjunctions that do not involve the root planet
                 if n.planet1 != pn:
-                    b=[y for y in aspect_table \
-                       if y.isForPlanet(n.planet1) and not y.isForPlanet(pn) \
-                       and y.aspect == 'conjunction']
+                    b=[
+                       y for y in aspect_table
+                       if y.isForPlanet(n.planet1) and not y.isForPlanet(pn)
+                       and y.aspect == 'conjunction'
+                    ]
                 else:
-                    b=[y for y in aspect_table \
-                       if y.isForPlanet(n.planet2) and not y.isForPlanet(pn) \
-                       and y.aspect == 'conjunction']
+                    b=[
+                       y for y in aspect_table
+                       if y.isForPlanet(n.planet2) and not y.isForPlanet(pn)
+                       and y.aspect == 'conjunction'
+                    ]
                 if b:
                     intersection_entries4.append(n)
                     for j in b:
@@ -143,9 +181,11 @@ def search_special_aspects(aspect_table):
             for i in range(len(inconjunct_entries)-1):
                 otherp=inconjunct_entries[i].partnerPlanet(pn)
                 otherp2=inconjunct_entries[i+1].partnerPlanet(pn)
-                minisextiles=[y for y in aspect_table \
-                              if y.isForPlanet(otherp) and y.isForPlanet(otherp2) \
-                              and y.aspect == 'sextile']
+                minisextiles=[
+                    y for y in aspect_table
+                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
+                    and y.aspect == 'sextile'
+                ]
                 if minisextiles:
                     intersection_entries5.append(inconjunct_entries[i])
                     intersection_entries5.append(inconjunct_entries[i+1])

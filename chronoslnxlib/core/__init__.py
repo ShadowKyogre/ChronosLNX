@@ -58,11 +58,18 @@ class Observer:
         new_obv.obvdate = new_dt
         return new_obv
     def __str__(self):
-        return self.obvdate.strftime("%Y-%m-%d/%H:%M:%S@{0},{1},{2}")\
-               .format(self.lat, self.lng, self.elevation)
+        return self.obvdate.strftime("%Y-%m-%d/%H:%M:%S@{0},{1},{2}").format(
+            self.lat,
+            self.lng,
+            self.elevation
+        )
     def __repr__(self):
-        return "Observer(lat={0}, lng={1}, elevation={2}, dt={3})" \
-               .format(repr(self.lat), repr(self.lng), repr(self.elevation), repr(self._dt))
+        return "Observer(lat={0}, lng={1}, elevation={2}, dt={3})".format(
+            repr(self.lat),
+            repr(self.lng),
+            repr(self.elevation),
+            repr(self._dt)
+        )
     obvdate = property(get_dt, set_dt)
 
 def compare_to_the_second(date, hour, minute, second):

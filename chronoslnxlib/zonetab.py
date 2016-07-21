@@ -147,5 +147,7 @@ def dms(o, d, m, s):
     >>> abs(dms(u'N', 30, 11, u'40.3') - 30.194527777777779) <.001
     True
     """
-    return (o in ('N', 'E') and 1 or -1) * (d + \
-    (m + float(s)/60)/60)
+    return (
+        (o in ('N', 'E') and 1 or -1)
+        * (d + (m + float(s) / 60) / 60)
+    )

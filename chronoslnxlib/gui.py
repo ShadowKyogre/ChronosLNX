@@ -29,8 +29,13 @@ from .astroclock import AstroClock
 from .astrocalendar import AstroCalendar
 from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, housesDialog
 from .eventplanner import EventsList, DayEventsModel
-from .chronostext import prepare_planetary_info, prepare_moon_cycle, prepare_sign_info, \
-                         prepare_events, prepare_all
+from .chronostext import (
+    prepare_planetary_info,
+    prepare_moon_cycle,
+    prepare_sign_info,
+    prepare_events,
+    prepare_all
+)
 from .guiconfig import ChronosLNXConfig, grab_icon_path, get_available_themes
 from . import APPNAME, APPVERSION, DESCRIPTION, EMAIL, AUTHOR, YEAR, PAGE
 pynf = True
@@ -585,8 +590,14 @@ class ChronosLNX(QtGui.QMainWindow):
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(text)
                 if not suppress_notification:
-                    self.show_notification("Saved", "{0} has the {1} you saved." \
-                                           .format(filename, option), False)
+                    self.show_notification(
+                        "Saved",
+                        "{0} has the {1} you saved.".format(
+                            filename,
+                            option
+                        ),
+                        False
+                    )
 
     def get_cal_menu(self, qpoint):
         table = self.calendar._table
