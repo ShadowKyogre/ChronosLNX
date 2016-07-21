@@ -122,15 +122,16 @@ class MPModel(BookMarkedModel):
         return self.item(idx, 0).data(32)
 
     @classmethod
-    def getMoonCycle(cls, date, icon_source):
+    def getMoonCycle(cls, date, icon_source, observer):
         moon_cycle = get_moon_cycle(date)
         model = cls()
         for mc in moon_cycle:
-            mptitem = QtGui.QStandardItem(icon_source[mc[1]], mc[0].strftime("%H:%M:%S - %m/%d/%Y"))
+            dt = mc[0].astimezone(observer.timezone)
+            mptitem = QtGui.QStandardItem(icon_source[mc[1]], dt.strftime("%H:%M:%S - %m/%d/%Y"))
             mppitem = QtGui.QStandardItem(mc[1])
             mplitem = QtGui.QStandardItem(mc[2])
 
-            mptitem.setData(mc[0], 32)
+            mptitem.setData(dt, 32)
             mppitem.setText(mc[1])
             mplitem.setText(mc[2])
             model.appendRow([mptitem, mppitem, mplitem])
@@ -162,8 +163,8 @@ class MoonCycleList(QtGui.QTreeView):
     def highlight_cycle_phase(self, date):
         self.model().highlight_cycle_phase(date)
 
-    def get_moon_cycle(self, date):
-        self.setModel(MPModel.getMoonCycle(date, self.icons))
+    def get_moon_cycle(self, date, observer):
+        self.setModel(MPModel.getMoonCycle(date, self.icons, observer))
 
 class PlanetaryHoursList(QtGui.QWidget):
     def __init__(self, *args, **kwargs):

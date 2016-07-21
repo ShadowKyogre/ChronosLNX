@@ -73,14 +73,12 @@ def revjul_to_datetime(revjul):
     minutedouble = math.modf(revjul[3])[0]*60
     minutes = int(minutedouble)
     seconds = int(math.modf(minutedouble)[0]*60)
-    print(revjul[:3])
-    print(hours, minutes, seconds)
     utc = datetime(
         int(revjul[0]), int(revjul[1]), int(revjul[2]), 
         hour=hours, minute=minutes, second=seconds,
         tzinfo=tz.gettz('UTC')
     )
-    return utc_to_timezone(utc)
+    return utc
 
 def datetime_to_julian(date):
     utc = date.utctimetuple()
@@ -93,9 +91,9 @@ def timezone_to_utc(date):
     return date.astimezone(tz.gettz('UTC'))
 
 #takes a UTC without UTC set
-def utc_to_timezone(date):
+def utc_to_timezone(date, target_tz=tz.gettz()):
     dateutc = date.replace(tzinfo=tz.gettz('UTC'))
-    datenow = dateutc.astimezone(tz.gettz())
+    datenow = dateutc.astimezone(target_tz)
     return datenow
 
 def average(first, second):

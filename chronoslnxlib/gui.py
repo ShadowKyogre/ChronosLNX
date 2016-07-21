@@ -223,7 +223,7 @@ class ChronosLNX(QtGui.QMainWindow):
         self.update_widgets_config()
 
         self.prepare_hours_for_today()
-        self.moonToday.get_moon_cycle(self.now)
+        self.moonToday.get_moon_cycle(self.now, clnxcfg.observer)
         self.moonToday.highlight_cycle_phase(self.now)
         self.signsToday.get_constellations(self.now, clnxcfg.observer)
 
@@ -296,7 +296,7 @@ class ChronosLNX(QtGui.QMainWindow):
     def update_moon_cycle(self):
         if predict_phase(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
             self.moonToday.clear()
-            self.moonToday.get_moon_cycle(self.now)
+            self.moonToday.get_moon_cycle(self.now, clnxcfg.observer)
         self.moonToday.highlight_cycle_phase(self.now)
 
     def prepare_hours_for_today(self):
@@ -393,7 +393,7 @@ class ChronosLNX(QtGui.QMainWindow):
         dayData = QtGui.QTabWidget(info_dialog)
 
         hoursToday.prepareHours(date, ob)
-        moonToday.get_moon_cycle(date)
+        moonToday.get_moon_cycle(date, clnxcfg.observer)
         moonToday.highlight_cycle_phase(date)
         if birth:
             print("Using already available birth data instead of recalculating it")
@@ -678,7 +678,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
         self.update_hours()
         self.moonToday.clear()
-        self.moonToday.get_moon_cycle(self.now)
+        self.moonToday.get_moon_cycle(self.now, clnxcfg.observer)
         self.moonToday.highlight_cycle_phase(self.now)
 
     def update_settings_widgets(self):
@@ -762,7 +762,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
         self.update_hours()
         self.moonToday.clear()
-        self.moonToday.get_moon_cycle(self.now)
+        self.moonToday.get_moon_cycle(self.now, clnxcfg.observer)
         self.moonToday.highlight_cycle_phase(self.now)
 
         for idx, ico in enumerate(['Capricorn', 'Capricorn 2', 'Capricorn 3']):
