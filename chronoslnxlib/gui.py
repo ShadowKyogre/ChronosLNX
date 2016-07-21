@@ -31,7 +31,7 @@ from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, ho
 from .eventplanner import EventsList, DayEventsModel
 from .chronostext import prepare_planetary_info, prepare_moon_cycle, prepare_sign_info, \
                          prepare_events, prepare_all
-from .guiconfig import ChronosLNXConfig, grab_icon_path
+from .guiconfig import ChronosLNXConfig, grab_icon_path, get_available_themes
 from . import APPNAME, APPVERSION, DESCRIPTION, EMAIL, AUTHOR, YEAR, PAGE
 pynf = True
 
@@ -826,7 +826,7 @@ class ChronosLNX(QtGui.QMainWindow):
             "Use the custom UI styling in the theme",
             appearance_page
         )
-        for theme in clnxcfg.get_available_themes():
+        for theme in get_available_themes():
             #is it all right to format path here?
             path = "skins:{0}/misc/chronoslnx.png".format(theme)
             icon = QtGui.QIcon(path)
