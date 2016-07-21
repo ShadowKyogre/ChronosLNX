@@ -1,6 +1,6 @@
 import unittest
 
-from dateutil.tz import tzfile
+from dateutil import tz
 
 from datetime import datetime
 
@@ -15,31 +15,45 @@ class TestMoonPhases(unittest.TestCase):
 
     def setUp(self):
         self.test_cases = {
-            datetime(1900, 1, 1, 5, 52, tzinfo=tzfile('/etc/localtime')): {
-                (0, 0):   datetime(1900, 1,  1, 5,  52, tzinfo=tzfile('/etc/localtime')),
-                (0, -90): datetime(1900, 1,  7, 21, 40, tzinfo=tzfile('/etc/localtime')),
-                (0, 180): datetime(1900, 1, 15, 11,  7, tzinfo=tzfile('/etc/localtime')),
-                (1, 90):  datetime(1900, 1, 23, 15, 53, tzinfo=tzfile('/etc/localtime')),
+            datetime(1900, 1, 1, 13, 52, tzinfo=tz.gettz('UTC')): {
+                (0, 0):   datetime(1900, 1,  1, 13, 52, tzinfo=tz.gettz('UTC')),
+                (0, -90): datetime(1900, 1,  8,  5, 40, tzinfo=tz.gettz('UTC')),
+                (0, 180): datetime(1900, 1, 15, 19,  7, tzinfo=tz.gettz('UTC')),
+                (1, 90):  datetime(1900, 1, 23, 23, 53, tzinfo=tz.gettz('UTC')),
             },
-            datetime(2015, 9, 23, 5, 52, 58, tzinfo=tzfile('/etc/localtime')): {
-                (0, 0):   datetime(2015, 9, 12, 23, 41, tzinfo=tzfile('/etc/localtime')),
-                (0, -90): datetime(2015, 9, 21,  1, 59, tzinfo=tzfile('/etc/localtime')),
-                (0, 180): datetime(2015, 9, 27, 19, 50, tzinfo=tzfile('/etc/localtime')),
-                (1, 90):  datetime(2015,10,  4, 14,  6, tzinfo=tzfile('/etc/localtime')),
+            datetime(2015, 9, 23, 13, 52, 58, tzinfo=tz.gettz('UTC')): {
+                (0, 0):   datetime(2015, 9, 13,  6, 41, tzinfo=tz.gettz('UTC')),
+                (0, -90): datetime(2015, 9, 21,  8, 59, tzinfo=tz.gettz('UTC')),
+                (0, 180): datetime(2015, 9, 28,  2, 50, tzinfo=tz.gettz('UTC')),
+                (1, 90):  datetime(2015,10,  4, 21,  6, tzinfo=tz.gettz('UTC')),
             },
-            datetime(2015, 6, 1, 12, 0, 0, tzinfo=tzfile('/etc/localtime')): {
-                (0, 0):   datetime(2015, 5, 17, 21, 13, tzinfo=tzfile('/etc/localtime')),
-                (0, -90): datetime(2015, 5, 25, 10, 19, tzinfo=tzfile('/etc/localtime')),
-                (0, 180): datetime(2015, 6,  2,  9, 19, tzinfo=tzfile('/etc/localtime')),
-                (1, 90):  datetime(2015, 6,  9,  8, 42, tzinfo=tzfile('/etc/localtime')),
+            datetime(2015, 6, 1, 12, 0, 0, tzinfo=tz.gettz('UTC')): {
+                (0, 0):   datetime(2015, 5, 18,  4, 13, tzinfo=tz.gettz('UTC')),
+                (0, -90): datetime(2015, 5, 25, 17, 19, tzinfo=tz.gettz('UTC')),
+                (0, 180): datetime(2015, 6,  2, 16, 19, tzinfo=tz.gettz('UTC')),
+                (1, 90):  datetime(2015, 6,  9, 15, 42, tzinfo=tz.gettz('UTC')),
             },
         }
 
     def compare_to_the_minute(self, date1, date2):
-        return date1.year == date2.year and date1.month == date2.month \
-            and date1.day == date2.day and \
-            date1.hour == date2.hour and \
-            (date1.minute + round(date1.second/60)) == (date2.minute + round(date2.second/60))
+        date1 = date1.astimezone(tz.gettz('UTC'))
+        date2 = date2.astimezone(tz.gettz('UTC'))
+
+        date1_tup = (
+            date1.year,
+            date1.month,
+            date1.day,
+            date1.hour,
+            date1.minute + round(date1.second/60),
+        )
+        date2_tup = (
+            date2.year,
+            date2.month,
+            date2.day,
+            date2.hour,
+            date2.minute + round(date2.second/60),
+        )
+        return date1_tup == date2_tup
 
     def test_new_moon(self):
         for date in self.test_cases:
