@@ -2,7 +2,7 @@ import swisseph
 
 from bisect import bisect_left, bisect_right
 
-from . import datetime_to_julian, angle_average, zipped_func
+from . import datetime_to_julian, angle_average, zipped_func, angle_sub
 
 # Default list of fixed stars
 WANTED_STARS = [
@@ -81,8 +81,10 @@ def average_fixed_stars(fixed_stars_1, fixed_stars_2):
     output_keys = [x[1] for x in output]
     return output_keys, output
 
-def list_fixed_stars(date, wanted_stars=WANTED_STARS):
+def list_fixed_stars(date, wanted_stars=None):
     output = []
+    if wanted_stars is None:
+        wanted_stars = WANTED_STARS
 
     dtjul = datetime_to_julian(date)
     for star in wanted_stars:
