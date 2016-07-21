@@ -90,12 +90,6 @@ def datetime_to_julian(date):
 def timezone_to_utc(date):
     return date.astimezone(tz.gettz('UTC'))
 
-#takes a UTC without UTC set
-def utc_to_timezone(date, target_tz=tz.gettz()):
-    dateutc = date.replace(tzinfo=tz.gettz('UTC'))
-    datenow = dateutc.astimezone(target_tz)
-    return datenow
-
 def average(first, second):
     return (first+second)/2
 
