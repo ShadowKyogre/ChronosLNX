@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 import swisseph
 
+import functools
 import math
 
 from . import datetime_to_julian, revjul_to_datetime
@@ -10,7 +11,6 @@ from . import angle_sub
 from . import zipped_func, angle_average
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import (
-    ZodiacalMeasurement,
     ActiveZodiacalMeasurement,
     HouseMeasurement,
     Zodiac
@@ -333,69 +333,86 @@ def update_planets_and_cusps(date, observer, houses, entries):
 #ascmc[6] =     "co-ascendant" (Michael Munkasey)
 #ascmc[7] =     "polar ascendant" (M. Munkasey)
 
+def average_house(comp_asc, asc1, asc2, x, y):
+    # we don't want to wrap for diff calc
+    diff_cusp_x = x.cusp.longitude - asc1
+    if diff_cusp_x < 0:
+        diff_cusp_x += 360.0
+    diff_cusp_y = y.cusp.longitude - asc2
+    if diff_cusp_y < 0:
+        diff_cusp_y += 360.0
+
+    diff_end_x = x.end.longitude - asc1
+    if diff_end_x < 0:
+        diff_end_x += 360.0
+    diff_end_y = y.end.longitude - asc2
+    if diff_end_y < 0:
+        diff_end_y += 360.0
+
+    new_cusp_diff = (diff_cusp_x+diff_cusp_y)/2
+    new_end_diff = (diff_end_x+diff_end_y)/2
+    cusp_avg = comp_asc+new_cusp_diff
+    #print(x.cusp.longitude, y.cusp.longitude, cusp_avg, ':', diff_cusp_x, diff_cusp_y)
+    end_avg = comp_asc+new_end_diff
+    h = HouseMeasurement(cusp_avg, end_avg, num=x.num)
+    #print(str(h))
+    #print('***')
+    return h
+
+def average_planet(houses, house_keys, x, y):
+    if x.retrograde == 'Not a Planet':
+        if x.name == 'Ascendant':
+            newhouse = 0
+        elif x.name == 'Descendant':
+            newhouse = 6
+        elif x.name == 'MC':
+            newhouse = 9
+        elif x.name == 'IC':
+            newhouse = 3
+        zm = ActiveZodiacalMeasurement(
+            houses[newhouse].cusp.longitude,
+            0,
+            houses[newhouse]
+        )
+        zm.progress = 0
+        return Planet(
+            x.name,
+            prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
+            m=zm,
+            retrograde='Not a Planet'
+        )
+    else:
+        avglong  = angle_average(x.m.longitude, y.m.longitude)
+        avglat   = angle_average(x.m.latitude, y.m.latitude)
+        max_neg_dist = float('-inf')
+        newhouse = None
+        for i in range(12):
+            cur_dist = angle_sub(house_keys[i], avglong)
+            if cur_dist < 0 and cur_dist > max_neg_dist:
+                newhouse = i
+                max_neg_dist = cur_dist
+        zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
+        zm.progress = houses[newhouse].getProgress(zm)
+        return Planet(
+            x.name,
+            prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
+            m=zm,
+            retrograde='Not Applicable'
+        )
+
 def average_signs(houses1, entries1, houses2, entries2):
     asc1 = houses1[0].cusp.longitude
     asc2 = houses2[0].cusp.longitude
     comp_asc = angle_average(asc1, asc2)
     #print(comp_asc)
-    def average_house(x, y):
-        # we don't want to wrap for diff calc
-        diff_cusp_x = x.cusp.longitude - asc1
-        if diff_cusp_x < 0:
-            diff_cusp_x += 360.0
-        diff_cusp_y = y.cusp.longitude - asc2
-        if diff_cusp_y < 0:
-            diff_cusp_y += 360.0
 
-        diff_end_x = x.end.longitude - asc1
-        if diff_end_x < 0:
-            diff_end_x += 360.0
-        diff_end_y = y.end.longitude - asc2
-        if diff_end_y < 0:
-            diff_end_y += 360.0
+    avg_house_fnc = functools.partial(average_house, comp_asc, asc1, asc2)
+    houses = zipped_func(houses1, houses2, func=avg_house_fnc)
 
-        new_cusp_diff = (diff_cusp_x+diff_cusp_y)/2
-        new_end_diff = (diff_end_x+diff_end_y)/2
-        cusp_avg = comp_asc+new_cusp_diff
-        #print(x.cusp.longitude, y.cusp.longitude, cusp_avg, ':', diff_cusp_x, diff_cusp_y)
-        end_avg = comp_asc+new_end_diff
-        h = HouseMeasurement(cusp_avg, end_avg, num=x.num)
-        #print(str(h))
-        #print('***')
-        return h
-    houses = zipped_func(houses1, houses2, func=average_house)
     house_keys = [house.cusp.longitude for house in houses]
-
-    def average_planet(x, y):
-        if x.retrograde == 'Not a Planet':
-            if x.name == 'Ascendant':
-                newhouse = 0
-            elif x.name == 'Descendant':
-                newhouse = 6
-            elif x.name == 'MC':
-                newhouse = 9
-            elif x.name == 'IC':
-                newhouse = 3
-            zm = ActiveZodiacalMeasurement(houses[newhouse].cusp.longitude, 0, houses[newhouse])
-            zm.progress = 0
-            return Planet(x.name, prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
-                          m=zm, retrograde='Not a Planet')
-        else:
-            avglong  = angle_average(x.m.longitude, y.m.longitude)
-            avglat   = angle_average(x.m.latitude, y.m.latitude)
-            max_neg_dist = float('-inf')
-            newhouse = None
-            for i in range(12):
-                cur_dist = angle_sub(house_keys[i], avglong)
-                if cur_dist < 0 and cur_dist > max_neg_dist:
-                    newhouse = i
-                    max_neg_dist = cur_dist
-            zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
-            zm.progress = houses[newhouse].getProgress(zm)
-            return Planet(x.name, prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
-                          m=zm, retrograde='Not Applicable')
+    avg_planet_fnc = functools.partial(average_planet, houses, house_keys)
     
-    entries = zipped_func(entries1, entries2, func=average_planet)
+    entries = zipped_func(entries1, entries2, func=avg_planet_fnc)
 
     return houses, entries
 
@@ -431,7 +448,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
         #revprogress = 1-hom%1.0
         revprogress = hom % 1.0
         zm = ActiveZodiacalMeasurement(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
-        planet = Planet("South Node", prefix=prefix ,m=zm, retrograde=retrograde)
+        planet = Planet("South Node", prefix=prefix, m=zm, retrograde=retrograde)
         entries.append(planet)
     if axes:
         ascendant = asmc[0]
