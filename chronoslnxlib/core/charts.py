@@ -99,9 +99,8 @@ def search_special_aspects(aspect_table):
                 otherp = trine_entries[i].partnerPlanet(pn)
                 otherp2 = trine_entries[i+1].partnerPlanet(pn)
                 minitrines = [
-                    y for y in aspect_table
+                    y for y in trine_entries
                     if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                    and y.aspect == 'trine'
                 ]
                 if not minitrines:
                     intersection_entries.append(trine_entries[i])
@@ -117,14 +116,12 @@ def search_special_aspects(aspect_table):
                 otherp = square_entries[i].partnerPlanet(pn)
                 otherp2 = square_entries[i+1].partnerPlanet(pn)
                 miniopposition = [
-                    y for y in aspect_table
+                    y for y in opposition_entries
                     if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                                  and y.aspect == 'opposition'
                 ]
                 minisquare = [
-                    y for y in aspect_table
+                    y for y in square_entries
                     if (y.isForPlanet(otherp) or y.isForPlanet(otherp2))
-                    and y.aspect == "square"
                     and not y.isForPlanet(pn)
                 ]
                 if miniopposition and minisquare:
@@ -141,9 +138,8 @@ def search_special_aspects(aspect_table):
                 otherp = square_entries[i].partnerPlanet(pn)
                 otherp2 = square_entries[i+1].partnerPlanet(pn)
                 miniopposition = [
-                    y for y in aspect_table
+                    y for y in opposition_entries
                     if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                    and y.aspect == 'opposition'
                 ]
                 if miniopposition:
                     intersection_entries3.append(square_entries[i])
@@ -159,15 +155,13 @@ def search_special_aspects(aspect_table):
                 #Check for other conjunctions that do not involve the root planet
                 if n.planet1 != pn:
                     b=[
-                       y for y in aspect_table
+                       y for y in conjunction_entries
                        if y.isForPlanet(n.planet1) and not y.isForPlanet(pn)
-                       and y.aspect == 'conjunction'
                     ]
                 else:
                     b=[
-                       y for y in aspect_table
+                       y for y in conjunction_entries
                        if y.isForPlanet(n.planet2) and not y.isForPlanet(pn)
-                       and y.aspect == 'conjunction'
                     ]
                 if b:
                     intersection_entries4.append(n)
@@ -182,9 +176,8 @@ def search_special_aspects(aspect_table):
                 otherp=inconjunct_entries[i].partnerPlanet(pn)
                 otherp2=inconjunct_entries[i+1].partnerPlanet(pn)
                 minisextiles=[
-                    y for y in aspect_table
+                    y for y in sextile_entries
                     if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                    and y.aspect == 'sextile'
                 ]
                 if minisextiles:
                     intersection_entries5.append(inconjunct_entries[i])
