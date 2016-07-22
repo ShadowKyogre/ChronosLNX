@@ -1,5 +1,5 @@
 from chronoslnxlib import core as astrocore
-from chronoslnxlib.core import charts
+from chronoslnxlib.core import charts, aspects
 from chronoslnxlib.core.measurements import ZodiacalMeasurement
 from chronoslnxlib.core.aspects import DEFAULT_ORBS
 
@@ -112,7 +112,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
     if None in (houses, planet_poses):
         houses, planet_poses = charts.get_signs(o_dt, o_obj, True, True, prefix=olabel)
     if fixed_stars and not ignore_fixstars_opt:
-        if precacled_stars is None:
+        if precalced_stars is None:
             keys, outs_and_keys = fixstars.list_fixed_stars(o_dt)
         else:
             keys, outs_and_keys = precalced_stars[0], precalced_stars[1]
@@ -177,7 +177,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 
     if aspect_table == 'table':
         print('\n~~~~ Aspect Table ~~~~', file=output)
-        aspect_table = charts.create_aspect_table(planet_poses, orbs=orbs)
+        aspect_table = aspects.create_aspect_table(planet_poses, orbs=orbs)
         headers = [planet_pos.name for planet_pos in planet_poses]
         print('\t'.join(['Aspected Planet']+headers), file=output)
         
@@ -197,7 +197,7 @@ def output_single_chart(olabel, o_dt, o_obj, output=sys.stdout,
 
     elif aspect_table == 'list':
         print('\n~~~~ Aspect List ~~~~', file=output)
-        aspect_table = charts.create_aspect_table(planet_poses, orbs=orbs)
+        aspect_table = aspects.create_aspect_table(planet_poses, orbs=orbs)
         combos = set()
         for arow in aspect_table:
             aspect_id = frozenset((arow.planet1.name, arow.planet2.name))
@@ -244,7 +244,7 @@ def output_paired_chart(pair_label,
 
     if aspect_table == 'table':
         print('\n~~~~ Aspect Table ~~~~', file=output)
-        _, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
+        _, aspect_table = aspects.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
         headers = [planet_pos.realName for planet_pos in planet_poses2]
         print('\t'.join(['Aspected Planet']+headers), file=output)
         
@@ -264,7 +264,7 @@ def output_paired_chart(pair_label,
 
     elif aspect_table == 'list':
         print('\n~~~~ Aspect List ~~~~', file=output)
-        _, aspect_table = charts.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
+        _, aspect_table = aspects.create_aspect_table(planet_poses1, compare=planet_poses2, orbs=orbs)
         combos = set()
         for arow in aspect_table:
             aspect_id = frozenset((arow.planet1.realName, arow.planet2.realName))
@@ -364,7 +364,7 @@ def paired_callback(observers, orbs, args):
             else:
                 pcstars = None
 
-            out_fname = args.name_format.format(mode='composite', label=pairing_label)
+            out_fname = args.name_format.format(mode='composite', label=olabel)
             with open(path.join(args.output_dir, out_fname), 'w', encoding='utf-8') as ofile:
                 output_single_chart(olabel, None, None,
                                     output=ofile, orbs=orbs, fsorb=args.fixed_stars_orb,
@@ -641,11 +641,11 @@ if args.observers_file is not None:
         mimetype = subprocess.check_output(['file', '-L', '-b', '--mime-type',
                                             observer_file]).decode('utf-8').strip()
         if mimetype == 'text/plain':
-            with open(observers_file) as fobj:
+            with open(observer_file) as fobj:
                 for line in fobj:
                     label, o = string_to_observer(line)
-                    if label is not None and label not in observers:
-                        read_observers[label]=o
+                    if label is not None and label not in read_observers:
+                        read_observers[label] = o
 
         elif mimetype == 'application/octet-stream':
             #TODO: detect openastro sqlite specifically
