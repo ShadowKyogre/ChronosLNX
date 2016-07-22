@@ -44,6 +44,51 @@ class Zodiac(Enum):
     def __repr__(self):
         return("Zodiac.{0}".format(self.name))
 
+    def __str__(self):
+        return (
+            "{0}"
+            "\nElement: {1}"
+            "\nMode: {2}"
+            "\nDecanates: {3}"
+        ).format(
+           self.name,
+           self.element.name.title(),
+           self.mode.name.title(),
+           [
+               Zodiac(self.decanates[0]).name,
+               Zodiac(self.decanates[1]).name,
+               Zodiac(self.decanates[2]).name,
+           ]
+       )
+
+def format_degrees(angle):
+    sign = angle // 30
+    degrees = angle % 30
+    decanate = degrees // 10
+    minutes = degrees % 1.0 * 60
+    seconds = minutes % 1.0 * 60
+
+    dec_suffix = {
+        0: 'st',
+        1: 'nd',
+        2: 'rd'
+    }[decanate]
+
+    dec_sign = Zodiac((sign + decanate * 4) % 12)
+    dec_string = "{0}{1} decanate, {2}".format(
+        int(decanate + 1),
+        dec_suffix,
+        dec_sign.name
+    )
+
+    return '{0} {1}*{2}\"{3} ({4})'.format(
+        Zodiac(sign).name,
+        int(degrees),
+        int(minutes),
+        int(seconds),
+        dec_string
+    )
+
 class HouseMeasurement:
     def __init__(self, cusp, end, num=-1):
         self.cusp = ActiveZodiacalMeasurement(cusp, 0.0, self, progress=0.0)
@@ -62,21 +107,7 @@ class HouseMeasurement:
         return Zodiac(self.num-1)
 
     def natRulerStr(self):
-        return (
-            "Name {0}"
-            "\nElement: {1}"
-            "\nMode: {2}"
-            "\nDecanates: {3}"
-        ).format(
-           self.natRulerData.name,
-           self.natRulerData.element.name.title(),
-           self.natRulerData.mode.name.title(),
-           [
-               Zodiac(self.natRulerData.decanates[0]).name,
-               Zodiac(self.natRulerData.decanates[1]).name,
-               Zodiac(self.natRulerData.decanates[2]).name,
-           ]
-       )
+        return str(self.natRulerData)
 
     def getCuspDist(self, zd):
         return abs(angle_sub(self.cusp.longitude, zd.longitude))
@@ -106,7 +137,7 @@ class ZodiacalMeasurement:
 
     @property
     def sign(self):
-        return int(self.longitude / 30)
+        return self.longitude // 30
 
     @property
     def degrees(self):
@@ -126,34 +157,18 @@ class ZodiacalMeasurement:
 
     @property
     def dn(self):
-        return self.degrees/10
+        return self.degrees // 10
 
     @property
     def decanate(self):
-        return self.signData.decanates[int(self.dn)]
+        return self.signData.decanates[self.dn]
 
     @property
     def signData(self):
         return Zodiac(self.sign)
 
     def dataAsText(self):
-        return ("Name {0}"
-        "\nElement: {1}"
-        "\nMode: {2}"
-        "\nDecanates: {3}").format(
-           self.signData.name,
-           self.signData.element.name.title(),
-           self.signData.mode.name.title(),
-           [
-               Zodiac(self.signData.decanates[0]).name,
-               Zodiac(self.signData.decanates[1]).name,
-               Zodiac(self.signData.decanates[2]).name,
-           ]
-       )
-
-    @property
-    def decanateData(self):
-        return Zodiac(self.decanate)
+        return str(self.signData)
 
     @property
     def decstring(self):
