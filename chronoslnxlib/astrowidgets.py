@@ -61,7 +61,7 @@ class PHModel(BookMarkedModel):
             else:
                 looking_behind = self.get_date(i)
                 looking_ahead = self.get_date(i+1)
-                if looking_behind <= date and looking_ahead > date:
+                if looking_behind <= date < looking_ahead:
                     self._highlight_row(i)
                     if i != 0:
                         self._unhighlight_row(i-1)

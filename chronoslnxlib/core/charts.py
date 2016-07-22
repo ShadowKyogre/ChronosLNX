@@ -210,7 +210,7 @@ def average_planet(houses, house_keys, x, y):
         newhouse = None
         for i in range(12):
             cur_dist = angle_sub(house_keys[i], avglong)
-            if cur_dist < 0 and cur_dist > max_neg_dist:
+            if max_neg_dist < cur_dist < 0:
                 newhouse = i
                 max_neg_dist = cur_dist
         zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])

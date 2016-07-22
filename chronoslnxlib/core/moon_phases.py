@@ -26,7 +26,7 @@ def get_moon_sun_diff(day):
 # use this for proofreading: http://aa.usno.navy.mil/data/docs/MoonPhase.php
 def predict_phase(date, offset=0, target_angle=0):
     #print(repr(date), offset, target_angle)
-    if target_angle < -180 or target_angle > 180:
+    if not (-180 <= target_angle <= 180):
         raise ValueError("That's just going to wrap around at this point")
     cycles_with_stuff = date_to_moon_cycles(date)
     cycles = int(cycles_with_stuff)+offset
