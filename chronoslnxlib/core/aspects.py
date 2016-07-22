@@ -1,7 +1,9 @@
-from . import angle_sub
 from collections import OrderedDict as od
+from itertools import chain
 
 import swisseph
+
+from . import angle_sub, closed_between, filtered_groups
 
 ASPECTS = od([('conjunction', 0.0),
               ('semi-sextile', 30.0),
@@ -71,6 +73,188 @@ def grand_trine_angles(angle, orbs=None):
     ahead_angles = aspects_from_measurement(angle, -120, orb)
     return behind_angles, ahead_angles
 
+def stellarium_angles(angle, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['conjunction']
+
+    next_to_angles = aspects_from_measurement(angle, 0, orb)
+    return next_to_angles,
+
+def _eligible_planet(planet):
+    return planet.retrograde not in {"Not a Planet", "Always"}
+
+def expand_stellarium(bounds, angles, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['conjunction']
+
+    filtered_angles = sorted(
+        v
+        for v in angles
+        for start, end in bounds
+        if closed_between(start, end, v)
+    )
+
+    subfilter = filtered_angles
+    if not subfilter:
+        return []
+
+    starts = []
+    subfilter = filtered_angles
+    sub_angle = subfilter[0]
+    sub_angle_to_be = float('-inf')
+
+    while subfilter and angle_sub(sub_angle, sub_angle_to_be) > 0:
+        sub_angle = subfilter[0]
+        sub_extent = stellarium_angles(sub_angle, orbs=orb)
+        subfilter = sorted(
+            v
+            for v in angles
+            for start, end in sub_extent
+            if closed_between(start, end, v) and v != sub_angle
+        )
+        try:
+            sub_angle_to_be = subfilter[0]
+        except IndexError:
+            sub_angle_to_be = float('inf')
+        starts.extend(subfilter)
+
+    ends = []
+    subfilter = filtered_angles
+    sub_angle = subfilter[-1]
+    sub_angle_to_be = float('inf')
+
+    while subfilter and angle_sub(sub_angle, sub_angle_to_be) < 0:
+        sub_angle = subfilter[-1]
+        sub_extent = stellarium_angles(sub_angle, orbs=orb)
+        subfilter = sorted(
+            v
+            for v in angles
+            for start, end in sub_extent
+            if closed_between(start, end, v) and v != sub_angle
+        )
+        try:
+            sub_angle_to_be = subfilter[-1]
+        except IndexError:
+            sub_angle_to_be = float('-inf')
+        ends.extend(subfilter)
+
+    result = set(starts + filtered_angles + ends)
+    if len(result) > 2:
+        return sorted(result),
+    else:
+        return []
+
+def search_special_aspects(zodiac, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+
+    yods = set()
+    gt = set()
+    gc = set()
+    stel = set()
+    tsq = set()
+
+    measurements_by_angle = filtered_groups(
+        filter(_eligible_planet, zodiac),
+        lambda x: x.m.longitude
+    )
+    special_aspect_bound_funcs = [
+        (
+            grand_trine_angles,
+            None,
+            'grand trine',
+            None,
+        ),
+        (
+            grand_cross_angles,
+            None,
+            'grand cross',
+            't-square',
+        ),
+        (
+            yod_angles,
+            None,
+            'yod',
+            None,
+        ),
+        (
+            stellarium_angles,
+            expand_stellarium,
+            'stellium',
+            None,
+        ),
+    ]
+    sorted_angles = sorted(measurements_by_angle)
+
+    for angle in sorted_angles:
+        root_planets = measurements_by_angle[angle]
+        for func, sanitize, label, alt_label in special_aspect_bound_funcs:
+            angle_bounds = func(angle, orbs=orbs)
+            if sanitize is not None:
+                parts = [
+                    filter(
+                        lambda x: x != angle,
+                        p
+                    )
+                    for p in sanitize(angle_bounds, sorted_angles, orbs=orbs)
+                ]
+            else:
+                parts = [
+                    [
+                        v
+                        for v in sorted_angles
+                        if closed_between(start, end, v) and v != angle
+                    ]
+                    for start, end in angle_bounds
+                ]
+            descriptors = [
+                *chain(
+                    #*(
+                        (p, measurements_by_angle[p])
+                        for p in chain(*parts)
+                    #)
+                )
+            ]
+            all_check = [bool(p) for p in parts]
+            desc_with_root = chain(
+                ( (angle, root_planets), ),
+                descriptors
+            )
+            all_reqs_met = all(all_check) and bool(all_check)
+            if alt_label:
+                tsq_check = (not all_check[0] and all_check[0] and all_check[2])
+                if label == 'grand cross' and all_reqs_met:
+                    gc.add(SpecialAspect(od(desc_with_root), label))
+                elif alt_label == 't-square' and tsq_check:
+                    tsq.add(SpecialAspect(od(desc_with_root), alt_label))
+            elif all_reqs_met:
+                if label == 'grand trine':
+                    gt.add(SpecialAspect(od(desc_with_root), label))
+                elif label == 'yod':
+                    yods.add(SpecialAspect(od(desc_with_root), label))
+                elif label == 'stellium':
+                    stel.add(SpecialAspect(od(desc_with_root), label))
+
+    return yods, gt, gc, stel, tsq
+
+def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
+    aspect_table = []
+    comparison = []
+
+    for idx, i in enumerate(zodiac):
+        for j in zodiac[idx+1:]:
+            pr = Aspect(i, j, orbs)
+            aspect_table.append(pr)
+        if zodiac is not compare and compare is not None:
+            for j in compare:
+                pr = Aspect(i, j, orbs)
+                comparison.append(pr)
+    if comparison:
+        return aspect_table, comparison
+    return aspect_table
+
 class Aspect:
     def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
         if not hasattr(p1, 'm') or not hasattr(p2, 'm'):
@@ -128,59 +312,45 @@ class Aspect:
         return not self.__eq__(pr)
 
 class SpecialAspect:
-    def __init__(self, root_planets, descriptors, name):
-        self.root_planets = root_planets
-        self.descriptors = descriptors
+    def __init__(self, vertices, name):
+        self.vertices = vertices
         self.name = name
 
     @property
-    def uniquePlanets(self):
-        planets = set()
-        for d in self.descriptors:
-            planets.add(d.realName)
-        return planets
-
-    @property
     def uniqueMeasurements(self):
-        measurements = set()
-        for d in self.descriptors:
-            measurements.add(d.m.longitude)
-        return measurements
-
-    def contains(self, sa):
-        otherplanets = sa.uniquePlanets
-        return otherplanets.issubset(self.uniquePlanets)
+        return frozenset(self.vertices.keys())
 
     def __eq__(self, sa):
         if sa is None:
             return False
-        return self.name == sa.name and self.uniquePlanets == sa.uniquePlanets
+        return self.name == sa.name and self.uniqueMeasurements == sa.uniqueMeasurements
         #because they are the same points
 
     def __ne__(self, sa):
         return not self.__eq__(sa)
 
     def __hash__(self):
-        return hash(frozenset(self.uniquePlanets))
+        return hash(self.uniqueMeasurements)
 
     def __repr__(self):
-        "SpecialAspect({0}, {1}, {2})".format(
-            repr(self.root_planets),
-            repr(self.descriptors),
+        return "SpecialAspect({0}, {1})".format(
+            repr(self.vertices),
             repr(self.name)
         )
 
     def __str__(self):
+        vertices_desc = ''.join(
+            "{0:.3f}: {1}\n".format(
+                k,
+                ', '.join(p.realName for p in v)
+            )
+            for k, v in self.vertices.items()
+        )
+
         return (
             "{0}"
-            "\nInitiating planets:{1}"
-            "\nInitiating measurements:{2}"
-            "\nUnique angles:{3}"
-            "\nUnique planets:{4}"
+            "\nVertices:\n{1}"
         ).format(
             self.name.title(),
-            [ p.realName for p in self.root_planets ],
-            [ p.m.longitude for p in self.root_planets ],
-            [ "{0:.3f}".format(i) for i in list(self.uniqueMeasurements)],
-            list(self.uniquePlanets)
+            vertices_desc
         )

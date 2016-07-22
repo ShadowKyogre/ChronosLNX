@@ -5,12 +5,8 @@ from PyQt4 import QtGui, QtCore
 from dateutil import tz
 from datetime import datetime
 
-from .core.charts import (
-    create_aspect_table,
-    search_special_aspects,
-    get_signs,
-    update_planets_and_cusps
-)
+from .core.charts import get_signs, update_planets_and_cusps
+from .core.aspects import create_aspect_table, search_special_aspects
 from .core.hours import AstrologicalDay
 from .core.moon_phases import get_moon_cycle
 from .core.aspects import DEFAULT_ORBS

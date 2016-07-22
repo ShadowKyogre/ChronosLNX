@@ -1,22 +1,19 @@
 from dateutil.relativedelta import relativedelta
 import swisseph
 
-from itertools import chain
 import functools
 import math
 
 from . import datetime_to_julian, revjul_to_datetime
 from . import date_to_moon_cycles, moon_cycles_to_jul
 from . import date_to_solar_cycles, solar_cycles_to_jul
-from . import angle_sub, closed_between
+from . import angle_sub
 from . import zipped_func, angle_average, filtered_groups
-from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import (
     ActiveZodiacalMeasurement,
     HouseMeasurement,
     Zodiac
 )
-from . import aspects
 from .planet import Planet
 
 def get_transit(planet, observer, date):
@@ -48,67 +45,6 @@ def get_transit(planet, observer, date):
         )
     swisseph.close()
     return transit
-
-def search_special_aspects(zodiac, orbs=DEFAULT_ORBS):
-    yods = set()
-    gt = set()
-    gc = set()
-    stel = set()
-    tsq = set()
-
-    measurements_by_angle = filtered_groups(
-        filter(lambda x: x.retrograde not in {"Not a Planet", "Always"}, zodiac),
-        lambda x: x.m.longitude
-    )
-    special_aspect_bound_funcs = [
-        (aspects.grand_trine_angles, 'grand trine', None),
-        (aspects.grand_cross_angles, 'grand cross', 't-square'),
-        (aspects.yod_angles, 'yod', None),
-    ]
-    sorted_angles = sorted(measurements_by_angle)
-
-    for angle in sorted_angles:
-        root_planet = measurements_by_angle[angle]
-        for func, label, alt_label in special_aspect_bound_funcs:
-            angle_bounds = func(angle, orbs=orbs)
-            parts = [
-                [
-                    v
-                    for v in sorted_angles
-                    if closed_between(start, end, v)
-                ]
-                for start, end in angle_bounds
-            ]
-            descriptors = [ *chain( *(measurements_by_angle[p] for p in chain(*parts)) ) ]
-            if alt_label:
-                all_check = [bool(p) for p in parts]
-                if label == 'grand cross' and all(all_check):
-                    gc.add(SpecialAspect(root_planet, descriptors, label))
-                elif alt_label == 't-square' and (not all_check[1] and all_check[0] and all_check[2]):
-                    tsq.add(SpecialAspect(root_planet, descriptors, alt_label))
-            elif all(parts):
-                if label == 'grand trine':
-                    gt.add(SpecialAspect(root_planet, descriptors, label))
-                elif label == 'yod':
-                    yods.add(SpecialAspect(root_planet, descriptors, label))
-
-    return yods, gt, gc, stel, tsq
-
-def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
-    aspect_table = []
-    comparison = []
-
-    for idx, i in enumerate(zodiac):
-        for j in zodiac[idx+1:]:
-            pr = Aspect(i, j, orbs)
-            aspect_table.append(pr)
-        if zodiac is not compare and compare is not None:
-            for j in compare:
-                pr = Aspect(i, j, orbs)
-                comparison.append(pr)
-    if comparison:
-        return aspect_table, comparison
-    return aspect_table
 
 def lunar_return(date, birth_date, target_angle):
     #print(repr(date), offset, target_angle)

@@ -3,7 +3,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from .core.measurements import Zodiac
-from .core.charts import create_aspect_table, yearly_profection
+from .core.charts import yearly_profection
+from .core.aspects import create_aspect_table
 
 LEVELS=(('Sun', 'Moon', 'Venus', 'Mercury'),
         ('Mars', 'Jupiter', 'Saturn'),
