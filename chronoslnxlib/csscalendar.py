@@ -1,6 +1,7 @@
-from PyQt4 import QtGui, QtCore
 import calendar
 from datetime import date as pydate
+
+from PyQt4 import QtGui, QtCore
 
 def _isToday(date):
     return date == pydate.today()

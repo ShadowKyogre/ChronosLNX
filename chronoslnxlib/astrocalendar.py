@@ -1,10 +1,12 @@
+from datetime import datetime
+
 from PyQt4 import QtGui, QtCore
+import swisseph
+
 from .core.charts import lunar_return, solar_return
 from .core.moon_phases import state_to_string, grab_phase
 from .csscalendar import CSSCalendar, TodayDelegate
-from datetime import datetime
 
-import swisseph
 
 ### CSS Themable Custom Widgets
 '''
@@ -131,14 +133,19 @@ class AstroCalendar(CSSCalendar):
             self.birthtime.replace(year=year),
             self.birthtime,
             self.natal_sun
-        )
+        ).astimezone(self.birthtime.tzinfo)
         #print(self.solarReturnTime)
 
     def updateMoon(self, year):
         self.lunarReturns = []
         guesstimate_point = datetime(year-1, 12, 14, 12)
-        self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
-                                                  self.natal_moon))
+        self.lunarReturns.append(
+            lunar_return(
+                guesstimate_point,
+                self.birthtime,
+                self.natal_moon
+            ).astimezone(self.birthtime.tzinfo)
+        )
         for m in range(1, 13):
             guesstimate_point = datetime(year, m, 14, 12)
             self.lunarReturns.append(
@@ -146,11 +153,16 @@ class AstroCalendar(CSSCalendar):
                     guesstimate_point,
                     self.birthtime,
                     self.natal_moon
-                )
+                ).astimezone(self.birthtime.tzinfo)
             )
         guesstimate_point = datetime(year+1, 1, 14, 12)
-        self.lunarReturns.append(lunar_return(guesstimate_point, self.birthtime,
-                                                  self.natal_moon))
+        self.lunarReturns.append(
+            lunar_return(
+                guesstimate_point,
+                self.birthtime,
+                self.natal_moon
+            ).astimezone(self.birthtime.tzinfo)
+         )
         self.lunarReturnss = {d.date() for d in self.lunarReturns}
         #print(self.lunarReturns)
 
@@ -225,12 +237,16 @@ class AstroCalendar(CSSCalendar):
         tooltiptxt = ''
         here = self.lunarReturn and date in self.here
         item.setData(QtCore.Qt.UserRole+2, here)
-        here2 = self.solarReturn and self.solarReturnTime.date() == date
+        here2 = self.solarReturn and self.solarReturnTime.astimezone(self.observer.timezone).date() == date
         item.setData(QtCore.Qt.UserRole+3, here2)
         if self.showPhase:
-            datetime = QtCore.QDateTime(date).toPyDateTime()\
-                                             .replace(tzinfo=self.observer.timezone)\
-                                             .replace(hour=12)
+            datetime = QtCore.QDateTime(
+                date
+            ).toPyDateTime().replace(
+                tzinfo=self.observer.timezone
+            ).replace(
+                hour=12
+            )
             phase = state_to_string(grab_phase(datetime), swisseph.MOON)
             item.setData(QtCore.Qt.UserRole+4, phase)
         else:
