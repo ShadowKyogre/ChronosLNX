@@ -171,8 +171,7 @@ class AstroCalendar(CSSCalendar):
 
     def isLunarReturnsValid(self, year, month):
         stillInYear=False
-        for i in range(len(self.lunarReturns)):
-            t = self.lunarReturns[i]
+        for t in self.lunarReturns:
             if t.year == year and t.month == month:
                 return True
             elif t.year == year:
