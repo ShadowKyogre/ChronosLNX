@@ -114,10 +114,9 @@ class AstroCalendar(CSSCalendar):
             self.updateSun(self.yearShown())
 
     def checkInternals(self, year, month):
-        if self.solarReturn:
-            if not self.isSolarReturnValid():
-                print("Updating solar return...")
-                self.updateSun(year)
+        if self.solarReturn and not self.isSolarReturnValid():
+            print("Updating solar return...")
+            self.updateSun(year)
         if self.lunarReturn:
             if not self.isLunarReturnsValid(year, month):
                 print("Updating lunar returns...")

@@ -96,7 +96,7 @@ def list_fixed_stars(date, wanted_stars=None):
 
     return output_keys, output
 
-def nearest_fixed_star(positions, wanted_star_keys, wanted_stars,  orb=3):
+def nearest_fixed_star(positions, wanted_star_keys, wanted_stars, orb=3):
     output = {}
     lenkeys = len(wanted_star_keys)
 
@@ -116,9 +116,8 @@ def nearest_fixed_star(positions, wanted_star_keys, wanted_stars,  orb=3):
         in_orb1 = dist1 <= orb
         in_orb2 = dist2 <= orb
 
-        if any((in_orb1, in_orb2)):
-            if pos not in output:
-                output[pos]=[]
+        if any((in_orb1, in_orb2)) and pos not in output:
+            output[pos]=[]
 
         if all((in_orb1, in_orb2)):
             smallest = min(closest_starpos_1, closest_starpos_2)

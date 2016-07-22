@@ -244,11 +244,10 @@ class ChronosLNX(QtGui.QMainWindow):
     def update_widgets_config(self):
         app.setStyleSheet(clnxcfg.stylesheet)
 
-        if not clnxcfg.show_aclk:
-            if self.astroClock is not None:
-                self.setCentralWidget(None)
-                self.astroClock = None
-                self.draw_timer.stop()
+        if not clnxcfg.show_aclk and self.astroClock is not None:
+            self.setCentralWidget(None)
+            self.astroClock = None
+            self.draw_timer.stop()
         else:
             self.astroClock = AstroClock(self)
             self.setCentralWidget(self.astroClock)
