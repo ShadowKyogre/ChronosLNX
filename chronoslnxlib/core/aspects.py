@@ -34,23 +34,39 @@ def aspects_from_measurement(measurement, angle, orb):
     ]
     return measurements
 
-def tsquare_angles(angle, orb):
+def tsquare_angles(angle, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['square']
     behind_angles = aspects_from_measurement(angle, 90, orb)
     ahead_angles = aspects_from_measurement(angle, -90, orb)
     return behind_angles, ahead_angles
 
-def grand_cross_angles(angle, orb):
+def grand_cross_angles(angle, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['square']
+    opp_orb = DEFAULT_ORBS['opposition']
+
     behind_angles = aspects_from_measurement(angle, 90, orb)
-    across_angles = aspects_from_measurement(angle, 180, orb)
+    across_angles = aspects_from_measurement(angle, 180, opp_orb)
     ahead_angles = aspects_from_measurement(angle, -90, orb)
     return behind_angles, across_angles, ahead_angles
 
-def yod_angles(angle, orb):
+def yod_angles(angle, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['inconjunct']
+
     behind_angles = aspects_from_measurement(angle, 150, orb)
     ahead_angles = aspects_from_measurement(angle, -150, orb)
     return behind_angles, ahead_angles
 
-def grand_trine_angles(angle, orb):
+def grand_trine_angles(angle, orbs=None):
+    if orbs is None:
+        orbs = DEFAULT_ORBS
+    orb = DEFAULT_ORBS['trine']
+
     behind_angles = aspects_from_measurement(angle, 120, orb)
     ahead_angles = aspects_from_measurement(angle, -120, orb)
     return behind_angles, ahead_angles

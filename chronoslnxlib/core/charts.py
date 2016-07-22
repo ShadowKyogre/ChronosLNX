@@ -57,7 +57,7 @@ def search_special_aspects(zodiac, orbs=DEFAULT_ORBS):
     tsq = set()
 
     measurements_by_angle = filtered_groups(
-        filter(lambda x: x.retrograde != "Not a Planet", zodiac),
+        filter(lambda x: x.retrograde not in {"Not a Planet", "Always"}, zodiac),
         lambda x: x.m.longitude
     )
     special_aspect_bound_funcs = [
@@ -70,7 +70,7 @@ def search_special_aspects(zodiac, orbs=DEFAULT_ORBS):
     for angle in sorted_angles:
         root_planet = measurements_by_angle[angle]
         for func, label, alt_label in special_aspect_bound_funcs:
-            angle_bounds = func(angle, 10)
+            angle_bounds = func(angle, orbs=orbs)
             parts = [
                 [
                     v
