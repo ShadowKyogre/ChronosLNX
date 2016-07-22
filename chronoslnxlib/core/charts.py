@@ -1,13 +1,14 @@
 from dateutil.relativedelta import relativedelta
 import swisseph
 
+from itertools import chain
 import functools
 import math
 
 from . import datetime_to_julian, revjul_to_datetime
 from . import date_to_moon_cycles, moon_cycles_to_jul
 from . import date_to_solar_cycles, solar_cycles_to_jul
-from . import angle_sub
+from . import angle_sub, closed_between
 from . import zipped_func, angle_average, filtered_groups
 from .aspects import DEFAULT_ORBS, Aspect, SpecialAspect
 from .measurements import (
@@ -15,6 +16,7 @@ from .measurements import (
     HouseMeasurement,
     Zodiac
 )
+from . import aspects
 from .planet import Planet
 
 def get_transit(planet, observer, date):
@@ -47,145 +49,48 @@ def get_transit(planet, observer, date):
     swisseph.close()
     return transit
 
-def search_special_aspects(aspect_table):
+def search_special_aspects(zodiac, orbs=DEFAULT_ORBS):
     yods = set()
     gt = set()
     gc = set()
     stel = set()
     tsq = set()
 
-    wanted_aspects = filtered_groups(
-        aspect_table,
-        lambda x: x.aspect
+    measurements_by_angle = filtered_groups(
+        filter(lambda x: x.retrograde != "Not a Planet", zodiac),
+        lambda x: x.m.longitude
     )
+    special_aspect_bound_funcs = [
+        (aspects.grand_trine_angles, 'grand trine', None),
+        (aspects.grand_cross_angles, 'grand cross', 't-square'),
+        (aspects.yod_angles, 'yod', None),
+    ]
+    sorted_angles = sorted(measurements_by_angle)
 
-    trines = wanted_aspects['trine']
-    squares = wanted_aspects['square']
-    sextiles = wanted_aspects['sextile']
-    conjunctions = wanted_aspects['conjunction']
-    inconjuncts = wanted_aspects['inconjunct']
-    oppositions = wanted_aspects['opposition']
-
-    for i in range(10):
-        pn = swisseph.get_planet_name(i)
-
-        intersection_entries = []
-        intersection_entries2 = []
-        intersection_entries3 = []
-        intersection_entries4 = []
-        intersection_entries5 = []
-
-        if len(trines) > 2:
-            for i in range(len(trines)-1):
-                otherp = trines[i].partnerPlanet(pn)
-                otherp2 = trines[i+1].partnerPlanet(pn)
-                minitrines = [
-                    y for y in trines
-                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
+    for angle in sorted_angles:
+        root_planet = measurements_by_angle[angle]
+        for func, label, alt_label in special_aspect_bound_funcs:
+            angle_bounds = func(angle, 10)
+            parts = [
+                [
+                    v
+                    for v in sorted_angles
+                    if closed_between(start, end, v)
                 ]
-                if not minitrines:
-                    intersection_entries.append(trines[i])
-                    intersection_entries.append(trines[i+1])
-                for j in minitrines:
-                    intersection_entries.append(j)
-                if len(intersection_entries) > 2:
-                    gt.add(SpecialAspect(intersection_entries, 'grand trine'))
-                    break
-
-        if len(oppositions) > 0:
-            for i in range(len(squares)-1):
-                otherp = squares[i].partnerPlanet(pn)
-                otherp2 = squares[i+1].partnerPlanet(pn)
-                miniopposition = [
-                    y for y in oppositions
-                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                ]
-                minisquare = [
-                    y for y in squares
-                    if (y.isForPlanet(otherp) or y.isForPlanet(otherp2))
-                    and not y.isForPlanet(pn)
-                ]
-                if miniopposition and minisquare:
-                    intersection_entries2.append(squares[i])
-                    intersection_entries2.append(squares[i+1])
-                    intersection_entries2.append(miniopposition[0])
-                    intersection_entries2.append(minisquare[0])
-                    if len(intersection_entries2) > 3:
-                        gc.add(SpecialAspect(intersection_entries2, 'grand cross'))
-                        break
-
-        if len(squares) > 2:
-            for i in range(len(squares)-1):
-                otherp = squares[i].partnerPlanet(pn)
-                otherp2 = squares[i+1].partnerPlanet(pn)
-                miniopposition = [
-                    y for y in oppositions
-                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                ]
-                if miniopposition:
-                    intersection_entries3.append(squares[i])
-                    intersection_entries3.append(squares[i+1])
-                for j in miniopposition:
-                    intersection_entries3.append(j)
-                if len(intersection_entries3) > 2:
-                    tsq.add(SpecialAspect(intersection_entries3, 't-square'))
-                    break
-
-        if len(conjunctions) > 2:
-            for n in conjunctions:
-                #Check for other conjunctions that do not involve the root planet
-                if n.planet1 != pn:
-                    b=[
-                       y for y in conjunctions
-                       if y.isForPlanet(n.planet1) and not y.isForPlanet(pn)
-                    ]
-                else:
-                    b=[
-                       y for y in conjunctions
-                       if y.isForPlanet(n.planet2) and not y.isForPlanet(pn)
-                    ]
-                if b:
-                    intersection_entries4.append(n)
-                    for j in b:
-                        intersection_entries4.append(j)
-                    if len(intersection_entries4) > 2:
-                        stel.add(SpecialAspect(intersection_entries4, 'stellium'))
-                        break
-
-        if len(inconjuncts) > 1:
-            for i in range(len(inconjuncts)-1):
-                otherp=inconjuncts[i].partnerPlanet(pn)
-                otherp2=inconjuncts[i+1].partnerPlanet(pn)
-                minisextiles=[
-                    y for y in sextiles
-                    if y.isForPlanet(otherp) and y.isForPlanet(otherp2)
-                ]
-                if minisextiles:
-                    intersection_entries5.append(inconjuncts[i])
-                    intersection_entries5.append(inconjuncts[i+1])
-                for j in minisextiles:
-                    intersection_entries5.append(j)
-                if len(intersection_entries5) > 2:
-                    yods.add(SpecialAspect(intersection_entries5, 'yod'))
-                    break
-
-    #remove stelliums contained in stelliums that
-    #involve the same planets
-
-    if len(stel) > 1:
-        for i in stel.copy():
-            for j in stel.copy():
-                if j.contains(i):
-                    stel.remove(i)
-                    break
-
-    #remove redundant entries in tsq that are described in gc
-    if tsq:
-        for i in tsq.copy():
-            for j in gc:
-                if j.contains(i):
-                    tsq.remove(i)
-                    break
+                for start, end in angle_bounds
+            ]
+            descriptors = [ *chain( *(measurements_by_angle[p] for p in chain(*parts)) ) ]
+            if alt_label:
+                all_check = [bool(p) for p in parts]
+                if label == 'grand cross' and all(all_check):
+                    gc.add(SpecialAspect(root_planet, descriptors, label))
+                elif alt_label == 't-square' and (not all_check[1] and all_check[0] and all_check[2]):
+                    tsq.add(SpecialAspect(root_planet, descriptors, alt_label))
+            elif all(parts):
+                if label == 'grand trine':
+                    gt.add(SpecialAspect(root_planet, descriptors, label))
+                elif label == 'yod':
+                    yods.add(SpecialAspect(root_planet, descriptors, label))
 
     return yods, gt, gc, stel, tsq
 

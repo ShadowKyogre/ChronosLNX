@@ -123,6 +123,10 @@ def angle_average(first, second):
         avg_angle += 360.
     return avg_angle
 
+# https://fgiesen.wordpress.com/2015/09/24/intervals-in-modular-arithmetic/
+def closed_between(start, end, value, bound=360):
+    return (value - start) % bound <= (end - start) % bound
+
 def angle_sub(target, source):
     diff = (target-source)
     if diff > 180:

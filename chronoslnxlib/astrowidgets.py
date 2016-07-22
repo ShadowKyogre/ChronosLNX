@@ -256,7 +256,7 @@ class AspectTableDisplay(QtGui.QWidget):
 
     def refresh(self, zodiac, orbs):
         at = create_aspect_table(zodiac, orbs=orbs)
-        sad = search_special_aspects(at)
+        sad = search_special_aspects(zodiac, orbs=orbs)
         self.buildTable(at, sad)
 
     def buildTable(self, at, sad, comparative=False):
@@ -355,8 +355,8 @@ def aspectsDialog(widget, zodiac, other_table,
         caspects.admi = admi
         caspects.nodes = nodes
         at, compare = create_aspect_table(zodiac, compare=other_table, orbs=orbs)
-        sado = search_special_aspects(at)
-        sad = search_special_aspects(at+compare)
+        sado = search_special_aspects(zodiac)
+        sad = search_special_aspects(zodiac+other_table)
         caspects.buildTable(compare, sad, comparative=True)
         aspects.buildTable(at, sado)
         tabs.addTab(caspects, "Aspects to Natal Chart")
@@ -498,4 +498,5 @@ class SignsForDayList(QtGui.QWidget):
         self.observer = observer
         self.target_date = date
         self.time.setTime(self.target_date.time())
+
 

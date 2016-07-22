@@ -77,13 +77,13 @@ class Planet:
         return (
             "Planet(name={0}, m={1}, prefix={2}, "
             "table={3}, retrograde={4})"
-            ).format(
-                repr(self.name),
-                repr(self.m),
-                repr(self.prefix),
-                repr(self.table),
-                repr(self.retrograde)
-            )
+        ).format(
+            repr(self.name),
+            repr(self.m),
+            repr(self.prefix),
+            repr(self.table),
+            repr(self.retrograde)
+        )
 
     def __str__(self):
         return (

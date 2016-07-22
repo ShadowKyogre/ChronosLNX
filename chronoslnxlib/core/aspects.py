@@ -1,6 +1,8 @@
 from . import angle_sub
 from collections import OrderedDict as od
 
+import swisseph
+
 ASPECTS = od([('conjunction', 0.0),
               ('semi-sextile', 30.0),
               ('semi-square', 45.0),
@@ -24,6 +26,34 @@ DEFAULT_ORBS = od([('conjunction', 10.0),
                    ('biquintile', 1.0),
                    ('inconjunct', 3.0),
                    ('opposition', 10.0)])
+
+def aspects_from_measurement(measurement, angle, orb):
+    measurements = [
+        swisseph.degnorm(measurement + angle + i * orb)
+        for i in range(-1, 2, 2)
+    ]
+    return measurements
+
+def tsquare_angles(angle, orb):
+    behind_angles = aspects_from_measurement(angle, 90, orb)
+    ahead_angles = aspects_from_measurement(angle, -90, orb)
+    return behind_angles, ahead_angles
+
+def grand_cross_angles(angle, orb):
+    behind_angles = aspects_from_measurement(angle, 90, orb)
+    across_angles = aspects_from_measurement(angle, 180, orb)
+    ahead_angles = aspects_from_measurement(angle, -90, orb)
+    return behind_angles, across_angles, ahead_angles
+
+def yod_angles(angle, orb):
+    behind_angles = aspects_from_measurement(angle, 150, orb)
+    ahead_angles = aspects_from_measurement(angle, -150, orb)
+    return behind_angles, ahead_angles
+
+def grand_trine_angles(angle, orb):
+    behind_angles = aspects_from_measurement(angle, 120, orb)
+    ahead_angles = aspects_from_measurement(angle, -120, orb)
+    return behind_angles, ahead_angles
 
 class Aspect:
     def __init__(self, p1, p2, orbs=DEFAULT_ORBS):
@@ -82,7 +112,8 @@ class Aspect:
         return not self.__eq__(pr)
 
 class SpecialAspect:
-    def __init__(self, descriptors, name):
+    def __init__(self, root_planets, descriptors, name):
+        self.root_planets = root_planets
         self.descriptors = descriptors
         self.name = name
 
@@ -90,16 +121,14 @@ class SpecialAspect:
     def uniquePlanets(self):
         planets = set()
         for d in self.descriptors:
-            planets.add(d.planet1.realName)
-            planets.add(d.planet2.realName)
+            planets.add(d.realName)
         return planets
 
     @property
     def uniqueMeasurements(self):
         measurements = set()
         for d in self.descriptors:
-            measurements.add(d.planet1.m.longitude)
-            measurements.add(d.planet2.m.longitude)
+            measurements.add(d.m.longitude)
         return measurements
 
     def contains(self, sa):
@@ -119,14 +148,23 @@ class SpecialAspect:
         return hash(frozenset(self.uniquePlanets))
 
     def __repr__(self):
-        "SpecialAspect({0}, {1})".format(
+        "SpecialAspect({0}, {1}, {2})".format(
+            repr(self.root_planets),
             repr(self.descriptors),
             repr(self.name)
         )
 
     def __str__(self):
-        return "{0}\nUnique angles:{1}\nUnique planets:{2}".format(
+        return (
+            "{0}"
+            "\nInitiating planets:{1}"
+            "\nInitiating measurements:{2}"
+            "\nUnique angles:{3}"
+            "\nUnique planets:{4}"
+        ).format(
             self.name.title(),
+            [ p.realName for p in self.root_planets ],
+            [ p.m.longitude for p in self.root_planets ],
             [ "{0:.3f}".format(i) for i in list(self.uniqueMeasurements)],
             list(self.uniquePlanets)
         )

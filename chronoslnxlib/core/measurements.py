@@ -47,7 +47,7 @@ class Zodiac(Enum):
 class HouseMeasurement:
     def __init__(self, cusp, end, num=-1):
         self.cusp = ActiveZodiacalMeasurement(cusp, 0.0, self, progress=0.0)
-        self.end =ActiveZodiacalMeasurement(end, 0.0, self, progress=1.0)
+        self.end = ActiveZodiacalMeasurement(end, 0.0, self, progress=1.0)
         self.num =num
 
     def encompassedSigns(self):
@@ -98,7 +98,7 @@ class HouseMeasurement:
                                                      repr(self.end.longitude),
                                                      repr(self.num))
 
-class ZodiacalMeasurement (object):
+class ZodiacalMeasurement:
     __slots__ = ('latitude','longitude')
     def __init__(self, lng, lat):
         self.longitude = lng % 360.0
