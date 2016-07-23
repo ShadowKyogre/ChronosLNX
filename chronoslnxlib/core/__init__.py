@@ -76,21 +76,27 @@ def compare_to_the_second(date, hour, minute, second):
     return hour == date.hour and minute == date.minute and second == date.second
 
 def revjul_to_datetime(revjul):
-    hours = int(math.modf(revjul[3])[1])
-    minutedouble = math.modf(revjul[3])[0]*60
-    minutes = int(minutedouble)
-    seconds = int(math.modf(minutedouble)[0]*60)
+    partial_hours, hours = math.modf(revjul[3])
+    partial_minutes, minutes = math.modf(partial_hours * 60)
+    partial_seconds, seconds = math.modf(partial_minutes * 60)
+    microseconds = round(math.modf(partial_seconds)[0] * 1E6)
     utc = datetime(
-        int(revjul[0]), int(revjul[1]), int(revjul[2]), 
-        hour=hours, minute=minutes, second=seconds,
+        int(revjul[0]), int(revjul[1]), int(revjul[2]),
+        hour=int(hours), minute=int(minutes), second=int(seconds),
+        microsecond=microseconds,
         tzinfo=tz.gettz('UTC')
     )
     return utc
 
 def datetime_to_julian(date):
     utc = date.utctimetuple()
-    total_hour = utc.tm_hour*1.0+utc.tm_min/60.0+utc.tm_sec/3600.0
-    day = swisseph.julday(utc.tm_year, utc.tm_mon, utc.tm_mday, hour=total_hour)
+    total_hour = utc.tm_hour * 1.0 + utc.tm_min / 60.0 + utc.tm_sec / 3600.0
+    day = swisseph.julday(
+        utc.tm_year,
+        utc.tm_mon,
+        utc.tm_mday,
+        hour=total_hour
+    )
     swisseph.close()
     return day
 
