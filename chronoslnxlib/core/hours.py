@@ -65,16 +65,21 @@ class AstrologicalDay:
 
         day = datetime_to_julian(date.replace(hour=12))
 
+        check = swisseph.rise_trans(
+            day-1,
+            swisseph.SUN,
+            observer.lng,
+            observer.lat,
+            observer.elevation,
+            rsmi=swisseph.CALC_RISE
+        )
+
+        if check[0][0] == -2:
+            raise ValueError("Observer is circumpolar!")
+
         sunrise = revjul_to_datetime(
             swisseph.revjul(
-                swisseph.rise_trans(
-                    day-1,
-                    swisseph.SUN,
-                    observer.lng,
-                    observer.lat,
-                    observer.elevation,
-                    rsmi=swisseph.CALC_RISE
-                )[1][0]
+                check[1][0]
             )
         ).astimezone(observer.timezone)
 
