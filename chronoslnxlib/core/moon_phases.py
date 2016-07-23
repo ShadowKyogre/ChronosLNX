@@ -4,7 +4,6 @@ import swisseph
 
 from . import datetime_to_julian, revjul_to_datetime, angle_sub
 from . import date_to_moon_cycles, moon_cycles_to_jul
-from . import LUNAR_MONTH_DAYS, LAST_NM
 
 class MoonPhaseOffset(Enum):
     NewMoon = (0, 0)
@@ -67,7 +66,6 @@ def grab_phase(date):
     res = swisseph.pheno_ut(day, swisseph.MOON)
     light = res[1]*100
     elongation = res[2]
-    phase_angle = res[0]
 
     if elongation <= 5.0:
         illumination = "New"
@@ -111,7 +109,7 @@ def get_moon_cycle(date):
 
     for phase_offset in MoonPhaseOffset:
         o, ta = phase_offset.value
-        phase_dt = predict_phase(date, offset=0, target_angle=ta)
+        phase_dt = predict_phase(date, offset=o, target_angle=ta)
 
         state_line = grab_phase(phase_dt)
         state = state_to_string(state_line, swisseph.MOON)
