@@ -117,37 +117,49 @@ def painterRotate(painter, degrees, point):
     painter.translate(-point.x(), -point.y())
 
 class AstroClock(QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, size=500, **kwargs):
         super().__init__(*args, **kwargs)
-        self.size = 500
-        self.true_size = self.size+100
-        self.inner_size = self.size-200
-        self.setFixedSize(self.true_size, self.true_size)
-        self.center = QtCore.QPointF(
-            self.true_size / 2,
-            self.true_size / 2
+
+        self._trueSize = size + 100
+        self._innerSize = size - 200
+        self.setFixedSize(self._trueSize, self._trueSize)
+
+        self.icons = None
+        self.signIcons = None
+        self.hourModel = None
+        self.birthday = None
+        self.natData = None
+        self.signData = None
+        self.nextSunrise = None
+        self.orbs = None
+        self.capricornAlternate = None
+        self.plutoAlternate = None
+
+        self._center = QtCore.QPointF(
+            self._trueSize / 2,
+            self._trueSize / 2
         )
-        self.diff = (
-            (self.size - self.inner_size) / 2
-            + self.true_size / 12
+        diff_pt = (
+            ( size - self._innerSize) / 2
+            + self._trueSize / 12
         )
-        self.centerRect = QtCore.QRectF(
-            self.true_size * 17 / 40,
-            self.true_size * 17 / 40,
+        self._centerRect = QtCore.QRectF(
+            self._trueSize * 17 / 40,
+            self._trueSize * 17 / 40,
             90, 90
         )
-        self.outer_circle = QtCore.QRect(
-            self.true_size / 12,
-            self.true_size / 12,
-            self.size-2, self.size-2
+        self._outerCircle = QtCore.QRect(
+            self._trueSize / 12,
+            self._trueSize / 12,
+            size-2, size-2
         )
-        self.inner_circle = QtCore.QRect(
-            self.diff, self.diff,
-            self.inner_size, self.inner_size
+        self._innerCircle = QtCore.QRect(
+            diff_pt, diff_pt,
+            self._innerSize, self._innerSize
         )
-        self.doodle_box = QtCore.QRectF(
-            self.centerRect.x() + 4,
-            self.centerRect.y() + 4,
+        self._doodleBox = QtCore.QRectF(
+            self._centerRect.x() + 4,
+            self._centerRect.y() + 4,
             82, 82
         )
         self.init_colors()
@@ -326,42 +338,12 @@ class AstroClock(QtWidgets.QWidget):
         lambda self, fill: self.setAspectBrush(fill, "opposition")
     )
 
-    def setHourSource(self, hours):
-        self.hours = hours
-
-    def setNextSunrise(self, date):
-        self.nexts = date
-
-    def setBD(self, date):
-        self.bd = date
-
-    def setNatData(self, natData):
-        self.natData = natData
-
-    def setSignData(self, signData):
-        self.signData = signData
-
-    def setSignIcons(self, icons):
-        self.sign_icons = icons
-
-    def setIcons(self, icons):
-        self.icons = icons
-
-    def setOrbs(self, orbs):
-        self.orbs = orbs
-
-    def setCapricornAlternate(self, cap_alt):
-        self.capricorn_alternate = cap_alt
-
-    def setPlutoAlternate(self, plu_alt):
-        self.pluto_alternate = plu_alt
-
     def drawPlanets(self, painter, planets, circle):
         for i in planets:
-            if i.name in self.sign_icons:
-                icon = self.sign_icons[i.name]
+            if i.name in self.signIcons:
+                icon = self.signIcons[i.name]
             else:
-                if i.name == "Pluto" and self.pluto_alternate:
+                if i.name == "Pluto" and self.plutoAlternate:
                     icon = self.icons["Pluto 2"]
                 else:
                     icon = self.icons[i.name]
@@ -375,7 +357,7 @@ class AstroClock(QtWidgets.QWidget):
                 i.m.projectedLon,
                 offset=off
             )
-            self.adjustPoint(placeHere, i.m.projectedLon)
+            adjustPoint(placeHere, i.m.projectedLon)
             icon.paint(
                 painter,
                 QtCore.QRect(placeHere.x(), placeHere.y(), 20, 20)
@@ -389,9 +371,9 @@ class AstroClock(QtWidgets.QWidget):
             p = getPointAt(circle, angle, offset=-20)
             adjustPoint(p, angle)
             if n == 9:
-                icon = self.sign_icons[self.capricorn_alternate]
+                icon = self.signIcons[self.capricornAlternate]
             else:
-                icon = self.sign_icons[Zodiac(n).name]
+                icon = self.signIcons[Zodiac(n).name]
             icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
             for j in range(1, 30):
                 tick = float(angle + j)
@@ -399,9 +381,9 @@ class AstroClock(QtWidgets.QWidget):
                     off = 10
                 else:
                     off = 5
-                print(tick, j % 15, off)
+                #print(tick, j % 15, off)
                 p = getPointAt(
-                    self.outer_circle,
+                    self._outerCircle,
                     tick,
                     offset=off
                 )
@@ -420,15 +402,15 @@ class AstroClock(QtWidgets.QWidget):
         trans = QtGui.QColor("#000000")
         trans.setAlpha(0)
         painter.setBrush(trans)
-        phm = self.hours.tree.model().sourceModel()
+        phm = self.hourModel
         off = datetime.now(self.observer.timezone)-phm.get_date(0)
-        overall = self.nexts-phm.get_date(0)
+        overall = self.nextSunrise-phm.get_date(0)
         for i in range(24):
             top = phm.get_date(i) - phm.get_date(0)
             offp = off.total_seconds()/overall.total_seconds()
             percent = top.total_seconds()/overall.total_seconds()
             if i == 23:
-                width = self.nexts-phm.get_date(i)
+                width = self.nextSunrise-phm.get_date(i)
             else:
                 width = phm.get_date(i + 1) - phm.get_date(i)
             w = width.total_seconds()/overall.total_seconds() * 360
@@ -456,35 +438,37 @@ class AstroClock(QtWidgets.QWidget):
         painter.setPen(penifiedOFG)
         painter.setBrush(self.outerFill)
 
-        hoursCircle = getOffRect(self.outer_circle, -40)
-        signsCircle = getOffRect(self.outer_circle, -20)
+        hoursCircle = getOffRect(self._outerCircle, -40)
+        signsCircle = getOffRect(self._outerCircle, -20)
         painter.drawEllipse(hoursCircle)
-        self.drawHours(painter, hoursCircle)
+        if self.hourModel is not None and self.hourModel.rowCount() > 0:
+            self.drawHours(painter, hoursCircle)
         painter.drawEllipse(signsCircle)
         prepPie(painter, signsCircle)
-        prepPie(painter, self.outer_circle)
+        prepPie(painter, self._outerCircle)
 
         painter.setPen(penifiedOH)
-        drawHouses(painter, self.signData[0], self.outer_circle)
+        drawHouses(painter, self.signData[0], self._outerCircle)
 
         painter.setBrush(self.innerFill)
         painter.setPen(penifiedIFG)
-        painter.drawEllipse(self.inner_circle)
+        painter.drawEllipse(self._innerCircle)
 
-        prepPie(painter, self.inner_circle)
+        prepPie(painter, self._innerCircle)
         painter.setPen(penifiedIH)
-        drawHouses(painter, self.natData[0], self.inner_circle)
+        drawHouses(painter, self.natData[0], self._innerCircle)
 
         painter.setPen(penifiedOFG)
-        self.drawZodiac(painter, self.outer_circle)
+        self.drawZodiac(painter, self._outerCircle)
         painter.setPen(penifiedIFG)
 
-        self.drawPlanets(painter, self.signData[1], self.outer_circle)
-        self.drawPlanets(painter, self.natData[1], self.inner_circle)
+        self.drawPlanets(painter, self.signData[1], self._outerCircle)
+        self.drawPlanets(painter, self.natData[1], self._innerCircle)
 
-        dt = self.hours.tree.model().sourceModel().get_planet(0)
-        ic = self.icons[dt]
-        ic.paint(painter, self.centerRect.toRect())
+        if self.hourModel is not None and self.hourModel.rowCount() > 0:
+            dt = self.hourModel.get_planet(0)
+            ic = self.icons[dt]
+            ic.paint(painter, self._centerRect.toRect())
 
         c = create_aspect_table(self.natData[1])
         #at, compare = create_aspect_table(self.signData[1], compare=self.natData[1], orbs=self.orbs)
@@ -497,7 +481,7 @@ class AstroClock(QtWidgets.QWidget):
                     aspect.planet1.m.projectedLon,
                     aspect.planet2.m.projectedLon,
                 ], 
-               self.doodle_box
+               self._doodleBox
             )
             sparkles = self._aspectBrushes[aspect.aspect]
             sparkles.setAlpha(50.0)
@@ -510,8 +494,12 @@ class AstroClock(QtWidgets.QWidget):
         elif len(self.natData[1]) == 16:
             need_idx = 12
         if need_idx > 0:
-            yp = yearly_profection(self.observer.dt_now(), self.bd, self.natData[1][need_idx].m)
-            icon = self.sign_icons[yp]
+            yp = yearly_profection(
+                self.observer.dt_now(),
+                self.birthday,
+                self.natData[1][need_idx].m
+            )
+            icon = self.signIcons[yp]
             painter.setPen(penifiedOFG)
             #self.theme.outer['houses'].setBrush(self.inner['fill'])
             painter.drawText(0, 12, "Yearly Profection")

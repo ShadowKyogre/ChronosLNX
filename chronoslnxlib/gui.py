@@ -253,13 +253,13 @@ class ChronosLNX(QtWidgets.QMainWindow):
             self.setCentralWidget(self.astroClock)
 
             self.astroClock.icons = clnxcfg.main_icons
-            self.astroClock.sign_icons = clnxcfg.sign_icons
+            self.astroClock.signIcons = clnxcfg.sign_icons
             self.astroClock.natData = clnxcfg.natal_data
-            self.astroClock.bd = clnxcfg.baby.obvdate
+            self.astroClock.birthday = clnxcfg.baby.obvdate
             self.astroClock.signData = [self.houses, self.zodiac]
-            self.astroClock.hours = self.hoursToday
-            self.astroClock.pluto_alternate = clnxcfg.pluto_alt
-            self.astroClock.capricorn_alternate = clnxcfg.capricorn_alt
+            self.astroClock.hourModel = self.hoursToday.tree.model().sourceModel()
+            self.astroClock.plutoAlternate = clnxcfg.pluto_alt
+            self.astroClock.capricornAlternate = clnxcfg.capricorn_alt
             self.astroClock.orbs = clnxcfg.orbs
             self.astroClock.observer = clnxcfg.observer
             if not clnxcfg.use_css:
@@ -313,8 +313,10 @@ class ChronosLNX(QtWidgets.QMainWindow):
             self.astro_day.next_sunrise
         )
         if self.astroClock is not None:
-            self.astroClock.nexts = self.astro_day.next_sunrise
+            self.astroClock.nextSunrise = self.astro_day.next_sunrise
         self.hoursToday.prepareHours(astro_day=self.astro_day)
+        if self.astroClock is not None:
+            self.astroClock.hourModel = self.hoursToday.tree.model().sourceModel()
         #http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidgetitem.html#setIcon
         #http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/qtreewidget.html
 
@@ -1191,7 +1193,7 @@ class ChronosLNX(QtWidgets.QMainWindow):
                             self.now,
                             self.astro_day.sunset.hour,
                             self.astro_day.sunset.minute,
-                            self.minute.second
+                            self.astro_day.sunset.second
                         )
                     elif hour_item == "Every normal hour":
                         hour_trigger = compare_to_the_second(
