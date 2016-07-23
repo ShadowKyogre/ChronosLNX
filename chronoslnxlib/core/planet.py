@@ -1,9 +1,47 @@
+from enum import Enum, unique
+import re
+
 from .rulerships import RLIST,RTEMPLATE
 from .measurements import Zodiac
 
+camel_spacify = re.compile('([A-Z])([A-Z])([a-z])|([a-z])([A-Z])')
+
+@unique
+class PlanetMovement(Enum):
+    Fake = -2
+    AlwaysForward = -1
+    Normal = 0
+    Retrograde = 1
+    AlwaysRetrograde = 2
+
+    def __init__(self, value):
+        self._label = None
+
+    @property
+    def label(self):
+        '''
+        A user friendly version of an enum's name
+
+        Source: http://stackoverflow.com/a/15370765
+        '''
+        if self._label is None:
+            self._label = camel_spacify.sub(r"\1\4 \2\3\5", self.name)
+        return self._label
+
+    def __repr__(self):
+        return "PlanetState.{0}".format(self.name)
+
+@unique
+class PlanetState(Enum):
+    Fallen = -2
+    Detrimented = -1
+    Normal = 0
+    Dignified = 1
+    Exalted = 2
+
 class Planet:
     def __init__(self, name, m=None, prefix=None, table='Uranian', 
-                 notes=None, retrograde=False):
+                 notes=None, movement=PlanetMovement.Normal):
         self.table = table
         rules=RLIST[table]
         self.name=name
@@ -12,25 +50,19 @@ class Planet:
         self.exalt=definition['exaltation']
         self.prefix=prefix
         self.m=m
-        self.retrograde=retrograde
-
-    def signAsString(self,idx):
-        if idx is None:
-            return None
-        return Zodiac(idx).name
+        self.movement=movement
 
     @property
     def detriments(self):
         if None in self.rules:
             return self.rules
-        return [(self.rules[0]+6)%12,\
-        (self.rules[1]+6)%12]
+        return [ (r + 6) % 12 for r in self.rules ]
 
     @property
     def fall(self):
         if self.exalt is None:
             return None
-        return (self.exalt+6)%12
+        return (self.exalt + 6) % 12
 
     @property
     def realName(self):
@@ -44,15 +76,15 @@ class Planet:
         if self.m is None:
             return None
         if self.m.sign == self.fall:
-            return "Fallen"
+            return PlanetState.Fallen
         if self.m.sign == self.exalt:
-            return "Exalted"
+            return PlanetState.Exalted
         elif self.m.sign in self.rules:
-            return "Dignified"
+            return PlanetState.Dignified
         elif self.m.sign in self.detriments:
-            return "Detrimented"
+            return PlanetState.Detrimented
         else:
-            return None
+            return PlanetState.Normal
 
     def stats(self):
         return (
@@ -62,27 +94,25 @@ class Planet:
             "\nFall in {3}"
         ).format(
             [
-                self.signAsString(self.rules[0]),
-                self.signAsString(self.rules[1]),
+                Zodiac(r) for r in self.rules if r is not None
             ],
             [
-                self.signAsString(self.detriments[0]),
-                self.signAsString(self.detriments[1]),
+                Zodiac(d) for d in self.detriments if d is not None
             ],
-            self.signAsString(self.exalt),
-            self.signAsString(self.fall)
+            Zodiac(self.exalt) if self.exalt is not None else None,
+            Zodiac(self.fall) if self.fall is not None else None
         )
 
     def __repr__(self):
         return (
             "Planet(name={0}, m={1}, prefix={2}, "
-            "table={3}, retrograde={4})"
+            "table={3}, movement={4})"
         ).format(
             repr(self.name),
             repr(self.m),
             repr(self.prefix),
             repr(self.table),
-            repr(self.retrograde)
+            repr(self.movement)
         )
 
     def __str__(self):
@@ -91,13 +121,13 @@ class Planet:
             "{1}"
             "\nMeasurements - {2}"
             "\nStatus - {3}"
-            "\nRetrograde - {4}"
+            "\nMovement - {4}"
         ).format(
             self.realName,
             self.stats(),
             self.m,
-            self.status,
-            self.retrograde
+            self.status.name if self.status is not None else None,
+            self.movement.label
         )
 
     def __eq__(self, planet):

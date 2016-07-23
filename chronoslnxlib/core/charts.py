@@ -14,7 +14,7 @@ from .measurements import (
     HouseMeasurement,
     Zodiac
 )
-from .planet import Planet
+from .planet import Planet, PlanetMovement
 
 def get_transit(planet, observer, date):
     day = datetime_to_julian(date)
@@ -102,11 +102,11 @@ def update_planets_and_cusps(date, observer, houses, entries):
     for i in range(10):
         calcs = swisseph.calc_ut(day, i)
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
-        if i == swisseph.SUN or i == swisseph.MOON:
-            retrograde = 'Not Applicable'
+        if i in {swisseph.SUN, swisseph.MOON}:
+            movement = PlanetMovement.AlwaysForward
         else:
-            retrograde = str(calcs[3] < 0)
-        entries[i].retrograde = retrograde
+            movement = PlanetMovement(int(calcs[3] < 0))
+        entries[i].movement = movement
         entries[i].m.longitude = calcs[0]
         entries[i].m.latitude = calcs[1]
         entries[i].m.progress = hom % 1.0
@@ -114,9 +114,9 @@ def update_planets_and_cusps(date, observer, houses, entries):
     if len(entries) > 10: #add node entries
         calcs = swisseph.calc_ut(day, swisseph.TRUE_NODE)
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
-        retrograde = "Always"
+        movement = PlanetMovement.AlwaysRetrograde
 
-        entries[10].retrograde = retrograde
+        entries[10].movement = movement
         entries[10].m.longitude = calcs[0]
         entries[10].m.latitude = calcs[1]
         entries[10].m.progress = hom%1.0
@@ -127,7 +127,7 @@ def update_planets_and_cusps(date, observer, houses, entries):
         revhouse = (int(hom)+6)%12
         #revprogress = 1-hom%1.0
         revprogress = hom%1.0
-        entries[11].retrograde = retrograde
+        entries[11].movement = movement
         entries[11].m.longitude = reverse
         entries[11].m.latitude = calcs[1]
         entries[11].m.progress = revprogress
@@ -137,7 +137,7 @@ def update_planets_and_cusps(date, observer, houses, entries):
         descendant = cusps[6]
         mc = asmc[1]
         ic = cusps[3]
-        retrograde = 'Not a Planet'
+        movement = PlanetMovement.Fake
 
         entries[12].m.longitude = ascendant
         entries[13].m.longitude = descendant
@@ -182,7 +182,7 @@ def average_house(comp_asc, asc1, asc2, x, y):
     return h
 
 def average_planet(houses, house_keys, x, y):
-    if x.retrograde == 'Not a Planet':
+    if x.movement == PlanetMovement.Fake:
         if x.name == 'Ascendant':
             newhouse = 0
         elif x.name == 'Descendant':
@@ -201,7 +201,7 @@ def average_planet(houses, house_keys, x, y):
             x.name,
             prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
             m=zm,
-            retrograde='Not a Planet'
+            movement = PlanetMovement.Fake
         )
     else:
         avglong  = angle_average(x.m.longitude, y.m.longitude)
@@ -219,7 +219,7 @@ def average_planet(houses, house_keys, x, y):
             x.name,
             prefix='Composite {0} {1}'.format(x.prefix, y.prefix),
             m=zm,
-            retrograde='Not Applicable'
+            movement = PlanetMovement.Fake
         )
 
 def average_signs(houses1, entries1, houses2, entries2):
@@ -251,17 +251,17 @@ def get_signs(date, observer, nodes, axes, prefix=None):
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
         zm = ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
         if i == swisseph.SUN or i == swisseph.MOON:
-            retrograde = 'Not Applicable'
+            movement = PlanetMovement.AlwaysForward
         else:
-            retrograde = str(calcs[3] < 0)
-        planet = Planet(swisseph.get_planet_name(i), prefix=prefix, m=zm, retrograde=retrograde)
+            movement = PlanetMovement(int(calcs[3] < 0))
+        planet = Planet(swisseph.get_planet_name(i), prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
     if nodes: #add node entries
         calcs = swisseph.calc_ut(day, swisseph.TRUE_NODE)
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
         zm = ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
-        retrograde = "Always"
-        planet = Planet("North Node", prefix=prefix, m=zm, retrograde=retrograde)
+        movement = PlanetMovement.AlwaysRetrograde
+        planet = Planet("North Node", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
         #do some trickery to display the South Node
@@ -270,29 +270,29 @@ def get_signs(date, observer, nodes, axes, prefix=None):
         #revprogress = 1-hom%1.0
         revprogress = hom % 1.0
         zm = ActiveZodiacalMeasurement(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
-        planet = Planet("South Node", prefix=prefix, m=zm, retrograde=retrograde)
+        planet = Planet("South Node", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
     if axes:
         ascendant = asmc[0]
         descendant = cusps[6]
         mc = asmc[1]
         ic = cusps[3]
-        retrograde = 'Not a Planet'
+        movement = PlanetMovement.Fake
 
         zm = ActiveZodiacalMeasurement(ascendant, 0.0, houses[0], progress=0.0)
-        planet = Planet("Ascendant", prefix=prefix, m=zm, retrograde=retrograde)
+        planet = Planet("Ascendant", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
         zm = ActiveZodiacalMeasurement(descendant, 0.0, houses[6], progress=0.0)
-        planet = Planet("Descendant", prefix=prefix, m=zm, retrograde=retrograde)
+        planet = Planet("Descendant", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
         zm = ActiveZodiacalMeasurement(mc, 0.0, houses[9], progress=0.0)
-        planet = Planet("MC", prefix=prefix, m=zm, retrograde=retrograde)
+        planet = Planet("MC", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
         zm = ActiveZodiacalMeasurement(ic, 0.0, houses[3], progress=0.0)
-        planet = Planet("IC", prefix=prefix, m=zm, retrograde=retrograde)
+        planet = Planet("IC", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
     #if stars:

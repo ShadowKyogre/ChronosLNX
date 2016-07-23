@@ -419,7 +419,7 @@ class SignsForDayList(QtWidgets.QWidget):
         self.tree = QtWidgets.QTreeWidget(self)
         self.tree.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tree.setRootIsDecorated(False)
-        self.tree.setHeaderLabels(["Planet", "Constellation", "Angle", "Retrograde?", "House"])
+        self.tree.setHeaderLabels(["Planet", "Constellation", "Angle", "Movement", "House"])
         self.tree.setColumnCount(5)
         vbox.addWidget(self.tree)
         self.time.setDisplayFormat("HH:mm:ss")
@@ -485,7 +485,7 @@ class SignsForDayList(QtWidgets.QWidget):
                 "\nOr {1:.3f}, if ecliptic latitude is considered."
             ).format(i.m.longitude, i.m.projectedLon)
             item.setToolTip(2, coord_tooltip)
-            item.setText(3, i.retrograde)
+            item.setText(3, i.movement.label)
             item.setText(4, str(i.m.house_info.num))
             item.setToolTip(4, i.m.status())
             self.tree.addTopLevelItem(item)

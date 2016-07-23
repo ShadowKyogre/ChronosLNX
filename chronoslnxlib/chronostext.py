@@ -30,19 +30,25 @@ def prepare_sign_info(date, observer, nodes, admi):
     for hour in range(0, 24):
         sinfo.append("Info at {0}:00".format(hour))
         for i in signs:
-            sinfo.append("{0} - {1} - {2} - {3} - {4}".format(i.name, i.m.signData.name, 
-                                                    i.m.only_degs(), i.retrograde, 
-                                                    i.m.house_info.num)
-                        )
+            sinfo.append(
+                "{0} - {1} - {2} - {3} - {4}".format(
+                    i.name, i.m.signData.name,
+                    i.m.only_degs(), i.movement.label, 
+                    i.m.house_info.num
+                )
+            )
         sinfo.append("\nHouses overview:")
         for i in houses:
-            sinfo.append("{0} - {1} - {2} - {3} - {4} - {5}".format("House {0}".format(i.num),
-                                                         i.natRulerData.name,
-                                                         i.cusp.signData.name,
-                                                         i.cusp.only_degs(),
-                                                         i.end.signData.name,
-                                                         i.end.only_degs())
-                        )
+            sinfo.append(
+                "{0} - {1} - {2} - {3} - {4} - {5}".format(
+                    "House {0}".format(i.num),
+                     i.natRulerData.name,
+                     i.cusp.signData.name,
+                     i.cusp.only_degs(),
+                     i.end.signData.name,
+                     i.end.only_degs()
+                 )
+            )
         date = date+timedelta(hours=1)
         update_planets_and_cusps(date, observer, houses, signs)
             #sinfo.append("\n")
