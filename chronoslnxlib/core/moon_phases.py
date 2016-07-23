@@ -1,8 +1,25 @@
+from enum import Enum
+
 import swisseph
 
 from . import datetime_to_julian, revjul_to_datetime, angle_sub
 from . import date_to_moon_cycles, moon_cycles_to_jul
 from . import LUNAR_MONTH_DAYS, LAST_NM
+
+class MoonPhaseOffset(Enum):
+    NewMoon = (0, 0)
+    WaxingCrescent = (0, -45)
+    FirstQuarter = (0, -90)
+    WaxingGibbous = (0, -135)
+    FullMoon = (0, 180)
+    WaningGibbous = (1, 135)
+    LastQuarter = (1, 90)
+    WaningCrescent = (1, 45)
+    EndingNewMoon = (1, 0)
+
+    def __init__(self, cycle_offset, target_angle):
+        self.cycle_offset = cycle_offset
+        self.target_angle = target_angle
 
 ### UTILITY FUNCTIONS FOR predict_phase ###
 
@@ -89,31 +106,15 @@ def state_to_string(state_line, planet):
     return state
 
 def get_moon_cycle(date):
-    new_m_start = predict_phase(date, target_angle=0)
-    wax_crescent = predict_phase(date, target_angle=-45)
-    first_quarter = predict_phase(date, target_angle=-90)
-    wax_gib = predict_phase(date, target_angle=-135)
-    full_m = predict_phase(date, target_angle=180)
-    wan_gib = predict_phase(date, offset=1, target_angle=135)
-    last_quarter = predict_phase(date, offset=1, target_angle=90)
-    wan_crescent = predict_phase(date, offset=1, target_angle=45)
-    new_m_end = predict_phase(date, offset=1, target_angle=0)
 
     moon_phase = []
-    items = [
-        new_m_start,
-        wax_crescent,
-        first_quarter,
-        wax_gib,
-        full_m,
-        wan_gib,
-        last_quarter,
-        wan_crescent,
-        new_m_end
-    ]
 
-    for i in items:
-        state_line = grab_phase(i)
+    for phase_offset in MoonPhaseOffset:
+        o, ta = phase_offset.value
+        phase_dt = predict_phase(date, offset=0, target_angle=ta)
+
+        state_line = grab_phase(phase_dt)
         state = state_to_string(state_line, swisseph.MOON)
-        moon_phase.append([i, state, state_line[2]])
+        moon_phase.append([phase_dt, state, state_line[2]])
+
     return moon_phase
