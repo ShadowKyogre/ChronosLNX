@@ -19,22 +19,43 @@ def tuplify(date):
 
 test_cases = {
     datetime(1900, 1, 1, 13, 52, tzinfo=tz.gettz('UTC')): {
-        MoonPhaseOffset.NewMoon:   datetime(1900, 1,  1, 13, 52, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FirstQuarter: datetime(1900, 1,  8,  5, 40, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FullMoon: datetime(1900, 1, 15, 19,  7, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.LastQuarter:  datetime(1900, 1, 23, 23, 53, tzinfo=tz.gettz('UTC')),
+        MoonPhaseOffset.NewMoon:
+            datetime(1900, 1,  1, 13, 52, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FirstQuarter:
+            datetime(1900, 1,  8,  5, 40, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FullMoon:
+            datetime(1900, 1, 15, 19,  7, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.LastQuarter:
+            datetime(1900, 1, 23, 23, 53, tzinfo=tz.gettz('UTC')),
     },
     datetime(2015, 9, 23, 13, 52, 58, tzinfo=tz.gettz('UTC')): {
-        MoonPhaseOffset.NewMoon:   datetime(2015, 9, 13,  6, 41, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FirstQuarter: datetime(2015, 9, 21,  8, 59, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FullMoon: datetime(2015, 9, 28,  2, 50, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.LastQuarter:  datetime(2015,10,  4, 21,  6, tzinfo=tz.gettz('UTC')),
+        MoonPhaseOffset.NewMoon:
+            datetime(2015, 9, 13,  6, 41, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FirstQuarter:
+            datetime(2015, 9, 21,  8, 59, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FullMoon:
+            datetime(2015, 9, 28,  2, 50, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.LastQuarter:
+            datetime(2015,10,  4, 21,  6, tzinfo=tz.gettz('UTC')),
     },
     datetime(2015, 6, 1, 12, 0, 0, tzinfo=tz.gettz('UTC')): {
-        MoonPhaseOffset.NewMoon:   datetime(2015, 5, 18,  4, 13, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FirstQuarter: datetime(2015, 5, 25, 17, 19, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.FullMoon: datetime(2015, 6,  2, 16, 19, tzinfo=tz.gettz('UTC')),
-        MoonPhaseOffset.LastQuarter:  datetime(2015, 6,  9, 15, 42, tzinfo=tz.gettz('UTC')),
+        MoonPhaseOffset.NewMoon:
+            datetime(2015, 5, 18,  4, 13, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FirstQuarter:
+            datetime(2015, 5, 25, 17, 19, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.FullMoon:
+            datetime(2015, 6,  2, 16, 19, tzinfo=tz.gettz('UTC')),
+
+        MoonPhaseOffset.LastQuarter:
+            datetime(2015, 6,  9, 15, 42, tzinfo=tz.gettz('UTC')),
     },
 }
 
