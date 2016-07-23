@@ -1,6 +1,6 @@
 #http://www.kimgentes.com/worshiptech-web-tools-page/2008/10/14/regex-pattern-for-parsing-csv-files-with-embedded-commas-dou.html
 #http://doc.qt.nokia.com/qq/qq26-pyqtdesigner.html#creatingacustomwidget
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 #import re
 from dateutil import tz
 from datetime import datetime
@@ -150,10 +150,10 @@ self.moonToday.refinement=clnxcfg.refinements['Moon Phase']
     if self.now >= self.next_sunrise:
         self.update_moon_cycle()
 '''
-class MoonCycleList(QtGui.QTreeView):
+class MoonCycleList(QtWidgets.QTreeView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setRootIsDecorated(False)
         self.setModel(MPModel())
 
@@ -166,18 +166,18 @@ class MoonCycleList(QtGui.QTreeView):
     def get_moon_cycle(self, date, observer):
         self.setModel(MPModel.getMoonCycle(date, self.icons, observer))
 
-class PlanetaryHoursList(QtGui.QWidget):
+class PlanetaryHoursList(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        hbox = QtGui.QVBoxLayout(self)
-        self.tree = QtGui.QTreeView(self)
-        self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        hbox = QtWidgets.QVBoxLayout(self)
+        self.tree = QtWidgets.QTreeView(self)
+        self.tree.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tree.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tree.setRootIsDecorated(False)
 
-        inputstuff = QtGui.QGridLayout()
-        inputstuff.addWidget(QtGui.QLabel("Hour type to filter"), 0, 0)
-        self.filter_hour = QtGui.QComboBox(self)
+        inputstuff = QtWidgets.QGridLayout()
+        inputstuff.addWidget(QtWidgets.QLabel("Hour type to filter"), 0, 0)
+        self.filter_hour = QtWidgets.QComboBox(self)
         self.filter_hour.addItem("All")
         self.filter_hour.addItem("Sun")
         self.filter_hour.addItem("Moon")
@@ -191,7 +191,7 @@ class PlanetaryHoursList(QtGui.QWidget):
         hbox.addLayout(inputstuff)
         hbox.addWidget(self.tree)
         model = PHModel()
-        filter_model = QtGui.QSortFilterProxyModel()
+        filter_model = QtCore.QSortFilterProxyModel()
         filter_model.setSourceModel(model)
         filter_model.setFilterKeyColumn(1)
         self.tree.setModel(filter_model)
@@ -224,28 +224,35 @@ class PlanetaryHoursList(QtGui.QWidget):
 
 ### Sign stuff
 
-class AspectTableDisplay(QtGui.QWidget):
+class AspectTableDisplay(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        vbox = QtGui.QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         self.tableAspects = QtGui.QStandardItemModel()
         self.tableSpecial = QtGui.QStandardItemModel()
         self.headers = []
 
         sa = ["Yod", "Grand Trine", "Grand Cross", "T-Square", "Stellium"]
 
-        self.guiAspects = QtGui.QTableView(self)
-        self.guiSpecial = QtGui.QTableView(self)
-        vbox.addWidget(QtGui.QLabel("General Aspects:\nThe row indicates the planet being aspected."))
+        self.guiAspects = QtWidgets.QTableView(self)
+        self.guiSpecial = QtWidgets.QTableView(self)
+        vbox.addWidget(
+            QtWidgets.QLabel(
+                (
+                    "General Aspects:"
+                    "\nThe row indicates the planet being aspected."
+                )
+            )
+        )
         vbox.addWidget(self.guiAspects)
-        vbox.addWidget(QtGui.QLabel("Special Aspects"))
+        vbox.addWidget(QtWidgets.QLabel("Special Aspects"))
         vbox.addWidget(self.guiSpecial)
 
         self.guiAspects.setModel(self.tableAspects)
-        self.guiAspects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.guiAspects.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         self.guiSpecial.setModel(self.tableSpecial)
-        self.guiSpecial.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.guiSpecial.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         self.tableSpecial.setColumnCount(5)
         self.tableSpecial.setHorizontalHeaderLabels(sa)
@@ -331,16 +338,16 @@ class AspectTableDisplay(QtGui.QWidget):
 def aspectsDialog(widget, zodiac, other_table,
         icons, sign_icons, pluto_alternate,
         admi, nodes, orbs):
-    info_dialog = QtGui.QDialog(widget)
+    info_dialog = QtWidgets.QDialog(widget)
     info_dialog.setWindowTitle("Aspectarian")
-    tabs = QtGui.QTabWidget(info_dialog)
+    tabs = QtWidgets.QTabWidget(info_dialog)
     aspects = AspectTableDisplay(info_dialog)
     aspects.icons = icons
     aspects.sign_icons = sign_icons
     aspects.pluto_alternate = pluto_alternate
     aspects.admi = admi
     aspects.nodes = nodes
-    vbox = QtGui.QVBoxLayout(info_dialog)
+    vbox = QtWidgets.QVBoxLayout(info_dialog)
     tabs.addTab(aspects, "Aspects for this table")
     vbox.addWidget(tabs)
     if other_table:
@@ -361,17 +368,17 @@ def aspectsDialog(widget, zodiac, other_table,
     info_dialog.show()
 
 def housesDialog(widget, houses, capricorn_alternate, sign_icons):
-    info_dialog = QtGui.QDialog(widget)
+    info_dialog = QtWidgets.QDialog(widget)
     info_dialog.setWindowTitle("Houses Overview")
-    tree = QtGui.QTreeWidget(info_dialog)
-    tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+    tree = QtWidgets.QTreeWidget(info_dialog)
+    tree.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
     tree.setRootIsDecorated(False)
     tree.setHeaderLabels(["Number", "Natural Ruler", "Cusp Sign", "Degrees", "End Sign", "Degrees"])
     tree.setColumnCount(6)
-    vbox = QtGui.QVBoxLayout(info_dialog)
+    vbox = QtWidgets.QVBoxLayout(info_dialog)
     vbox.addWidget(tree)
     for i in houses:
-        item = QtGui.QTreeWidgetItem()
+        item = QtWidgets.QTreeWidgetItem()
         item.setText(0, str(i.num))
         item.setToolTip(0, str(i))
         if i.natRulerData.name == "Capricorn":
@@ -399,27 +406,27 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
         tree.addTopLevelItem(item)
     info_dialog.show()
 
-class SignsForDayList(QtGui.QWidget):
+class SignsForDayList(QtWidgets.QWidget):
     def __init__(self, icons, sign_icons, admi, nodes, pluto_alt, cprc_alt, 
                  table=None, orbs=DEFAULT_ORBS, parent=None):
         super().__init__(parent=parent)
-        vbox = QtGui.QVBoxLayout(self)
-        grid = QtGui.QGridLayout()
+        vbox = QtWidgets.QVBoxLayout(self)
+        grid = QtWidgets.QGridLayout()
         vbox.addLayout(grid)
-        grid.addWidget(QtGui.QLabel("Pick a time to view for"), 0, 0)
-        self.time = QtGui.QTimeEdit()
+        grid.addWidget(QtWidgets.QLabel("Pick a time to view for"), 0, 0)
+        self.time = QtWidgets.QTimeEdit()
         grid.addWidget(self.time, 0, 1)
-        self.tree = QtGui.QTreeWidget(self)
-        self.tree.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tree = QtWidgets.QTreeWidget(self)
+        self.tree.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tree.setRootIsDecorated(False)
         self.tree.setHeaderLabels(["Planet", "Constellation", "Angle", "Retrograde?", "House"])
         self.tree.setColumnCount(5)
         vbox.addWidget(self.tree)
         self.time.setDisplayFormat("HH:mm:ss")
         self.time.timeChanged.connect(self.update_degrees)
-        button = QtGui.QPushButton("&Aspects")
+        button = QtWidgets.QPushButton("&Aspects")
         button.clicked.connect(self.showAspects)
-        button2 = QtGui.QPushButton("&Houses Overview")
+        button2 = QtWidgets.QPushButton("&Houses Overview")
         button2.clicked.connect(self.showHouses)
         grid.addWidget(button, 2, 0)
         grid.addWidget(button2, 2, 1)
@@ -457,7 +464,7 @@ class SignsForDayList(QtGui.QWidget):
         if not self.z:
             self.z = zodiac
         for i in zodiac:
-            item = QtGui.QTreeWidgetItem()
+            item = QtWidgets.QTreeWidgetItem()
             if self.pluto_alternate and i.name == "Pluto":
                 item.setIcon(0, self.icons['Pluto 2'])
             elif i.name in {"Ascendant", "Descendant", "MC", "IC"}:

@@ -15,7 +15,7 @@ from shlex import split
 from subprocess import call
 from re import findall, match, sub
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 import swisseph
 
 from . import geolocationwidget ## from example, but modified a little
@@ -42,7 +42,7 @@ pynf = True
 
 #http://pastebin.com/BvNx9wdk
 
-class ReusableDialog(QtGui.QDialog):
+class ReusableDialog(QtWidgets.QDialog):
     # because some dialogs are better if they're made and
     # just re-used instead of completely reconstructed
     def __init__(self, *args):
@@ -53,7 +53,7 @@ class ReusableDialog(QtGui.QDialog):
             self.hide()
             event.ignore()
 
-class ChronosLNX(QtGui.QMainWindow):
+class ChronosLNX(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.prevtime = None
@@ -85,23 +85,23 @@ class ChronosLNX(QtGui.QMainWindow):
             self.astroClock = None
         #self.astroClock.hide()
 
-        self.todayOther = QtGui.QLabel()
+        self.todayOther = QtWidgets.QLabel()
 
         self.todayOther.setTextFormat(QtCore.Qt.RichText)
 
-        docktlabel = QtGui.QDockWidget(self)
+        docktlabel = QtWidgets.QDockWidget(self)
         docktlabel.setWidget(self.todayOther)
         docktlabel.setWindowTitle("Info for Today")
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, docktlabel)
 
-        dockcalendar = QtGui.QDockWidget(self)
+        dockcalendar = QtWidgets.QDockWidget(self)
         self.calendar = AstroCalendar(dockcalendar)
         dockcalendar.setWidget(self.calendar)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dockcalendar)
         dockcalendar.setWindowTitle("Calendar")
         self.make_calendar_menu()
 
-        aspectsAction = QtGui.QAction(
+        aspectsAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme("view-calendar-list"),
             'Aspects for Now',
             self
@@ -120,7 +120,7 @@ class ChronosLNX(QtGui.QMainWindow):
             )
         )
 
-        housesAction = QtGui.QAction(
+        housesAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme("measure"),
             'Houses for Now',
             self
@@ -134,7 +134,7 @@ class ChronosLNX(QtGui.QMainWindow):
             )
         )
 
-        natalAction = QtGui.QAction(
+        natalAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme("view-calendar-birthday"),
             '&View Natal Data',
             self
@@ -146,28 +146,28 @@ class ChronosLNX(QtGui.QMainWindow):
             )
         )
 
-        saveRangeAction = QtGui.QAction(
+        saveRangeAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme("document-save-as"),
             'Save data from dates',
             self
         )
         saveRangeAction.triggered.connect(self.save_for_range_dialog.open)
 
-        settingsAction = QtGui.QAction(
+        settingsAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme('preferences-other'),
             'Settings',
             self
         )
         settingsAction.triggered.connect(self.settings_dialog.open)
 
-        helpAction = QtGui.QAction(
+        helpAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme('help-contents'),
             'Help',
             self
         )
         helpAction.triggered.connect(self.show_help)
 
-        aboutAction = QtGui.QAction(
+        aboutAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme('help-about'),
             'About',
             self
@@ -190,19 +190,19 @@ class ChronosLNX(QtGui.QMainWindow):
         #dayinfo.addWidget(self.todayPicture)
         #dayinfo.addWidget(self.todayOther)
 
-        dockhours = QtGui.QDockWidget(self)
+        dockhours = QtWidgets.QDockWidget(self)
         self.hoursToday = PlanetaryHoursList(self)
         dockhours.setWindowTitle("Planetary Hours")
         dockhours.setWidget(self.hoursToday)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dockhours)
 
-        dockmoon = QtGui.QDockWidget(self)
+        dockmoon = QtWidgets.QDockWidget(self)
         self.moonToday = MoonCycleList(self)
         dockmoon.setWindowTitle("Moon Phases")
         dockmoon.setWidget(self.moonToday)
         self.tabifyDockWidget(dockhours, dockmoon)
 
-        docksigns = QtGui.QDockWidget(self)
+        docksigns = QtWidgets.QDockWidget(self)
         self.signsToday = SignsForDayList(
             clnxcfg.main_icons,
             clnxcfg.sign_icons,
@@ -218,7 +218,7 @@ class ChronosLNX(QtGui.QMainWindow):
         docksigns.setWidget(self.signsToday)
         self.tabifyDockWidget(dockmoon, docksigns)
 
-        dockevents = QtGui.QDockWidget(self)
+        dockevents = QtWidgets.QDockWidget(self)
         self.eventsToday = EventsList(self)
         dockevents.setWindowTitle("Events")
         dockevents.setWidget(self.eventsToday)
@@ -342,7 +342,7 @@ class ChronosLNX(QtGui.QMainWindow):
                     pixmap = self.main_pixmaps[self.phour]
                 else:
                     pixmap = self.main_pixmaps['logo']
-                dialog = QtGui.QMessageBox(self)
+                dialog = QtWidgets.QMessageBox(self)
                 dialog.setTitle(title)
                 dialog.setTitle(text)
                 dialog.setIconPixmap(pixmap)
@@ -352,7 +352,7 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
 
     def get_info_for_date(self, date, birth=False):
-        info_dialog = QtGui.QDialog(self)
+        info_dialog = QtWidgets.QDialog(self)
         dateinfo = "Info for {0}".format(date.strftime("%m/%d/%Y"))
         if birth:
             ob = clnxcfg.baby
@@ -365,8 +365,8 @@ class ChronosLNX(QtGui.QMainWindow):
             text = ""
         infotext = "{dateinfo}{text}".format(**locals())
         info_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        vbox = QtGui.QVBoxLayout(info_dialog)
-        vbox.addWidget(QtGui.QLabel(text))
+        vbox = QtWidgets.QVBoxLayout(info_dialog)
+        vbox.addWidget(QtWidgets.QLabel(text))
 
         hoursToday = PlanetaryHoursList(info_dialog)
         hoursToday.icons = clnxcfg.main_icons
@@ -394,7 +394,7 @@ class ChronosLNX(QtGui.QMainWindow):
         eventsToday.tree.setModel(model)
         eventsToday.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        dayData = QtGui.QTabWidget(info_dialog)
+        dayData = QtWidgets.QTabWidget(info_dialog)
 
         hoursToday.prepareHours(date, ob)
         moonToday.get_moon_cycle(date, clnxcfg.observer)
@@ -421,30 +421,30 @@ class ChronosLNX(QtGui.QMainWindow):
         self.save_for_range_dialog = ReusableDialog(self)
         self.save_for_range_dialog.setFixedSize(380, 280)
         self.save_for_range_dialog.setWindowTitle("Save Data for Dates")
-        grid = QtGui.QGridLayout(self.save_for_range_dialog)
+        grid = QtWidgets.QGridLayout(self.save_for_range_dialog)
 
-        self.save_for_range_dialog.date_start = QtGui.QDateTimeEdit(self.save_for_range_dialog)
+        self.save_for_range_dialog.date_start = QtWidgets.QDateTimeEdit(self.save_for_range_dialog)
         self.save_for_range_dialog.date_start.setDisplayFormat("MM/dd/yyyy")
-        self.save_for_range_dialog.date_end = QtGui.QDateTimeEdit(self.save_for_range_dialog)
+        self.save_for_range_dialog.date_end = QtWidgets.QDateTimeEdit(self.save_for_range_dialog)
         self.save_for_range_dialog.date_end.setDisplayFormat("MM/dd/yyyy")
 
-        grid.addWidget(QtGui.QLabel("Save from"), 0, 0)
+        grid.addWidget(QtWidgets.QLabel("Save from"), 0, 0)
         grid.addWidget(self.save_for_range_dialog.date_start, 0, 1)
-        grid.addWidget(QtGui.QLabel("To"), 1, 0)
+        grid.addWidget(QtWidgets.QLabel("To"), 1, 0)
         grid.addWidget(self.save_for_range_dialog.date_end, 1, 1)
-        grid.addWidget(QtGui.QLabel("Data to Save"), 2, 0)
+        grid.addWidget(QtWidgets.QLabel("Data to Save"), 2, 0)
 
-        self.save_for_range_dialog.checkboxes = QtGui.QButtonGroup()
+        self.save_for_range_dialog.checkboxes = QtWidgets.QButtonGroup()
         self.save_for_range_dialog.checkboxes.setExclusive(False)
-        checkboxes_frame = QtGui.QFrame(self.save_for_range_dialog)
+        checkboxes_frame = QtWidgets.QFrame(self.save_for_range_dialog)
 
-        vbox = QtGui.QVBoxLayout(checkboxes_frame)
+        vbox = QtWidgets.QVBoxLayout(checkboxes_frame)
 
-        all_check = QtGui.QCheckBox("All", checkboxes_frame)
-        ph_check = QtGui.QCheckBox("Planetary Hours", checkboxes_frame)
-        s_check = QtGui.QCheckBox("Planetary Signs", checkboxes_frame)
-        m_check = QtGui.QCheckBox("Moon Phase", checkboxes_frame)
-        e_check = QtGui.QCheckBox("Events", checkboxes_frame)
+        all_check = QtWidgets.QCheckBox("All", checkboxes_frame)
+        ph_check = QtWidgets.QCheckBox("Planetary Hours", checkboxes_frame)
+        s_check = QtWidgets.QCheckBox("Planetary Signs", checkboxes_frame)
+        m_check = QtWidgets.QCheckBox("Moon Phase", checkboxes_frame)
+        e_check = QtWidgets.QCheckBox("Events", checkboxes_frame)
 
         self.save_for_range_dialog.checkboxes.addButton(all_check)
         self.save_for_range_dialog.checkboxes.addButton(ph_check)
@@ -460,27 +460,27 @@ class ChronosLNX(QtGui.QMainWindow):
 
         grid.addWidget(checkboxes_frame, 2, 1)
 
-        grid.addWidget(QtGui.QLabel("Folder to save in"), 3, 0)
-        hbox = QtGui.QHBoxLayout()
-        self.save_for_range_dialog.filename = QtGui.QLineEdit(self.save_for_range_dialog)
-        button = QtGui.QPushButton(self.save_for_range_dialog)
+        grid.addWidget(QtWidgets.QLabel("Folder to save in"), 3, 0)
+        hbox = QtWidgets.QHBoxLayout()
+        self.save_for_range_dialog.filename = QtWidgets.QLineEdit(self.save_for_range_dialog)
+        button = QtWidgets.QPushButton(self.save_for_range_dialog)
         button.setIcon(QtGui.QIcon.fromTheme("document-open"))
         button.clicked.connect(self.get_folder_name)
         hbox.addWidget(self.save_for_range_dialog.filename)
         hbox.addWidget(button)
         grid.addLayout(hbox, 3, 1)
 
-        buttonbox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
-        okbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+        buttonbox = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal)
+        okbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Ok)
         okbutton.clicked.connect(self.mass_print)
-        cancelbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+        cancelbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Cancel)
         cancelbutton.clicked.connect(self.save_for_range_dialog.hide)
         grid.addWidget(buttonbox, 4, 0, 1, 2)
 
     def get_folder_name(self):
-        text = QtGui.QFileDialog.getExistingDirectory(
+        text = QtWidgets.QFileDialog.getExistingDirectory(
             caption="Save in folder...",
-            options=QtGui.QFileDialog.ShowDirsOnly
+            options=QtWidgets.QFileDialog.ShowDirsOnly
         )
         self.save_for_range_dialog.filename.setText(text)
 
@@ -580,7 +580,7 @@ class ChronosLNX(QtGui.QMainWindow):
         else:  #option == "Events"
             text = prepare_events(date, clnxcfg.schedule)
         if filename is None:
-            filename = QtGui.QFileDialog.getSaveFileName(
+            filename = QtWidgets.QFileDialog.getSaveFileName(
                 self,
                 caption="Saving {0} for {1}".format(option, date.strftime("%m/%d/%Y")),
                 filter="*.txt"
@@ -617,7 +617,7 @@ class ChronosLNX(QtGui.QMainWindow):
             date3 = self.calendar.solarReturnTime
 
         #self.calendar.setGridVisible(True)
-        menu = QtGui.QMenu(self.calendar)
+        menu = QtWidgets.QMenu(self.calendar)
         if date2:
             lritem_label = "Lunar Return for {0}".format(date.strftime("%m/%d/%Y"))
             lritem = menu.addAction(lritem_label)
@@ -788,13 +788,13 @@ class ChronosLNX(QtGui.QMainWindow):
     def make_settings_dialog(self):
         self.settings_dialog = ReusableDialog(self)
         self.settings_dialog.setWindowTitle("Settings")
-        tabs = QtGui.QTabWidget(self.settings_dialog)
+        tabs = QtWidgets.QTabWidget(self.settings_dialog)
 
-        location_page = QtGui.QFrame()
-        appearance_page = QtGui.QFrame()
-        events_page = QtGui.QFrame()
-        tweaks_page = QtGui.QFrame()
-        calculations_page = QtGui.QFrame()
+        location_page = QtWidgets.QFrame()
+        appearance_page = QtWidgets.QFrame()
+        events_page = QtWidgets.QFrame()
+        tweaks_page = QtWidgets.QFrame()
+        calculations_page = QtWidgets.QFrame()
 
         tabs.addTab(location_page, "Your Info")
         tabs.addTab(appearance_page, "Appearance")
@@ -802,37 +802,37 @@ class ChronosLNX(QtGui.QMainWindow):
         tabs.addTab(tweaks_page, "Tweaks")
         tabs.addTab(calculations_page, "Calculations")
 
-        groupbox = QtGui.QGroupBox("Current Location", location_page)
-        groupbox2 = QtGui.QGroupBox("Birth Information", location_page)
+        groupbox = QtWidgets.QGroupBox("Current Location", location_page)
+        groupbox2 = QtWidgets.QGroupBox("Birth Information", location_page)
         self.settings_dialog.location_widget = geolocationwidget.GeoLocationWidget(groupbox)
-        vbox = QtGui.QVBoxLayout(location_page)
-        gvbox = QtGui.QVBoxLayout(groupbox)
+        vbox = QtWidgets.QVBoxLayout(location_page)
+        gvbox = QtWidgets.QVBoxLayout(groupbox)
         gvbox.addWidget(self.settings_dialog.location_widget)
 
         vbox.addWidget(groupbox)
         vbox.addWidget(groupbox2)
 
         self.settings_dialog.birth_widget = geolocationwidget.GeoLocationWidget(groupbox2)
-        self.settings_dialog.date = QtGui.QDateTimeEdit(groupbox2)
+        self.settings_dialog.date = QtWidgets.QDateTimeEdit(groupbox2)
         self.settings_dialog.date.setDateRange(
             QtCore.QDate(1902, 1, 1),
             QtCore.QDate(2037, 1, 1)
         )
         self.settings_dialog.date.setDisplayFormat("MM/dd/yyyy - HH:mm:ss")
 
-        tgrid = QtGui.QGridLayout(groupbox2)
+        tgrid = QtWidgets.QGridLayout(groupbox2)
         tgrid.addWidget(self.settings_dialog.birth_widget, 0, 0, 3, 2)
-        tgrid.addWidget(QtGui.QLabel("Birth time"), 3, 0)
+        tgrid.addWidget(QtWidgets.QLabel("Birth time"), 3, 0)
         tgrid.addWidget(self.settings_dialog.date, 3, 1)
 
-        layout = QtGui.QVBoxLayout(self.settings_dialog)
+        layout = QtWidgets.QVBoxLayout(self.settings_dialog)
         layout.addWidget(tabs)
 
-        grid = QtGui.QGridLayout(appearance_page)
-        appearance_label = QtGui.QLabel("Icon theme")
-        self.settings_dialog.appearance_icons = QtGui.QComboBox()
+        grid = QtWidgets.QGridLayout(appearance_page)
+        appearance_label = QtWidgets.QLabel("Icon theme")
+        self.settings_dialog.appearance_icons = QtWidgets.QComboBox()
         self.settings_dialog.appearance_icons.addItem("None")
-        self.settings_dialog.css_check = QtGui.QCheckBox(
+        self.settings_dialog.css_check = QtWidgets.QCheckBox(
             "Use the custom UI styling in the theme",
             appearance_page
         )
@@ -844,7 +844,7 @@ class ChronosLNX(QtGui.QMainWindow):
 
         grid.addWidget(appearance_label, 0, 0)
         grid.addWidget(self.settings_dialog.appearance_icons, 0, 1)
-        self.settings_dialog.override_ui_icon = QtGui.QLineEdit(appearance_page)
+        self.settings_dialog.override_ui_icon = QtWidgets.QLineEdit(appearance_page)
         self.settings_dialog.override_ui_icon.setToolTip(
             (
                 "You should only set this if"
@@ -855,29 +855,29 @@ class ChronosLNX(QtGui.QMainWindow):
                 "Currently detected icon theme by system: {0}"
             ).format(clnxcfg.sys_icotheme)
         )
-        grid.addWidget(QtGui.QLabel("UI Icon theme: "), 1, 0)
+        grid.addWidget(QtWidgets.QLabel("UI Icon theme: "), 1, 0)
         grid.addWidget(self.settings_dialog.override_ui_icon, 1, 1)
         grid.addWidget(self.settings_dialog.css_check, 2, 0, 1, 2)
         grid.addWidget(
-            QtGui.QLabel("Change the following for signs information"),
+            QtWidgets.QLabel("Change the following for signs information"),
             3, 0, 1, 2
         )
-        self.settings_dialog.c_check = QtGui.QComboBox(appearance_page)
+        self.settings_dialog.c_check = QtWidgets.QComboBox(appearance_page)
         for ico in ['Capricorn', 'Capricorn 2', 'Capricorn 3']:
             self.settings_dialog.c_check.addItem(clnxcfg.sign_icons[ico], ico)
-        self.settings_dialog.p_check = QtGui.QCheckBox(
+        self.settings_dialog.p_check = QtWidgets.QCheckBox(
             "Use the P-looking Pluto icon", appearance_page
         )
         grid.addWidget(self.settings_dialog.p_check, 4, 1)
-        grid.addWidget(QtGui.QLabel("Use this Capricorn glyph"), 5, 0)
+        grid.addWidget(QtWidgets.QLabel("Use this Capricorn glyph"), 5, 0)
         grid.addWidget(self.settings_dialog.c_check, 5, 1)
 
 
-        buttonbox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
-        resetbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Reset)
-        okbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
-        applybutton = buttonbox.addButton(QtGui.QDialogButtonBox.Apply)
-        cancelbutton = buttonbox.addButton(QtGui.QDialogButtonBox.Cancel)
+        buttonbox = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal)
+        resetbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Reset)
+        okbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Ok)
+        applybutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Apply)
+        cancelbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Cancel)
 
         resetbutton.clicked.connect(self.settings_reset)
         okbutton.clicked.connect(self.settings_write)
@@ -886,86 +886,86 @@ class ChronosLNX(QtGui.QMainWindow):
         layout.addWidget(buttonbox)
 
         eventplanner = EventsList(events_page)
-        a_vbox = QtGui.QVBoxLayout(events_page)
+        a_vbox = QtWidgets.QVBoxLayout(events_page)
         a_vbox.addWidget(eventplanner)
         eventplanner.tree.setModel(clnxcfg.schedule)
 
-        tweak_grid = QtGui.QGridLayout(tweaks_page)
-        self.settings_dialog.s_check = QtGui.QCheckBox(
+        tweak_grid = QtWidgets.QGridLayout(tweaks_page)
+        self.settings_dialog.s_check = QtWidgets.QCheckBox(
             "Sign of the month",
             tweaks_page
         )
-        self.settings_dialog.m_check = QtGui.QCheckBox(
+        self.settings_dialog.m_check = QtWidgets.QCheckBox(
             "Current moon phase",
             tweaks_page
         )
-        self.settings_dialog.h_check = QtGui.QCheckBox(
+        self.settings_dialog.h_check = QtWidgets.QCheckBox(
             "House of moment",
             tweaks_page
         )
-        self.settings_dialog.n_check = QtGui.QCheckBox(
+        self.settings_dialog.n_check = QtWidgets.QCheckBox(
             "Show Nodes",
             tweaks_page
         )
-        self.settings_dialog.a_check = QtGui.QCheckBox(
+        self.settings_dialog.a_check = QtWidgets.QCheckBox(
             "Show the ADMI axis",
             tweaks_page
         )
         a_check_tooltip = "This will show the Ascendant, Descendant, MC, and IC"
         self.settings_dialog.a_check.setToolTip(a_check_tooltip)
-        self.settings_dialog.mp_check = QtGui.QCheckBox(
+        self.settings_dialog.mp_check = QtWidgets.QCheckBox(
             "Show moon phases",
             tweaks_page
         )
-        self.settings_dialog.sr_check = QtGui.QCheckBox(
+        self.settings_dialog.sr_check = QtWidgets.QCheckBox(
             "Show solar returns",
             tweaks_page
         )
-        self.settings_dialog.lr_check = QtGui.QCheckBox(
+        self.settings_dialog.lr_check = QtWidgets.QCheckBox(
             "Show lunar returns",
             tweaks_page
         )
-        self.settings_dialog.ac_check = QtGui.QCheckBox(
+        self.settings_dialog.ac_check = QtWidgets.QCheckBox(
             "Show rendered astrological clock?",
             tweaks_page
         )
         tweak_grid.addWidget(
-            QtGui.QLabel("Show these main window's textual information"),
+            QtWidgets.QLabel("Show these main window's textual information"),
             0, 0, 1, 2
         )
         tweak_grid.addWidget(self.settings_dialog.s_check, 1, 1)
         tweak_grid.addWidget(self.settings_dialog.m_check, 2, 1)
         tweak_grid.addWidget(self.settings_dialog.h_check, 3, 1)
         tweak_grid.addWidget(
-            QtGui.QLabel("Change the following for signs information"),
+            QtWidgets.QLabel("Change the following for signs information"),
             4, 0, 1, 2
         )
         tweak_grid.addWidget(self.settings_dialog.n_check, 5, 1)
         tweak_grid.addWidget(self.settings_dialog.a_check, 6, 1)
         tweak_grid.addWidget(
-            QtGui.QLabel("Change the following for the calendar"),
+            QtWidgets.QLabel("Change the following for the calendar"),
             7, 0, 1, 2
         )
         tweak_grid.addWidget(self.settings_dialog.mp_check, 8, 1)
         tweak_grid.addWidget(self.settings_dialog.sr_check, 9, 1)
         tweak_grid.addWidget(self.settings_dialog.lr_check, 10, 1)
         tweak_grid.addWidget(
-            QtGui.QLabel("Graphical Clock"),
+            QtWidgets.QLabel("Graphical Clock"),
             11, 0, 1, 2
         )
         tweak_grid.addWidget(self.settings_dialog.ac_check, 12, 1)
 
-        another_vbox = QtGui.QVBoxLayout(calculations_page)
-        gbox2 = QtGui.QGroupBox("Orbs")
+        another_vbox = QtWidgets.QVBoxLayout(calculations_page)
+        gbox2 = QtWidgets.QGroupBox("Orbs")
         another_vbox.addWidget(gbox2)
-        ggbox2 = QtGui.QGridLayout(gbox2)
+        ggbox2 = QtWidgets.QGridLayout(gbox2)
 
         self.settings_dialog.orbs = {}
 
         for x, i in enumerate(list(clnxcfg.orbs.keys())):
-            self.settings_dialog.orbs[i] = QtGui.QDoubleSpinBox(calculations_page)
+            self.settings_dialog.orbs[i] = QtWidgets.QDoubleSpinBox(calculations_page)
             self.settings_dialog.orbs[i].setRange(0, 10)
-            ggbox2.addWidget(QtGui.QLabel(i.title()), x, 0, 1, 5)
+            ggbox2.addWidget(QtWidgets.QLabel(i.title()), x, 0, 1, 5)
             ggbox2.addWidget(self.settings_dialog.orbs[i], x, 5, 1, 1)
 
         self.update_settings_widgets()
@@ -975,10 +975,10 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://www.itfingers.com/Question/758256/pyqt4-minimize-to-tray
 
     def make_tray_icon(self):
-        self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon(clnxcfg.main_icons['logo']), app)
-        menu = QtGui.QMenu()
-        quitAction = QtGui.QAction(self.tr("&Quit"), self)
-        quitAction.triggered.connect(QtGui.qApp.quit)
+        self.trayIcon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(clnxcfg.main_icons['logo']), app)
+        menu = QtWidgets.QMenu()
+        quitAction = QtWidgets.QAction(self.tr("&Quit"), self)
+        quitAction.triggered.connect(QtWidgets.qApp.quit)
         showaction = menu.addAction("&Show", self.show)
         showaction.setIcon(QtGui.QIcon.fromTheme("show-menu"))
         setaction = menu.addAction("&Settings", self.settings_dialog.open)
@@ -990,7 +990,7 @@ class ChronosLNX(QtGui.QMainWindow):
         self.trayIcon.show()
 
     def _ChronosLNX__icon_activated(self, reason):
-        if reason == QtGui.QSystemTrayIcon.DoubleClick:
+        if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
             if self.isHidden():
                 self.show()
             else:
@@ -1005,7 +1005,7 @@ class ChronosLNX(QtGui.QMainWindow):
 #http://www.saltycrane.com/blog/2008/01/python-variable-scope-notes/
 
     def show_about(self):
-        QtGui.QMessageBox.about(
+        QtWidgets.QMessageBox.about(
             self,
             "About {0}".format(APPNAME),
             (
@@ -1212,7 +1212,7 @@ class ChronosLNX(QtGui.QMainWindow):
 def main():
     global app, clnxcfg, pynf
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(APPNAME)
     app.setApplicationVersion(APPVERSION)
 

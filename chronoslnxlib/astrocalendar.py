@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 import swisseph
 
 from .core.charts import lunar_return, solar_return

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 import os, csv
 from ast import literal_eval
 from .eventplanner import DayEventsModel
@@ -35,37 +35,59 @@ class ChronosLNXConfig:
                                          QtCore.QSettings.UserScope,
                                          AUTHOR, APPNAME)
 
-        self.userconfdir = QtGui.QDesktopServices.storageLocation\
-        (QtGui.QDesktopServices.DataLocation).replace("//", "/")
+        self.userconfdir = QtCore.QStandardPaths.writableLocation(
+            QtCore.QStandardPaths.DataLocation
+        ).replace("//", "/")
         #QtCore.QDir.currentPath()
 
         app_theme_path = os.path.join(THEMES)
         config_theme_path = os.path.join(self.userconfdir, "themes")
 
-        QtCore.QDir.setSearchPaths("skins", [config_theme_path, app_theme_path])
+        QtCore.QDir.setSearchPaths(
+            "skins",
+            [config_theme_path, app_theme_path]
+        )
         self.sys_icotheme = QtGui.QIcon.themeName()
         self.reset_settings()
         self.load_schedule()
 
     def load_theme(self):
-        QtCore.QDir.setSearchPaths("skin", ["skins:{0}".format(self.current_theme)])
+        QtCore.QDir.setSearchPaths(
+            "skin",
+            ["skins:{0}".format(self.current_theme)]
+        )
 
         css = QtCore.QFile("skin:ui.css")
         clock_css = QtCore.QFile("skin:clock.css")
-        css_isopen = css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-        clock_css_isopen = clock_css.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+        css_isopen = css.open(
+            QtCore.QFile.ReadOnly
+            | QtCore.QFile.Text
+        )
+        clock_css_isopen = clock_css.open(
+            QtCore.QFile.ReadOnly |
+            QtCore.QFile.Text
+        )
         if self.use_css and css_isopen and clock_css_isopen:
-            self.stylesheet = str(css.readAll()+clock_css.readAll(),
-                                encoding = os.sys.getdefaultencoding())
+            self.stylesheet = str(
+                css.readAll()+clock_css.readAll(),
+                encoding=os.sys.getdefaultencoding()
+            )
             make_icon = lambda g, n: QtGui.QIcon(grab_icon_path(g, n))
         elif clock_css_isopen:
-            self.stylesheet = str(clock_css.readAll(), encoding = os.sys.getdefaultencoding())
-            make_icon = lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
-                                                         QtGui.QIcon(grab_icon_path(g, n)))
+            self.stylesheet = str(
+                clock_css.readAll(),
+                encoding=os.sys.getdefaultencoding()
+            )
+            make_icon = lambda g, n: QtGui.QIcon.fromTheme(
+                "{}_clnx".format(n),
+                QtGui.QIcon(grab_icon_path(g, n))
+            )
         else:
             self.stylesheet = ""
-            make_icon = lambda g, n: QtGui.QIcon.fromTheme("{}_clnx".format(n),
-                                                         QtGui.QIcon(grab_icon_path(g, n)))
+            make_icon = lambda g, n: QtGui.QIcon.fromTheme(
+                "{}_clnx".format(n),
+                QtGui.QIcon(grab_icon_path(g, n))
+            )
         css.close()
         clock_css.close()
 
@@ -104,13 +126,25 @@ class ChronosLNXConfig:
         }
         self.moon_icons = {
             'New Moon' : make_icon("moonphase", "new_moon"),
-            'Waxing Crescent Moon' : make_icon("moonphase", "waxing_crescent_moon"),
-            'First Quarter Moon' : make_icon("moonphase", "first_quarter_moon"),
-            'Waxing Gibbous Moon' : make_icon("moonphase", "waxing_gibbous_moon"),
+            'Waxing Crescent Moon' : make_icon(
+                "moonphase", "waxing_crescent_moon"
+            ),
+            'First Quarter Moon' : make_icon(
+                "moonphase", "first_quarter_moon"
+            ),
+            'Waxing Gibbous Moon' : make_icon(
+                "moonphase", "waxing_gibbous_moon"
+            ),
             'Full Moon' : make_icon("moonphase", "full_moon"),
-            'Waning Gibbous Moon' : make_icon("moonphase", "waning_gibbous_moon"),
-            'Last Quarter Moon' : make_icon("moonphase", "last_quarter_moon"),
-            'Waning Crescent Moon' : make_icon("moonphase", "waning_crescent_moon"),
+            'Waning Gibbous Moon' : make_icon(
+                "moonphase", "waning_gibbous_moon"
+            ),
+            'Last Quarter Moon' : make_icon(
+                "moonphase", "last_quarter_moon"
+            ),
+            'Waning Crescent Moon' : make_icon(
+                "moonphase", "waning_crescent_moon"
+            ),
             'Solar Return' : make_icon("misc", "solar_return"),
             'Lunar Return' : make_icon("misc", "lunar_return"),
         }
@@ -191,8 +225,13 @@ class ChronosLNXConfig:
 
     def load_natal_data(self):
         print("Loading natal data...")
-        self.natal_data = get_signs(self.baby.obvdate, self.baby, self.show_nodes, 
-                                    self.show_admi, prefix="Natal")
+        self.natal_data = get_signs(
+            self.baby.obvdate,
+            self.baby,
+            self.show_nodes,
+            self.show_admi,
+            prefix="Natal"
+        )
         #keep a copy of natal information for transits
         self.natal_sun = self.natal_data[1][0].m.longitude
         #keep a formatted copy for solar returns
@@ -201,7 +240,9 @@ class ChronosLNXConfig:
     def load_schedule(self):
         self.schedule = QtGui.QStandardItemModel()
         self.schedule.setColumnCount(5)
-        self.schedule.setHorizontalHeaderLabels(["Enabled", "Date", "Time", "Event Type", "Options"])
+        self.schedule.setHorizontalHeaderLabels([
+            "Enabled", "Date", "Time", "Event Type", "Options"
+        ])
         self.todays_schedule = DayEventsModel()
         self.todays_schedule.setSourceModel(self.schedule)
         path = os.path.join(self.userconfdir, 'schedule.csv')
@@ -312,7 +353,10 @@ class ChronosLNXConfig:
         self.settings.endGroup()
 
         self.settings.beginGroup("Birth")
-        self.settings.setValue("birthTime", self.baby.obvdate.strftime('%Y-%m-%d %H:%M:%S'))
+        self.settings.setValue(
+            "birthTime",
+            self.baby.obvdate.strftime('%Y-%m-%d %H:%M:%S')
+        )
         self.settings.setValue("latitude", self.baby.lat)
         self.settings.setValue("longitude", self.baby.lng)
         self.settings.setValue("elevation", self.baby.elevation)
@@ -330,7 +374,9 @@ class ChronosLNXConfig:
         self.settings.setValue("showAstroClock", self.show_aclk)
         self.settings.setValue("showSign", str(self.show_sign))
         self.settings.setValue("showMoonPhase", str(self.show_moon))
-        self.settings.setValue("showHouseOfMoment", str(self.show_house_of_moment))
+        self.settings.setValue("showHouseOfMoment",
+            str(self.show_house_of_moment)
+        )
         self.settings.setValue("showNodes", str(self.show_nodes))
         self.settings.setValue("showADMI", str(self.show_admi))
         self.settings.setValue("showMoonOnCal", str(self.show_mcal))

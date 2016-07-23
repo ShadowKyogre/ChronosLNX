@@ -1,11 +1,13 @@
 #!/usr/bin/python
+from datetime import timedelta
+
+from PyQt5 import QtGui, QtCore
+import swisseph
+
 from .core.charts import update_planets_and_cusps, get_signs
 from .core.hours import AstrologicalDay
 from .core.moon_phases import get_moon_cycle
 from .eventplanner import DayEventsModel
-from PyQt4 import QtGui ,QtCore
-from datetime import timedelta
-import swisseph
 
 def prepare_planetary_info(date, observer):
     phinfo = AstrologicalDay(observer, date=date).hours_for_day()
@@ -91,8 +93,10 @@ def prepare_moon_cycle(date):
 
 
 def prepare_all(date, observer, source, nodes, admi):
-    return "All data for {0}\n{1}\n\n{2}\n\n{3}\n\n{4}".format(date.strftime("%m/%d/%Y"),
-                                                      prepare_planetary_info(date, observer),
-                                                      prepare_moon_cycle(date),
-                                                      prepare_sign_info(date, observer, nodes, admi),
-                                                      prepare_events(date, source))
+    return "All data for {0}\n{1}\n\n{2}\n\n{3}\n\n{4}".format(
+        date.strftime("%m/%d/%Y"),
+        prepare_planetary_info(date, observer),
+        prepare_moon_cycle(date),
+        prepare_sign_info(date, observer, nodes, admi),
+        prepare_events(date, source)
+    )

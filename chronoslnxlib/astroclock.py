@@ -1,6 +1,7 @@
-from PyQt4 import QtGui, QtCore
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 from .core.measurements import Zodiac
 from .core.charts import yearly_profection
@@ -31,7 +32,7 @@ updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
 self.astroClock.signData=[self.houses,self.zodiac]
 '''
 
-class AstroClock(QtGui.QWidget):
+class AstroClock(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.size = 500
@@ -48,7 +49,7 @@ class AstroClock(QtGui.QWidget):
         self.doodle_box = QtCore.QRectF(self.centerRect.x()+4, self.centerRect.y()+4, 82, 82)
         self.init_colors()
         self.timer = QtCore.QTimer(self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self, QtCore.SLOT("update()"))
+        self.timer.timeout.connect(self.update)
         self.timer.start(1000)
 
     def init_colors(self):

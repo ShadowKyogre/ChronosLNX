@@ -1,13 +1,16 @@
 #!/usr/bin/python
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from .core.hours import get_planet_day
+
 ##Custom Widgets for both normal and planetary sensitive data
 
-class PlanetDateEditor(QtGui.QWidget):
+class PlanetDateEditor(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        inputstuff = QtGui.QGridLayout(self)
-        self.day = QtGui.QComboBox(self)
+        inputstuff = QtWidgets.QGridLayout(self)
+        self.day = QtWidgets.QComboBox(self)
         self.day.addItem("Sun")
         self.day.addItem("Moon")
         self.day.addItem("Mars")
@@ -21,7 +24,7 @@ class PlanetDateEditor(QtGui.QWidget):
         self.day.addItem("Custom")
         inputstuff.addWidget(self.day, 0, 0)
 
-        self.dateplanned = QtGui.QDateEdit(self)
+        self.dateplanned = QtWidgets.QDateEdit(self)
         #self.dateplanned.setCalendarPopup (True)
         self.dateplanned.setDisplayFormat("MM/dd/yyyy")
         self.dateplanned.hide()
@@ -50,11 +53,11 @@ class PlanetDateEditor(QtGui.QWidget):
     def setText(self, text):
         self.day.setCurrentIndex(self.day.findText(text))
 
-class PlanetHourEditor(QtGui.QWidget):
+class PlanetHourEditor(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        inputstuff = QtGui.QGridLayout(self)
-        self.time = QtGui.QComboBox(self)
+        inputstuff = QtWidgets.QGridLayout(self)
+        self.time = QtWidgets.QComboBox(self)
         self.time.addItem("Sun")
         self.time.addItem("Moon")
         self.time.addItem("Mars")
@@ -68,7 +71,7 @@ class PlanetHourEditor(QtGui.QWidget):
         self.time.addItem("When the the sun sets")
         self.time.addItem("Custom")
         inputstuff.addWidget(self.time, 0, 0)
-        self.timeplanned = QtGui.QTimeEdit(self)
+        self.timeplanned = QtWidgets.QTimeEdit(self)
         self.timeplanned.setDisplayFormat("HH:mm")
         self.timeplanned.hide()
         inputstuff.addWidget(self.timeplanned, 0, 1)
@@ -96,9 +99,9 @@ class PlanetHourEditor(QtGui.QWidget):
 
 ##Delegates to place the needed widgets in
 
-class EventTypeEditorDelegate(QtGui.QStyledItemDelegate):
+class EventTypeEditorDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
-        event_type = QtGui.QComboBox(parent)
+        event_type = QtWidgets.QComboBox(parent)
         event_type.addItem("Textual reminder")
         event_type.addItem("Save to file")
         event_type.addItem("Command")
@@ -114,29 +117,29 @@ class EventTypeEditorDelegate(QtGui.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
+class EventParamEditorDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         didx = index.model().index(index.row(), index.column()-1)
         event_type = index.model().data(didx, QtCore.Qt.EditRole)
         if (event_type == "Save to file"):
-            combo = QtGui.QComboBox(parent)
+            combo = QtWidgets.QComboBox(parent)
             combo.addItem("All")
             combo.addItem("Planetary Hours")
             combo.addItem("Planetary Signs")
             combo.addItem("Moon Cycle")
             return combo
         else:
-            return QtGui.QLineEdit(parent)
+            return QtWidgets.QLineEdit(parent)
 
     def setEditorData(self, editor, index):
         value = index.model().data(index, QtCore.Qt.EditRole)
-        if isinstance(editor, QtGui.QComboBox):
+        if isinstance(editor, QtWidgets.QComboBox):
             editor.setCurrentIndex(editor.findText(value))
         else:
             editor.insert(value)
 
     def setModelData(self, editor, model, index):
-        if isinstance(editor, QtGui.QComboBox):
+        if isinstance(editor, QtWidgets.QComboBox):
             model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
         else:
             model.setData(index, editor.text(), QtCore.Qt.EditRole)
@@ -144,7 +147,7 @@ class EventParamEditorDelegate(QtGui.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
+class TriggerEditorDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         p = TriggerEditor(parent)
         p.setAutoFillBackground(True)
@@ -170,7 +173,7 @@ class TriggerEditorDelegate(QtGui.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-class DateEditorDelegate(QtGui.QStyledItemDelegate):
+class DateEditorDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         p = PlanetDateEditor(parent)
         p.setAutoFillBackground(True)
@@ -196,7 +199,7 @@ class DateEditorDelegate(QtGui.QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
 
-class TimeEditorDelegate(QtGui.QStyledItemDelegate):
+class TimeEditorDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         return PlanetHourEditor(parent)
 
@@ -222,7 +225,7 @@ class TimeEditorDelegate(QtGui.QStyledItemDelegate):
 
 ##The convenience treeview which automagically searches for the appropriate date
 
-class DayEventsModel(QtGui.QSortFilterProxyModel):
+class DayEventsModel(QtCore.QSortFilterProxyModel):
     def __init__(self, *args):
         super().__init__(*args)
         self.date = None
@@ -253,23 +256,23 @@ class DayEventsModel(QtGui.QSortFilterProxyModel):
         self.exact_day_type = get_planet_day(self.wday)
         self.invalidateFilter()
 
-class EventsList(QtGui.QWidget):
+class EventsList(QtWidgets.QWidget):
     def __init__(self, *args):
         super().__init__(*args)
 
-        a_vbox = QtGui.QVBoxLayout(self)
-        editbuttons = QtGui.QHBoxLayout()
+        a_vbox = QtWidgets.QVBoxLayout(self)
+        editbuttons = QtWidgets.QHBoxLayout()
 
-        newbutton = QtGui.QPushButton("New", self)
+        newbutton = QtWidgets.QPushButton("New", self)
         newbutton.clicked.connect(self.add)
 
-        deletebutton = QtGui.QPushButton("Delete", self)
+        deletebutton = QtWidgets.QPushButton("Delete", self)
         deletebutton.clicked.connect(self.delete)
 
-        enablebutton = QtGui.QPushButton("Enable All", self)
+        enablebutton = QtWidgets.QPushButton("Enable All", self)
         enablebutton.clicked.connect(lambda: self.toggleAll(True))
 
-        disablebutton = QtGui.QPushButton("Disable All", self)
+        disablebutton = QtWidgets.QPushButton("Disable All", self)
         disablebutton.clicked.connect(lambda: self.toggleAll(False))
 
         editbuttons.addWidget(newbutton)
@@ -279,8 +282,8 @@ class EventsList(QtGui.QWidget):
 
         a_vbox.addLayout(editbuttons)
 
-        self.tree = QtGui.QTableView(self)
-        self.tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tree = QtWidgets.QTableView(self)
+        self.tree.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         dateeditor = DateEditorDelegate(self.tree)
         timeeditor = TimeEditorDelegate(self.tree)

@@ -1,12 +1,12 @@
 import calendar
 from datetime import date as pydate
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 def _isToday(date):
     return date == pydate.today()
 
-class TodayDelegate(QtGui.QStyledItemDelegate):
+class TodayDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.coltoday = QtGui.QPalette().midlight().color()
@@ -25,27 +25,27 @@ class TodayDelegate(QtGui.QStyledItemDelegate):
             painter.drawRect(rect)
             painter.restore()
 
-class CSSCalendar(QtGui.QWidget):
+class CSSCalendar(QtWidgets.QWidget):
     currentPageChanged = QtCore.pyqtSignal(int,int)
     """A CalendarWidget that supports CSS theming"""
     def __init__(self, *args,**kwargs):
         super().__init__(*args)
         self.__useCSS = False
-        layout = QtGui.QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
         layout.setSpacing(0)
-        self._monthBox = QtGui.QComboBox(self)
+        self._monthBox = QtWidgets.QComboBox(self)
         self._monthBox.addItems(calendar.month_name[1:])
-        self._goForward = QtGui.QToolButton()
-        self._goBackward = QtGui.QToolButton()
-        self._yearBox = QtGui.QLineEdit(self)
-        self._table = QtGui.QTableWidget(6,7)
+        self._goForward = QtWidgets.QToolButton()
+        self._goBackward = QtWidgets.QToolButton()
+        self._yearBox = QtWidgets.QLineEdit(self)
+        self._table = QtWidgets.QTableWidget(6,7)
 
-        self._table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self._table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self._table.setHorizontalHeaderLabels(calendar.day_abbr[6:]+calendar.day_abbr[:6])
         self._table.verticalHeader().hide()
-        self._table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self._table.verticalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self._table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self._table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self._table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self._table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self._table.setShowGrid(False)
         self._delegate = TodayDelegate()
         self._table.setItemDelegate(self._delegate)
@@ -152,7 +152,7 @@ class CSSCalendar(QtGui.QWidget):
         self._table.setRowCount(int(weeks/7))
         idxs = None
         for i in range(weeks):
-            item = QtGui.QTableWidgetItem()
+            item = QtWidgets.QTableWidgetItem()
             item.setText(str(monthdates[i].day))
             item.setData(QtCore.Qt.UserRole, monthdates[i])
             item.setData(QtCore.Qt.TextAlignmentRole, QtCore.Qt.AlignCenter)
