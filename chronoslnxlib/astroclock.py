@@ -31,39 +31,51 @@ updatePandC(self.now, clnxcfg.observer, self.houses, self.zodiac)
 self.astroClock.signData=[self.houses,self.zodiac]
 '''
 
-def createAspectDoodle(angles, bound_box):
-    path = QtGui.QPainterPath()
+def painterRotate(painter, degrees, point):
+    painter.translate(point)
+    painter.rotate(degrees)
+    painter.translate(-point.x(), -point.y())
 
-    path.arcMoveTo(bound_box, angles[0])
-    first_point = path.currentPosition()
+def offsetRect(bound_box, offset):
+    '''
+    Return a modified version of a bounding box with all sides
+    adjusted by an offset
 
-    for i in angles:
-        origin2 = path.currentPosition()
-        path.arcMoveTo (bound_box, i)
-        last_point = path.currentPosition()
-        path.lineTo(origin2)
-        path.moveTo(last_point)
+    Parameters
+    ----------
+    bound_box : QtCore.QRectF
+        The bounding box for the arc calculation
+    offset : float
+        The number of pixels to adjust the bound_box's perimeters by.
+    '''
 
-    path.lineTo(first_point)
-    return path
-
-def getOffRect(circle, offset):
-    tl = QtCore.QPointF(circle.top(), circle.left())
+    tl = QtCore.QPointF(bound_box.top(), bound_box.left())
     tl.setX(tl.x() + offset)
     tl.setY(tl.y() + offset)
-    br = QtCore.QPointF(circle.bottom(), circle.right())
+    br = QtCore.QPointF(bound_box.bottom(), bound_box.right())
     br.setX(br.x() - offset)
     br.setY(br.y() - offset)
     reccy = QtCore.QRectF(tl, br)
     return reccy
 
-def getPointAt(circle, angle, offset=0):
+def arcPointAt(bound_box, angle):
+    '''
+    Get the point where an angle lies on an ellipse
+
+    Parameters
+    ----------
+    bound_box : QtCore.QRectF
+        The bounding box for the arc calculation
+    angle : float
+        The angle in degrees on along the bound_box, counterclockwise
+
+    Returns
+    -------
+    QtCore.QPointF
+        The coordinates of the angle along the ellipse defined by bound_box
+    '''
     arcs = QtGui.QPainterPath()
-    if offset != 0:
-        reccy = getOffRect(circle, offset)
-        arcs.arcMoveTo(reccy, angle)
-    else:
-        arcs.arcMoveTo(circle, angle)
+    arcs.arcMoveTo(bound_box, angle)
     return arcs.currentPosition()
 
 def adjustPoint(point, angle):
@@ -80,7 +92,23 @@ def adjustPoint(point, angle):
         point.setX(point.x() - 18)
         point.setY(point.y() - 18)
 
-def prepPie(painter, circle, width=480, offset=0):
+def createAspectDoodle(angles, bound_box):
+    path = QtGui.QPainterPath()
+
+    path.arcMoveTo(bound_box, angles[0])
+    first_point = path.currentPosition()
+
+    for i in angles:
+        origin2 = path.currentPosition()
+        path.arcMoveTo(bound_box, i)
+        last_point = path.currentPosition()
+        path.lineTo(origin2)
+        path.moveTo(last_point)
+
+    path.lineTo(first_point)
+    return path
+
+def drawSlicedEllipse(painter, circle, width=480, offset=0):
     painter.save()
     trans = QtGui.QColor("#000000")
     trans.setAlpha(0)
@@ -96,25 +124,131 @@ def drawHouses(painter, houses, circle):
     trans.setAlpha(0)
     painter.setBrush(trans)
 
+    offset = circle.width() / 8
+    adjustedRect = offsetRect(QtCore.QRectF(circle), offset)
     for i in range(12):
         h = houses[i]
         start = h.cusp.longitude
         end = h.end.longitude
         painter.drawPie(circle, end * 16, h.width * -16)
-        angle = start+h.width*2/3
-        placeHere = getPointAt(
-            QtCore.QRectF(circle),
-            angle,
-            offset=circle.width() / 8
+        angle = start + h.width * 2 / 3
+        placeHere = arcPointAt(
+            adjustedRect,
+            angle
         )
         adjustPoint(placeHere, angle)
-        painter.drawText(QtCore.QRectF(placeHere.x(), placeHere.y(), 20, 20), str(i+1))
+        painter.drawText(
+            QtCore.QRectF(placeHere.x(), placeHere.y(), 20, 20),
+            str(i + 1)
+        )
     painter.restore()
 
-def painterRotate(painter, degrees, point):
-    painter.translate(point)
-    painter.rotate(degrees)
-    painter.translate(-point.x(), -point.y())
+def drawZodiac(painter, circle, sign_icons=None, capricorn_alt="Capricorn"):
+    if sign_icons is None:
+        sign_icons = {}
+    painter.save()
+    adjustedRect = offsetRect(circle, -20)
+    smallTickCircle = offsetRect(circle, 5)
+    bigTickCircle = offsetRect(circle, 10)
+    offCircle = offsetRect(circle, 1)
+
+    for i in range(12):
+        n = ( ( 12 - i ) + 4) % 12
+        angle = n * 30 + 15
+        p = arcPointAt(adjustedRect, angle)
+        adjustPoint(p, angle)
+        if n == 9:
+            icon = sign_icons.get(capricorn_alt, None)
+        else:
+            icon = sign_icons.get(Zodiac(n).name, None)
+        if icon is not None:
+            icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
+        for j in range(1, 30):
+            tick = float(angle + j)
+            if tick % 5 == 0:
+                tickCircle = bigTickCircle
+            else:
+                tickCircle = smallTickCircle
+            #print(tick, j % 15, off)
+            p = arcPointAt(
+                tickCircle,
+                tick
+            )
+            p2 = arcPointAt(
+                offCircle,
+                tick
+            )
+            #self.adjustPoint(p,angle/30*30+j*6)
+            #self.adjustPoint(p2,angle/30*30+j*6)
+            painter.drawLine(p2, p)
+    painter.restore()
+
+
+def drawPlanets(painter, planets, circle, icons=None, sign_icons=None, pluto_alt=False):
+    if sign_icons is None:
+        sign_icons = {}
+
+    if icons is None:
+        icons = {}
+
+    circleF = QtCore.QRectF(circle)
+
+    for i in planets:
+        if i.name in sign_icons:
+            icon = sign_icons[i.name]
+        else:
+            if i.name == "Pluto" and pluto_alt:
+                icon = icons["Pluto 2"]
+            else:
+                icon = icons[i.name]
+        for k, j in enumerate(LEVELS):
+            if i.name in j:
+                level = k
+                break
+        off = 2 + (4 - level) * 20
+        adjustedRect = offsetRect(circleF, off)
+        placeHere = arcPointAt(
+            adjustedRect,
+            i.m.projectedLon,
+        )
+        adjustPoint(placeHere, i.m.projectedLon)
+        icon.paint(
+            painter,
+            QtCore.QRect(placeHere.x(), placeHere.y(), 20, 20)
+        )
+
+def drawHours(painter, circle, phm, cur_time, next_sunrise, sun_pos, icons=None):
+    if icons is None:
+        icons = {}
+
+    painter.save()
+    trans = QtGui.QColor("#000000")
+    trans.setAlpha(0)
+    painter.setBrush(trans)
+    off = cur_time - phm.get_date(0)
+    overall = next_sunrise - phm.get_date(0)
+    for i in range(24):
+        top = phm.get_date(i) - phm.get_date(0)
+        offp = off.total_seconds() / overall.total_seconds()
+        percent = top.total_seconds() / overall.total_seconds()
+        if i == 23:
+            width = next_sunrise - phm.get_date(i)
+        else:
+            width = phm.get_date(i + 1) - phm.get_date(i)
+        w = width.total_seconds() / overall.total_seconds() * 360
+        angle = (
+            360
+            * (percent - offp)
+            + sun_pos
+        ) % 360.0
+        put = (angle + w / 2) % 360
+        painter.drawPie(circle, angle * 16, w * 16)
+        p = arcPointAt(circle, put)
+        adjustPoint(p, put)
+        icon = icons.get(phm.get_planet(i))
+        if icon:
+            icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
+    painter.restore()
 
 class AstroClock(QtWidgets.QWidget):
     def __init__(self, *args, size=500, **kwargs):
@@ -338,94 +472,6 @@ class AstroClock(QtWidgets.QWidget):
         lambda self, fill: self.setAspectBrush(fill, "opposition")
     )
 
-    def drawPlanets(self, painter, planets, circle):
-        for i in planets:
-            if i.name in self.signIcons:
-                icon = self.signIcons[i.name]
-            else:
-                if i.name == "Pluto" and self.plutoAlternate:
-                    icon = self.icons["Pluto 2"]
-                else:
-                    icon = self.icons[i.name]
-            for k, j in enumerate(LEVELS):
-                if i.name in j:
-                    level = k
-                    break
-            off = 2 + (4 - level) * 20
-            placeHere = getPointAt(
-                QtCore.QRectF(circle),
-                i.m.projectedLon,
-                offset=off
-            )
-            adjustPoint(placeHere, i.m.projectedLon)
-            icon.paint(
-                painter,
-                QtCore.QRect(placeHere.x(), placeHere.y(), 20, 20)
-            )
-
-    def drawZodiac(self, painter, circle):
-        painter.save()
-        for i in range(12):
-            n = ( ( 12 - i ) + 4) % 12
-            angle = n * 30 + 15
-            p = getPointAt(circle, angle, offset=-20)
-            adjustPoint(p, angle)
-            if n == 9:
-                icon = self.signIcons[self.capricornAlternate]
-            else:
-                icon = self.signIcons[Zodiac(n).name]
-            icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
-            for j in range(1, 30):
-                tick = float(angle + j)
-                if tick % 5 == 0:
-                    off = 10
-                else:
-                    off = 5
-                #print(tick, j % 15, off)
-                p = getPointAt(
-                    self._outerCircle,
-                    tick,
-                    offset=off
-                )
-                p2 = getPointAt(
-                    QtCore.QRectF(circle),
-                    tick,
-                    offset=1
-                )
-                #self.adjustPoint(p,angle/30*30+j*6)
-                #self.adjustPoint(p2,angle/30*30+j*6)
-                painter.drawLine(p2, p)
-        painter.restore()
-
-    def drawHours(self, painter, circle):
-        painter.save()
-        trans = QtGui.QColor("#000000")
-        trans.setAlpha(0)
-        painter.setBrush(trans)
-        phm = self.hourModel
-        off = datetime.now(self.observer.timezone)-phm.get_date(0)
-        overall = self.nextSunrise-phm.get_date(0)
-        for i in range(24):
-            top = phm.get_date(i) - phm.get_date(0)
-            offp = off.total_seconds()/overall.total_seconds()
-            percent = top.total_seconds()/overall.total_seconds()
-            if i == 23:
-                width = self.nextSunrise-phm.get_date(i)
-            else:
-                width = phm.get_date(i + 1) - phm.get_date(i)
-            w = width.total_seconds()/overall.total_seconds() * 360
-            angle = (
-                360
-                * (percent - offp)
-                + self.signData[1][0].m.projectedLon
-            ) % 360.0
-            put = (angle + w / 2) % 360
-            painter.drawPie(circle, angle * 16, w * 16)
-            p = getPointAt(circle, put)
-            adjustPoint(p, put)
-            icon = self.icons[phm.get_planet(i)]
-            icon.paint(painter, QtCore.QRect(p.x(), p.y(), 20, 20))
-        painter.restore()
 
     def paintEvent(self, paintevent):
         painter = QtGui.QPainter(self)
@@ -438,14 +484,22 @@ class AstroClock(QtWidgets.QWidget):
         painter.setPen(penifiedOFG)
         painter.setBrush(self.outerFill)
 
-        hoursCircle = getOffRect(self._outerCircle, -40)
-        signsCircle = getOffRect(self._outerCircle, -20)
+        hoursCircle = offsetRect(self._outerCircle, -40)
+        signsCircle = offsetRect(self._outerCircle, -20)
         painter.drawEllipse(hoursCircle)
         if self.hourModel is not None and self.hourModel.rowCount() > 0:
-            self.drawHours(painter, hoursCircle)
+            drawHours(
+                painter,
+                hoursCircle,
+                self.hourModel,
+                datetime.now(self.observer.timezone),
+                self.nextSunrise,
+                self.signData[1][0].m.projectedLon,
+                icons=self.icons
+            )
         painter.drawEllipse(signsCircle)
-        prepPie(painter, signsCircle)
-        prepPie(painter, self._outerCircle)
+        drawSlicedEllipse(painter, signsCircle)
+        drawSlicedEllipse(painter, self._outerCircle)
 
         painter.setPen(penifiedOH)
         drawHouses(painter, self.signData[0], self._outerCircle)
@@ -454,16 +508,35 @@ class AstroClock(QtWidgets.QWidget):
         painter.setPen(penifiedIFG)
         painter.drawEllipse(self._innerCircle)
 
-        prepPie(painter, self._innerCircle)
+        drawSlicedEllipse(painter, self._innerCircle)
         painter.setPen(penifiedIH)
         drawHouses(painter, self.natData[0], self._innerCircle)
 
         painter.setPen(penifiedOFG)
-        self.drawZodiac(painter, self._outerCircle)
+        drawZodiac(
+            painter,
+            self._outerCircle,
+            sign_icons=self.signIcons,
+            capricorn_alt=self.capricornAlternate
+        )
         painter.setPen(penifiedIFG)
 
-        self.drawPlanets(painter, self.signData[1], self._outerCircle)
-        self.drawPlanets(painter, self.natData[1], self._innerCircle)
+        drawPlanets(
+            painter,
+            self.signData[1],
+            self._outerCircle,
+            icons=self.icons,
+            sign_icons=self.signIcons,
+            pluto_alt=self.plutoAlternate
+        )
+        drawPlanets(
+            painter,
+            self.natData[1],
+            self._innerCircle,
+            icons=self.icons,
+            sign_icons=self.signIcons,
+            pluto_alt=self.plutoAlternate
+        )
 
         if self.hourModel is not None and self.hourModel.rowCount() > 0:
             dt = self.hourModel.get_planet(0)
