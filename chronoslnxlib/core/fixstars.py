@@ -61,8 +61,13 @@ WANTED_STARS = [
 
 def average_verify_fixed_star(fs1, fs2):
     if fs1[0] != fs2[0]:
-        raise ValueError(("Can't average positions for different fixed stars: "
-                          "{0} != {1}".format(fs1[0], fs2[0])))
+        raise ValueError(
+            (
+                "Can't average positions"
+                " for different fixed stars:"
+                " {0} != {1}"
+            ).format(fs1[0], fs2[0])
+        )
     else:
         return fs1[0], angle_average(fs1[1], fs2[1])
 
