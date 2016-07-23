@@ -1,62 +1,72 @@
-from collections import OrderedDict as od
+from collections import OrderedDict as od, ChainMap
 from copy import deepcopy
 
-RTEMPLATE={
+from .measurements import Zodiac
+
+RTEMPLATE = {
     'dignity': [None, None],
     'exaltation': None,
 }
 
 URANIAN_RULERSHIPS = od([
     ('Sun' , {
-        'dignity': [4, 4],
-        'exaltation': 0,
+        'dignity': [Zodiac.Leo],
+        'exaltation': Zodiac.Aries,
     }),
     ('Moon', {
-        'dignity': [3, 3],
-        'exaltation':1,
+        'dignity': [Zodiac.Cancer],
+        'exaltation': Zodiac.Taurus,
     }),
     ('Mercury', {
-        'dignity': [5, 2],
-        'exaltation': 10,
+        'dignity': [Zodiac.Virgo, Zodiac.Gemini],
+        'exaltation': Zodiac.Aquarius,
     }),
     ('Venus', {
-        'dignity': [6, 1],
-        'exaltation': 11,
+        'dignity': [Zodiac.Libra, Zodiac.Taurus],
+        'exaltation': Zodiac.Pisces,
     }),
     ('Mars', {
-        'dignity': [7, 0],
-        'exaltation': 9,
+        'dignity': [Zodiac.Scorpio, Zodiac.Aries],
+        'exaltation': Zodiac.Capricorn,
     }),
     ('Jupiter', {
-        'dignity': [8, 11],
-        'exaltation': 3,
+        'dignity': [Zodiac.Sagittarius, Zodiac.Pisces],
+        'exaltation': Zodiac.Cancer,
     }),
     ('Saturn', {
-        'dignity': [9, 10],
-        'exaltation': 6,
+        'dignity': [Zodiac.Capricorn, Zodiac.Aquarius],
+        'exaltation': Zodiac.Libra,
     }),
     ('Uranus', {
-        'dignity': [10, 10],
-        'exaltation': 7
+        'dignity': [Zodiac.Aquarius],
+        'exaltation': Zodiac.Scorpio
     }),
     ('Neptune', {
-        'dignity': [11, 11],
-        'exaltation': 3,
+        'dignity': [Zodiac.Pisces],
+        'exaltation': Zodiac.Cancer,
     }),
     ('Pluto', {
-        'dignity': [7, 7],
-        'exaltation': 4,
+        'dignity': [Zodiac.Scorpio],
+        'exaltation': Zodiac.Leo,
     })
 ])
 
-SL_URANIAN_RULERSHIPS=deepcopy(URANIAN_RULERSHIPS)
-SL_URANIAN_RULERSHIPS['Neptune']['dignity']=[11, 8]
-SL_URANIAN_RULERSHIPS['Pluto']['dignity']=[0, 7]
+SL_URANIAN_RULERSHIPS = ChainMap({}, URANIAN_RULERSHIPS)
+SL_URANIAN_RULERSHIPS['Neptune'] = deepcopy(SL_URANIAN_RULERSHIPS['Neptune'])
+SL_URANIAN_RULERSHIPS['Pluto'] = deepcopy(SL_URANIAN_RULERSHIPS['Pluto'])
+SL_URANIAN_RULERSHIPS['Neptune']['dignity'] = [
+    Zodiac.Pisces,
+    Zodiac.Sagittarius,
+]
+SL_URANIAN_RULERSHIPS['Pluto']['dignity'] = [
+    Zodiac.Aries,
+    Zodiac.Scorpio,
+]
 
-ARCHAIC=deepcopy(URANIAN_RULERSHIPS)
-ARCHAIC.pop('Uranus')
-ARCHAIC.pop('Neptune')
-ARCHAIC.pop('Pluto')
+ARCHAIC = ChainMap({}, URANIAN_RULERSHIPS)
+ARCHAIC['Uranus'] = RTEMPLATE
+ARCHAIC['Neptune'] = RTEMPLATE
+ARCHAIC['Pluto'] = RTEMPLATE
 
 RLIST = {
   'Solar/Lunar Uranian': SL_URANIAN_RULERSHIPS,

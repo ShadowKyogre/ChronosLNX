@@ -56,13 +56,13 @@ class Planet:
     def detriments(self):
         if None in self.rules:
             return self.rules
-        return [ (r + 6) % 12 for r in self.rules ]
+        return [ (r.value + 6) % 12 for r in self.rules ]
 
     @property
     def fall(self):
         if self.exalt is None:
             return None
-        return (self.exalt + 6) % 12
+        return (self.exalt.value + 6) % 12
 
     @property
     def realName(self):
@@ -93,14 +93,14 @@ class Planet:
             "\nExalted in {2}"
             "\nFall in {3}"
         ).format(
-            [
-                Zodiac(r) for r in self.rules if r is not None
-            ],
-            [
-                Zodiac(d) for d in self.detriments if d is not None
-            ],
-            Zodiac(self.exalt) if self.exalt is not None else None,
-            Zodiac(self.fall) if self.fall is not None else None
+            ', '.join(
+                Zodiac(r).name for r in self.rules if r is not None
+            ),
+            ', '.join(
+                Zodiac(d).name for d in self.detriments if d is not None
+            ),
+            Zodiac(self.exalt).name if self.exalt is not None else None,
+            Zodiac(self.fall).name if self.fall is not None else None
         )
 
     def __repr__(self):

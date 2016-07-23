@@ -54,11 +54,9 @@ class Zodiac(Enum):
            self.name,
            self.element.name.title(),
            self.mode.name.title(),
-           [
-               Zodiac(self.decanates[0]).name,
-               Zodiac(self.decanates[1]).name,
-               Zodiac(self.decanates[2]).name,
-           ]
+           ', '.join(
+               Zodiac(d).name for d in self.decanates
+           )
        )
 
 def format_degrees(angle):
@@ -72,7 +70,7 @@ def format_degrees(angle):
         0: 'st',
         1: 'nd',
         2: 'rd'
-    }[decanate]
+    }.get(decanate, 'th')
 
     dec_sign = Zodiac((sign + decanate * 4) % 12)
     dec_string = "{0}{1} decanate, {2}".format(
@@ -125,9 +123,11 @@ class HouseMeasurement:
         "\nEnds at {2}").format(self.num, self.cusp, self.end)
 
     def __repr__(self):
-        return "HouseMeasurement({0}, {1}, num={2})".format(repr(self.cusp.longitude),
-                                                     repr(self.end.longitude),
-                                                     repr(self.num))
+        return "HouseMeasurement({0}, {1}, num={2})".format(
+            repr(self.cusp.longitude),
+            repr(self.end.longitude),
+            repr(self.num)
+        )
 
 class ZodiacalMeasurement:
     __slots__ = ('latitude','longitude')
@@ -227,7 +227,10 @@ class ActiveZodiacalMeasurement(ZodiacalMeasurement):
     def projectedLon(self):
         if self.progress is None:
             return None
-        return (self.progress * self.house_info.width) + self.house_info.cusp.longitude
+        return (
+            (self.progress * self.house_info.width)
+            + self.house_info.cusp.longitude
+        )
 
     def status(self):
         return (
