@@ -6,11 +6,13 @@ from .core.measurements import Zodiac
 from .core.charts import yearly_profection
 from .core.aspects import create_aspect_table
 
-LEVELS=(('Sun', 'Moon', 'Venus', 'Mercury'),
-        ('Mars', 'Jupiter', 'Saturn'),
-        ('Uranus', 'Neptune', 'Pluto'),
-        ('North Node', 'South Node'),
-        ('Ascendant', 'Descendant', 'MC', 'IC'))
+LEVELS=(
+    {'Sun', 'Moon', 'Venus', 'Mercury'},
+    {'Mars', 'Jupiter', 'Saturn'},
+    {'Uranus', 'Neptune', 'Pluto'},
+    {'North Node', 'South Node'},
+    {'Ascendant', 'Descendant', 'MC', 'IC'}
+)
 
 ### CSS Themable Custom Widgets
 '''
@@ -184,7 +186,10 @@ def drawZodiac(painter, circle, sign_icons=None, capricorn_alt="Capricorn"):
     painter.restore()
 
 
-def drawPlanets(painter, planets, circle, icons=None, sign_icons=None, pluto_alt=False):
+def drawPlanets(painter, planets, circle,
+        icons=None, sign_icons=None, pluto_alt=False,
+        levels=LEVELS
+        ):
     if sign_icons is None:
         sign_icons = {}
 
@@ -194,6 +199,13 @@ def drawPlanets(painter, planets, circle, icons=None, sign_icons=None, pluto_alt
     circleF = QtCore.QRectF(circle)
 
     for i in planets:
+        level = None
+        for k, j in enumerate(levels):
+            if i.name in j:
+                level = k
+                break
+        if level is None: continue
+
         if i.name in sign_icons:
             icon = sign_icons[i.name]
         else:
@@ -201,10 +213,7 @@ def drawPlanets(painter, planets, circle, icons=None, sign_icons=None, pluto_alt
                 icon = icons["Pluto 2"]
             else:
                 icon = icons[i.name]
-        for k, j in enumerate(LEVELS):
-            if i.name in j:
-                level = k
-                break
+
         off = 2 + (4 - level) * 20
         adjustedRect = offsetRect(circleF, off)
         placeHere = arcPointAt(
