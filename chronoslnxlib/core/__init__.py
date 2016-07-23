@@ -103,16 +103,13 @@ def datetime_to_julian(date):
 def timezone_to_utc(date):
     return date.astimezone(tz.gettz('UTC'))
 
-def average(first, second):
-    return (first+second)/2
-
 def filtered_groups(iterable, key_func):
     groups = {}
     for item in iterable:
         groups.setdefault(key_func(item), []).append(item)
     return groups
 
-def zipped_func(first_list, second_list, func=average):
+def zipped_func(first_list, second_list, func=print):
     output = [
         func(f, b)
         for f, b in zip(first_list, second_list)

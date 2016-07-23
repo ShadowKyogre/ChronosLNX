@@ -74,8 +74,11 @@ def average_fixed_stars(fixed_stars_1, fixed_stars_2):
     fixed_stars_copy2.sort(key=lambda x: x[0])
     # line the copies up by star name
 
-    output = zipped_func(fixed_stars_copy1, fixed_stars_copy2, 
-                         func=average_verify_fixed_star)
+    output = zipped_func(
+        fixed_stars_copy1,
+        fixed_stars_copy2,
+        func=average_verify_fixed_star
+    )
 
     output.sort(key=lambda x: x[1])
     output_keys = [x[1] for x in output]
