@@ -168,8 +168,6 @@ class CSSCalendar(QtWidgets.QWidget):
                 self._todayItem = item
             self._table.setItem(i / 7, i % 7, item)
         self._table.setCurrentCell(*idxs)
-        self._table.resizeColumnsToContents()
-        self._table.resizeRowsToContents()
 
     def useCSS(self):
         return self._useCSS
