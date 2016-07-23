@@ -478,7 +478,7 @@ class SignsForDayList(QtWidgets.QWidget):
             else:
                 item.setIcon(1, self.sign_icons[i.m.signData.name])
             item.setText(1, i.m.signData.name)
-            item.setToolTip(1, i.m.dataAsText())
+            item.setToolTip(1, str(i.m.signData))
             item.setText(2, i.m.only_degs())
             coord_tooltip = (
                 "The real longitude is {0:.3f} degrees"

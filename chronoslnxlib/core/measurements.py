@@ -38,6 +38,7 @@ class Zodiac(Enum):
 
     def __init__(self, value):
         self.element = ZodiacalElement(value % 4)
+        self.nat_house = value + 1
         self.mode = ZodiacalMode(value % 3)
         self.decanates = [ (value + i) % 12 for i in range(0, 12, 4) ]
 
@@ -59,39 +60,46 @@ class Zodiac(Enum):
            )
        )
 
-def format_degrees(angle):
+def format_degrees(angle, sign_prefix=True):
     sign = angle // 30
     degrees = angle % 30
-    decanate = degrees // 10
     minutes = degrees % 1.0 * 60
     seconds = minutes % 1.0 * 60
 
+    dec = degrees // 10
     dec_suffix = {
         0: 'st',
         1: 'nd',
         2: 'rd'
-    }.get(decanate, 'th')
+    }.get(dec, 'th')
 
-    dec_sign = Zodiac((sign + decanate * 4) % 12)
-    dec_string = "{0}{1} decanate, {2}".format(
-        int(decanate + 1),
+    dec_sign = Zodiac((sign + dec * 4) % 12)
+    dec_string = "({0}{1} decanate, {2})".format(
+        int(dec + 1),
         dec_suffix,
         dec_sign.name
     )
 
-    return '{0} {1}*{2}\"{3} ({4})'.format(
-        Zodiac(sign).name,
-        int(degrees),
-        int(minutes),
-        int(seconds),
-        dec_string
+    parts = []
+    if sign_prefix:
+        parts.append(Zodiac(sign).name)
+    parts.append(
+        '{0}*{1}\"{2}'.format(
+            int(degrees),
+            int(minutes),
+            int(seconds),
+        )
+
     )
+    parts.append(dec_string)
+
+    return ' '.join(parts)
 
 class HousePos:
     def __init__(self, cusp, end, num=-1):
         self.cusp = ActiveZodiacalPos(cusp, 0.0, self, progress=0.0)
         self.end = ActiveZodiacalPos(end, 0.0, self, progress=1.0)
-        self.num =num
+        self.num = num
 
     def encompassedSigns(self):
         signs=[
@@ -118,9 +126,11 @@ class HousePos:
         return abs(angle_sub(self.cusp.longitude, self.end.longitude))
 
     def __str__(self):
-        return ("House {0}"
-        "\nStarts at {1}"
-        "\nEnds at {2}").format(self.num, self.cusp, self.end)
+        return (
+            "House {0}"
+            "\nStarts at {1}"
+            "\nEnds at {2}"
+        ).format(self.num, self.cusp, self.end)
 
     def __repr__(self):
         return "HousePos({0}, {1}, num={2})".format(
@@ -144,18 +154,6 @@ class ZodiacalPos:
         return int(self.longitude % 30)
 
     @property
-    def minutes(self):
-        return int((self.longitude % 1.0 % 30) * 60)
-
-    @property
-    def seconds(self):
-        return int(((self.longitude % 1.0 % 30) * 60) % 1.0 * 60)
-
-    @property
-    def nhouse(self):
-        return self.sign+1
-
-    @property
     def dn(self):
         return self.degrees // 10
 
@@ -166,9 +164,6 @@ class ZodiacalPos:
     @property
     def signData(self):
         return Zodiac(self.sign)
-
-    def dataAsText(self):
-        return str(self.signData)
 
     @property
     def decstring(self):
@@ -184,18 +179,10 @@ class ZodiacalPos:
         )
 
     def only_degs(self):
-        return '{0}*{1}\"{2} ({3})'.format(
-            self.degrees,
-            self.minutes,
-            self.seconds,
-            self.decstring
-        )
+        return format_degrees(self.longitude, sign_prefix=False)
 
     def __str__(self):
-        return '{0} {1}'.format(
-            Zodiac(self.sign).name,
-            self.only_degs()
-        )
+        return format_degrees(self.longitude)
 
     def __repr__(self):
         return "ZodiacalPos({0}, {1})".format(
@@ -206,7 +193,7 @@ class ZodiacalPos:
     def __eq__(self, zm):
         if not zm:
             return False
-        return self.longitude==zm.longitude
+        return self.longitude == zm.longitude
 
 class ActiveZodiacalPos(ZodiacalPos):
     __slots__ = ('house_info', 'progress')
@@ -240,7 +227,7 @@ class ActiveZodiacalPos(ZodiacalPos):
             "\nProgress away from current house cusp: {3:.3f}%"
             "\nProjected longitude estimate: {4}"
         ).format(
-            self.nhouse,
+            self.signData.nat_house,
             self.house_info.num,
             self.house_info.cusp.signData.name,
             self.progress*100.0,
