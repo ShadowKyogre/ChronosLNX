@@ -87,16 +87,16 @@ def format_degrees(angle):
         dec_string
     )
 
-class HouseMeasurement:
+class HousePos:
     def __init__(self, cusp, end, num=-1):
-        self.cusp = ActiveZodiacalMeasurement(cusp, 0.0, self, progress=0.0)
-        self.end = ActiveZodiacalMeasurement(end, 0.0, self, progress=1.0)
+        self.cusp = ActiveZodiacalPos(cusp, 0.0, self, progress=0.0)
+        self.end = ActiveZodiacalPos(end, 0.0, self, progress=1.0)
         self.num =num
 
     def encompassedSigns(self):
         signs=[
             Zodiac((self.cusp.sign + i) % 12)
-            for i in range(int(self.width/30.0))
+            for i in range(self.width // 30)
         ]
         return signs
 
@@ -123,13 +123,13 @@ class HouseMeasurement:
         "\nEnds at {2}").format(self.num, self.cusp, self.end)
 
     def __repr__(self):
-        return "HouseMeasurement({0}, {1}, num={2})".format(
+        return "HousePos({0}, {1}, num={2})".format(
             repr(self.cusp.longitude),
             repr(self.end.longitude),
             repr(self.num)
         )
 
-class ZodiacalMeasurement:
+class ZodiacalPos:
     __slots__ = ('latitude','longitude')
     def __init__(self, lng, lat):
         self.longitude = lng % 360.0
@@ -198,7 +198,7 @@ class ZodiacalMeasurement:
         )
 
     def __repr__(self):
-        return "ZodiacalMeasurement({0}, {1})".format(
+        return "ZodiacalPos({0}, {1})".format(
             repr(self.longitude),
             repr(self.latitude)
         )
@@ -208,7 +208,7 @@ class ZodiacalMeasurement:
             return False
         return self.longitude==zm.longitude
 
-class ActiveZodiacalMeasurement(ZodiacalMeasurement):
+class ActiveZodiacalPos(ZodiacalPos):
     __slots__ = ('house_info', 'progress')
     def __init__(self, lng, lat, house_info, progress=None):
         super().__init__(lng, lat)
@@ -216,7 +216,7 @@ class ActiveZodiacalMeasurement(ZodiacalMeasurement):
         self.progress = progress
 
     def __repr__(self):
-        return "ActiveZodiacalMeasurement({0}, {1}, {2}, {3})".format(
+        return "ActiveZodiacalPos({0}, {1}, {2}, {3})".format(
            repr(self.longitude),
            repr(self.latitude),
            repr(self.house_info),

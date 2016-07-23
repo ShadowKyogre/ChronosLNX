@@ -317,20 +317,20 @@ class SpecialAspect:
         self.name = name
 
     @property
-    def uniqueMeasurements(self):
+    def uniquePoses(self):
         return frozenset(self.vertices.keys())
 
     def __eq__(self, sa):
         if sa is None:
             return False
-        return self.name == sa.name and self.uniqueMeasurements == sa.uniqueMeasurements
+        return self.name == sa.name and self.uniquePoses == sa.uniquePoses
         #because they are the same points
 
     def __ne__(self, sa):
         return not self.__eq__(sa)
 
     def __hash__(self):
-        return hash(self.uniqueMeasurements)
+        return hash(self.uniquePoses)
 
     def __repr__(self):
         return "SpecialAspect({0}, {1})".format(

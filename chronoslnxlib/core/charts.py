@@ -10,8 +10,8 @@ from . import date_to_solar_cycles, solar_cycles_to_jul
 from . import angle_sub
 from . import zipped_func, angle_average, filtered_groups
 from .measurements import (
-    ActiveZodiacalMeasurement,
-    HouseMeasurement,
+    ActiveZodiacalPos,
+    HousePos,
     Zodiac
 )
 from .planet import Planet, PlanetMovement
@@ -85,7 +85,7 @@ def fill_houses(date, observer, houses=None, data=None):
     if houses is None:
         houses = []
         for i in range(12):
-            houses.append(HouseMeasurement(data[i], data[(i+1)%12], num=i+1))
+            houses.append(HousePos(data[i], data[(i+1)%12], num=i+1))
         swisseph.close()
         return houses
     else:
@@ -176,7 +176,7 @@ def average_house(comp_asc, asc1, asc2, x, y):
     cusp_avg = comp_asc+new_cusp_diff
     #print(x.cusp.longitude, y.cusp.longitude, cusp_avg, ':', diff_cusp_x, diff_cusp_y)
     end_avg = comp_asc+new_end_diff
-    h = HouseMeasurement(cusp_avg, end_avg, num=x.num)
+    h = HousePos(cusp_avg, end_avg, num=x.num)
     #print(str(h))
     #print('***')
     return h
@@ -191,7 +191,7 @@ def average_planet(houses, house_keys, x, y):
             newhouse = 9
         elif x.name == 'IC':
             newhouse = 3
-        zm = ActiveZodiacalMeasurement(
+        zm = ActiveZodiacalPos(
             houses[newhouse].cusp.longitude,
             0,
             houses[newhouse]
@@ -213,7 +213,7 @@ def average_planet(houses, house_keys, x, y):
             if max_neg_dist < cur_dist < 0:
                 newhouse = i
                 max_neg_dist = cur_dist
-        zm = ActiveZodiacalMeasurement(avglong, avglat, houses[newhouse])
+        zm = ActiveZodiacalPos(avglong, avglat, houses[newhouse])
         zm.progress = houses[newhouse].getProgress(zm)
         return Planet(
             x.name,
@@ -249,7 +249,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
     for i in range(10):
         calcs = swisseph.calc_ut(day, i)
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
-        zm = ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
+        zm = ActiveZodiacalPos(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
         if i == swisseph.SUN or i == swisseph.MOON:
             movement = PlanetMovement.AlwaysForward
         else:
@@ -259,7 +259,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
     if nodes: #add node entries
         calcs = swisseph.calc_ut(day, swisseph.TRUE_NODE)
         hom = swisseph.house_pos(asmc[2], observer.lat, obliquity, calcs[0], objlat=calcs[1])
-        zm = ActiveZodiacalMeasurement(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
+        zm = ActiveZodiacalPos(calcs[0], calcs[1], houses[int(hom-1)], progress=hom % 1.0)
         movement = PlanetMovement.AlwaysRetrograde
         planet = Planet("North Node", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
@@ -269,7 +269,7 @@ def get_signs(date, observer, nodes, axes, prefix=None):
         revhouse = (int(hom)+6) % 12
         #revprogress = 1-hom%1.0
         revprogress = hom % 1.0
-        zm = ActiveZodiacalMeasurement(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
+        zm = ActiveZodiacalPos(reverse, calcs[1], houses[revhouse-1], progress=revprogress)
         planet = Planet("South Node", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
     if axes:
@@ -279,19 +279,19 @@ def get_signs(date, observer, nodes, axes, prefix=None):
         ic = cusps[3]
         movement = PlanetMovement.Fake
 
-        zm = ActiveZodiacalMeasurement(ascendant, 0.0, houses[0], progress=0.0)
+        zm = ActiveZodiacalPos(ascendant, 0.0, houses[0], progress=0.0)
         planet = Planet("Ascendant", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
-        zm = ActiveZodiacalMeasurement(descendant, 0.0, houses[6], progress=0.0)
+        zm = ActiveZodiacalPos(descendant, 0.0, houses[6], progress=0.0)
         planet = Planet("Descendant", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
-        zm = ActiveZodiacalMeasurement(mc, 0.0, houses[9], progress=0.0)
+        zm = ActiveZodiacalPos(mc, 0.0, houses[9], progress=0.0)
         planet = Planet("MC", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
-        zm = ActiveZodiacalMeasurement(ic, 0.0, houses[3], progress=0.0)
+        zm = ActiveZodiacalPos(ic, 0.0, houses[3], progress=0.0)
         planet = Planet("IC", prefix=prefix, m=zm, movement=movement)
         entries.append(planet)
 
