@@ -4,6 +4,7 @@ from itertools import chain
 import swisseph
 
 from . import angle_sub, closed_between, filtered_groups
+from .planet import PlanetMovement
 
 ASPECTS = od([('conjunction', 0.0),
               ('semi-sextile', 30.0),
