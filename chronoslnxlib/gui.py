@@ -304,7 +304,9 @@ class ChronosLNX(QtWidgets.QMainWindow):
         self.moonToday.highlight_cycle_phase(self.now)
 
     def prepare_hours_for_today(self):
-        self.astro_day = AstrologicalDay(clnxcfg.observer, date=self.now)
+        self.astro_day = AstrologicalDay.day_for_ref_point(
+            clnxcfg.observer, dt=self.now
+        )
         dayn = self.astro_day.sunrise.isoweekday() % 7
         self.pday = get_planet_day(dayn)
         print(

@@ -80,7 +80,7 @@ class PHModel(BookMarkedModel):
         if astro_day is None:
             if observer is None:
                 raise ValueError("If no astro day specified, observer must not be None!")
-            astro_day = AstrologicalDay(observer, date=date)
+            astro_day = AstrologicalDay.day_for_ref_point(observer, dt=date)
         planetary_hours = astro_day.hours_for_day()
         model = cls()
         for ph in planetary_hours:
@@ -205,7 +205,7 @@ class PlanetaryHoursList(QtWidgets.QWidget):
         if astro_day is None:
             if observer is None:
                 raise ValueError("If no astro day specified, observer must not be None!")
-            astro_day = AstrologicalDay(observer, date=date)
+            astro_day = AstrologicalDay.day_for_ref_point(observer, dt=date)
 
         planetary_hours = astro_day.hours_for_day()
         ph_model = PHModel.prepareHours(self.icons, astro_day=astro_day)
@@ -492,7 +492,12 @@ class SignsForDayList(QtWidgets.QWidget):
 
     def _grab(self):
         if not self.z:
-            self.h, self.z = get_signs(self.target_date, self.observer, self.nodes, self.admi)
+            self.h, self.z = get_signs(
+                self.target_date,
+                self.observer,
+                self.nodes,
+                self.admi
+            )
         else:
             update_planets_and_cusps(self.target_date, self.observer, self.h, self.z)
         self.assembleFromZodiac(self.z)

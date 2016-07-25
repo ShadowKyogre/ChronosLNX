@@ -10,7 +10,9 @@ from .core.moon_phases import get_moon_cycle
 from .eventplanner import DayEventsModel
 
 def prepare_planetary_info(date, observer):
-    phinfo = AstrologicalDay(observer, date=date).hours_for_day()
+    phinfo = AstrologicalDay.day_for_ref_point(
+        observer, dt=date
+    ).hours_for_day()
     sphinfo = []
     header = "Planetary hours for {0}, {1}, {2} - {3}"\
              .format(observer.lat, observer.lng,

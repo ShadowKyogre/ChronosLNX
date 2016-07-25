@@ -58,73 +58,87 @@ HOUR_SEQUENCE = (
 #notes: swisseph.TRUE_NODE
 #south node = swisseph.TRUE_NODE's angle - 180
 
+
 class AstrologicalDay:
-    def __init__(self, observer, date=None):
-        if date is None:
+    def __init__(self, sunrise, sunset, next_sunrise):
+        self.sunrise = sunrise
+        self.sunset = sunset
+        self.next_sunrise = next_sunrise
+
+    @classmethod
+    def day_for_ref_point(cls, obv, dt=None):
+        if dt is None:
             date = observer.obvdate
 
-        day = datetime_to_julian(date.replace(hour=12))
+        day = datetime_to_julian(dt.replace(hour=12, minute=0, second=0))
 
-        check = swisseph.rise_trans(
-            day-1,
-            swisseph.SUN,
-            observer.lng,
-            observer.lat,
-            observer.elevation,
-            rsmi=swisseph.CALC_RISE
+        sunrise_jd = check_rise_trans_call(
+            day - 1,
+            obv,
+            swisseph.CALC_RISE
         )
 
-        if check[0][0] == -2:
-            raise ValueError("Observer is circumpolar!")
+        sunset_jd = check_rise_trans_call(
+            sunrise_jd,
+            obv,
+            swisseph.CALC_SET,
+        )
 
-        sunrise = revjul_to_datetime(
-            swisseph.revjul(
-                check[1][0]
-            )
-        ).astimezone(observer.timezone)
+        next_sunrise_jd = check_rise_trans_call(
+            sunset_jd,
+            obv,
+            swisseph.CALC_RISE
+        )
 
-        if date < sunrise:
+        sunrise, sunset, next_sunrise = (
+            revjul_to_datetime(
+                swisseph.revjul(d)
+            ).astimezone(obv.timezone)
+            for d in (sunrise_jd, sunset_jd, next_sunrise_jd)
+        )
+
+        need_recalc = False
+        print(">>>>>", sunrise, sunset, next_sunrise)
+        #print(day)
+        if dt > next_sunrise:
+            print(">>>>>", dt, "is after next sunrise")
+            need_recalc = True
+            day += 1
+        elif dt < sunrise:
+            print(">>>>>", dt, "is before sunrise")
+            need_recalc = True
             day -= 1
+        #print(day, need_recalc)
 
-        self.sunrise = revjul_to_datetime(
-            swisseph.revjul(
-                swisseph.rise_trans(
-                    day-1,
-                    swisseph.SUN,
-                    observer.lng,
-                    observer.lat,
-                    alt=observer.elevation,
-                    rsmi=swisseph.CALC_RISE
-                )[1][0]
+        if need_recalc:
+            sunrise_jd = check_rise_trans_call(
+                day - 1,
+                obv,
+                swisseph.CALC_RISE
             )
-        ).astimezone(observer.timezone)
 
-        self.sunset = revjul_to_datetime(
-            swisseph.revjul(
-                swisseph.rise_trans(
-                    day,
-                    swisseph.SUN,
-                    observer.lng,
-                    observer.lat,
-                    observer.elevation,
-                    rsmi=swisseph.CALC_SET
-                )[1][0]
+            sunset_jd = check_rise_trans_call(
+                sunrise_jd,
+                obv,
+                swisseph.CALC_SET,
             )
-        ).astimezone(observer.timezone)
 
-        self.next_sunrise = revjul_to_datetime(
-            swisseph.revjul(
-                swisseph.rise_trans(
-                    day,
-                    swisseph.SUN,
-                    observer.lng,
-                    observer.lat,
-                    observer.elevation,
-                    rsmi=swisseph.CALC_RISE
-                )[1][0]
+            next_sunrise_jd = check_rise_trans_call(
+                sunset_jd,
+                obv,
+                swisseph.CALC_RISE
             )
-        ).astimezone(observer.timezone)
+
+            sunrise, sunset, next_sunrise = (
+                revjul_to_datetime(
+                    swisseph.revjul(d)
+                ).astimezone(obv.timezone)
+                for d in (sunrise_jd, sunset_jd, next_sunrise_jd)
+            )
+
         swisseph.close()
+
+        return cls(sunrise, sunset, next_sunrise)
 
     def hours_for_day(self):
         day_type = int(self.sunrise.strftime('%w'))
@@ -148,6 +162,23 @@ class AstrologicalDay:
             ] for i in range(12)
         )
         return hours
+
+def check_rise_trans_call(day, obv, rsmi, planet=swisseph.SUN):
+    err, ret = swisseph.rise_trans(
+        day,
+        planet,
+        obv.lng,
+        obv.lat,
+        obv.elevation,
+        rsmi=rsmi
+    )
+
+    if err[0] == -2:
+        raise ValueError("Observer is circumpolar!")
+    elif err[0] == -1:
+        raise RuntimeError("There's a problem with the ephmeris!")
+
+    return ret[0]
 
 def get_planet_day(day_type):
     return DAY_SEQUENCE[day_type]
