@@ -82,7 +82,11 @@ def stellarium_angles(angle, orbs=None):
     return next_to_angles,
 
 def _eligible_planet(planet):
-    return planet.retrograde not in {"Not a Planet", "Always"}
+    return planet.movement not in {
+        PlanetMovement.AlwaysRetrograde,
+        PlanetMovement.Fake
+    }
+
 
 def expand_stellarium(bounds, angles, orbs=None):
     if orbs is None:
