@@ -140,7 +140,7 @@ class AstrologicalDay:
 
         return cls(sunrise, sunset, next_sunrise)
 
-    def hours_for_day(self):
+    def planetary_hours(self):
         day_type = int(self.sunrise.strftime('%w'))
         needed_planet = get_planet_day(day_type)
         day_length = self.sunset - self.sunrise

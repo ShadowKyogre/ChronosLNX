@@ -12,7 +12,7 @@ from .eventplanner import DayEventsModel
 def prepare_planetary_info(date, observer):
     phinfo = AstrologicalDay.day_for_ref_point(
         observer, dt=date
-    ).hours_for_day()
+    ).planetary_hours()
     sphinfo = []
     header = "Planetary hours for {0}, {1}, {2} - {3}"\
              .format(observer.lat, observer.lng,
