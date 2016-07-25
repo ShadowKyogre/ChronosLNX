@@ -392,7 +392,7 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
         else:
             item.setIcon(2, sign_icons[i.cusp.signData.name])
         item.setText(2, i.cusp.signData.name)
-        item.setToolTip(2, i.cusp.dataAsText())
+        item.setToolTip(2, str(i.cusp.signData))
         item.setText(3, i.cusp.only_degs())
         item.setToolTip(3, "The real longitude is %.3f degrees" %(i.cusp.longitude))
         if i.end.signData.name == "Capricorn":
@@ -400,7 +400,7 @@ def housesDialog(widget, houses, capricorn_alternate, sign_icons):
         else:
             item.setIcon(4, sign_icons[i.end.signData.name])
         item.setText(4, i.end.signData.name)
-        item.setToolTip(4, i.end.dataAsText())
+        item.setToolTip(4, str(i.end.signData))
         item.setText(5, i.end.only_degs())
         item.setToolTip(5, "The real longitude is %.3f degrees" %(i.end.longitude))
         tree.addTopLevelItem(item)
