@@ -1,155 +1,226 @@
 from collections import OrderedDict as od
-from itertools import chain
 
-import swisseph
+from itertools import chain
 
 from . import angle_sub, closed_between, filtered_groups
 from .planet import PlanetMovement
 
-ASPECTS = od([('conjunction', 0.0),
-              ('semi-sextile', 30.0),
-              ('semi-square', 45.0),
-              ('sextile', 60.0),
-              ('quintile', 72.0),
-              ('square', 90.0),
-              ('trine', 120.0),
-              ('sesiquadrate', 135.0),
-              ('biquintile', 144.0),
-              ('inconjunct', 150.0),
-              ('opposition', 180.0)])
+ASPECTS = od([
+    ('conjunction', 0.0),
+    ('semi-sextile', 30.0),
+    ('semi-square', 45.0),
+    ('sextile', 60.0),
+    ('quintile', 72.0),
+    ('square', 90.0),
+    ('trine', 120.0),
+    ('sesiquadrate', 135.0),
+    ('biquintile', 144.0),
+    ('inconjunct', 150.0),
+    ('opposition', 180.0),
+])
 
-DEFAULT_ORBS = od([('conjunction', 10.0),
-                   ('semi-sextile', 3.0),
-                   ('semi-square', 3.0),
-                   ('sextile', 6.0),
-                   ('quintile', 1.0),
-                   ('square', 10.0),
-                   ('trine', 10.0),
-                   ('sesiquadrate', 3.0),
-                   ('biquintile', 1.0),
-                   ('inconjunct', 3.0),
-                   ('opposition', 10.0)])
+DEFAULT_ORBS = od([
+    ('conjunction', 10.0),
+    ('semi-sextile', 3.0),
+    ('semi-square', 3.0),
+    ('sextile', 6.0),
+    ('quintile', 1.0),
+    ('square', 10.0),
+    ('trine', 10.0),
+    ('sesiquadrate', 3.0),
+    ('biquintile', 1.0),
+    ('inconjunct', 3.0),
+    ('opposition', 10.0),
+])
 
-def aspects_from_measurement(measurement, angle, orb):
+def aspect_bounds(pos, angle, orb, must_be_empty=False):
     measurements = [
-        swisseph.degnorm(measurement + angle + i * orb)
+       (pos + angle + i * orb) % 360
         for i in range(-1, 2, 2)
     ]
+    measurements.append(must_be_empty)
     return measurements
 
-def tsquare_angles(angle, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['square']
-    behind_angles = aspects_from_measurement(angle, 90, orb)
-    ahead_angles = aspects_from_measurement(angle, -90, orb)
-    return behind_angles, ahead_angles
+class AspectPattern:
+    def __init__(self, bounds, orbs, label):
+        self.bounds = bounds
+        self.orbs = orbs
+        self.label = label
 
-def grand_cross_angles(angle, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['square']
-    opp_orb = DEFAULT_ORBS['opposition']
+    def verify(self, angles):
+        filtered_angles = []
+        bounds_met = []
 
-    behind_angles = aspects_from_measurement(angle, 90, orb)
-    across_angles = aspects_from_measurement(angle, 180, opp_orb)
-    ahead_angles = aspects_from_measurement(angle, -90, orb)
-    return behind_angles, across_angles, ahead_angles
+        for start, end, empty_state in self.bounds:
+            vertex_list = []
+            met = empty_state
+            for a in angles:
+                if closed_between(start, end, a):
+                    if empty_state:
+                        met = False
+                    else:
+                        vertex_list.append(
+                            a if not empty_state else None
+                        )
+                        met = True
 
-def yod_angles(angle, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['inconjunct']
+            bounds_met.append(met)
+            if empty_state and met:
+                vertex_list.append(None)
+            filtered_angles.append(vertex_list)
 
-    behind_angles = aspects_from_measurement(angle, 150, orb)
-    ahead_angles = aspects_from_measurement(angle, -150, orb)
-    return behind_angles, ahead_angles
+        return filtered_angles, bounds_met
 
-def grand_trine_angles(angle, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['trine']
+    def create_data(self, root, parts, source):
+        descriptors = [
+            *chain(
+                (p, source[p])
+                for p in chain(*parts)
+                if p is not None
+            )
+        ]
+        desc_with_root = chain(
+            ( (root, source[root]), ),
+            descriptors
+        )
+        return SpecialAspect(od(desc_with_root), self.label)
 
-    behind_angles = aspects_from_measurement(angle, 120, orb)
-    ahead_angles = aspects_from_measurement(angle, -120, orb)
-    return behind_angles, ahead_angles
+class GrandCross(AspectPattern):
+    def __init__(self, angle, orbs=None):
+        if orbs is None:
+            orbs = DEFAULT_ORBS
+        orb = DEFAULT_ORBS['square']
+        opp_orb = DEFAULT_ORBS['opposition']
 
-def stellarium_angles(angle, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['conjunction']
+        behind_angles = aspect_bounds(angle, 90, orb)
+        across_angles = aspect_bounds(angle, 180, opp_orb)
+        ahead_angles = aspect_bounds(angle, -90, orb)
+        super().__init__(
+            [behind_angles, across_angles, ahead_angles],
+            orbs,
+            'grand cross'
+        )
 
-    next_to_angles = aspects_from_measurement(angle, 0, orb)
-    return next_to_angles,
+class TSquare(AspectPattern):
+    def __init__(self, angle, orbs=None):
+        if orbs is None:
+            orbs = DEFAULT_ORBS
+        orb = DEFAULT_ORBS['square']
+        opp_orb = DEFAULT_ORBS['opposition']
+
+        behind_angles = aspect_bounds(angle, 90, orb)
+        across_angles = aspect_bounds(angle, 180, opp_orb, must_be_empty=True)
+        ahead_angles = aspect_bounds(angle, -90, orb)
+        super().__init__(
+            [behind_angles, across_angles, ahead_angles],
+            orbs,
+            't-square'
+        )
+
+class Yod(AspectPattern):
+    def __init__(self, angle, orbs=None):
+        if orbs is None:
+            orbs = DEFAULT_ORBS
+        orb = DEFAULT_ORBS['inconjunct']
+
+        behind_angles = aspect_bounds(angle, 150, orb)
+        ahead_angles = aspect_bounds(angle, -150, orb)
+        super().__init__(
+            [behind_angles, ahead_angles],
+            orbs,
+            'yod'
+        )
+
+class GrandTrine(AspectPattern):
+    def __init__(self, angle, orbs=None):
+        if orbs is None:
+            orbs = DEFAULT_ORBS
+        orb = DEFAULT_ORBS['trine']
+
+        behind_angles = aspect_bounds(angle, 120, orb)
+        ahead_angles = aspect_bounds(angle, -120, orb)
+        super().__init__(
+            [behind_angles, ahead_angles],
+            orbs,
+            'grand trine'
+        )
+
+class Stellium(AspectPattern):
+    def __init__(self, angle, orbs=None):
+        if orbs is None:
+            orbs = DEFAULT_ORBS
+        orb = DEFAULT_ORBS['conjunction']
+
+        next_to_angles = aspect_bounds(angle, 0, orb)
+        super().__init__(
+            [next_to_angles],
+            orbs,
+            'stellium'
+        )
+
+    def verify(self, angles):
+        orb = self.orbs['conjunction']
+
+        filtered_angles = sorted(
+            v
+            for v in angles
+            for start, end, _ in self.bounds
+            if closed_between(start, end, v)
+        )
+
+        subfilter = filtered_angles
+        if not subfilter:
+            return [[]], [False]
+
+        starts = []
+        subfilter = filtered_angles
+        sub_angle = subfilter[0]
+        sub_angle_to_be = float('-inf')
+
+        while subfilter and angle_sub(sub_angle, sub_angle_to_be) > 0:
+            sub_angle = subfilter[0]
+            start, end, _ = aspect_bounds(sub_angle, 0, orb)
+            subfilter = sorted(
+                v
+                for v in angles
+                if closed_between(start, end, v) and v != sub_angle
+            )
+            try:
+                sub_angle_to_be = subfilter[0]
+            except IndexError:
+                sub_angle_to_be = float('inf')
+            starts.extend(subfilter)
+
+        ends = []
+        subfilter = filtered_angles
+        sub_angle = subfilter[-1]
+        sub_angle_to_be = float('inf')
+
+        while subfilter and angle_sub(sub_angle, sub_angle_to_be) < 0:
+            sub_angle = subfilter[-1]
+            start, end, _ = aspect_bounds(sub_angle, 0, orb)
+            subfilter = sorted(
+                v
+                for v in angles
+                if closed_between(start, end, v) and v != sub_angle
+            )
+            try:
+                sub_angle_to_be = subfilter[-1]
+            except IndexError:
+                sub_angle_to_be = float('-inf')
+            ends.extend(subfilter)
+
+        result = set(starts + filtered_angles + ends)
+        if len(result) > 2:
+            return [sorted(result),], [True]
+        else:
+            return [[]], [False]
 
 def _eligible_planet(planet):
     return planet.movement not in {
         PlanetMovement.AlwaysRetrograde,
         PlanetMovement.Fake
     }
-
-
-def expand_stellarium(bounds, angles, orbs=None):
-    if orbs is None:
-        orbs = DEFAULT_ORBS
-    orb = DEFAULT_ORBS['conjunction']
-
-    filtered_angles = sorted(
-        v
-        for v in angles
-        for start, end in bounds
-        if closed_between(start, end, v)
-    )
-
-    subfilter = filtered_angles
-    if not subfilter:
-        return []
-
-    starts = []
-    subfilter = filtered_angles
-    sub_angle = subfilter[0]
-    sub_angle_to_be = float('-inf')
-
-    while subfilter and angle_sub(sub_angle, sub_angle_to_be) > 0:
-        sub_angle = subfilter[0]
-        sub_extent = stellarium_angles(sub_angle, orbs=orb)
-        subfilter = sorted(
-            v
-            for v in angles
-            for start, end in sub_extent
-            if closed_between(start, end, v) and v != sub_angle
-        )
-        try:
-            sub_angle_to_be = subfilter[0]
-        except IndexError:
-            sub_angle_to_be = float('inf')
-        starts.extend(subfilter)
-
-    ends = []
-    subfilter = filtered_angles
-    sub_angle = subfilter[-1]
-    sub_angle_to_be = float('inf')
-
-    while subfilter and angle_sub(sub_angle, sub_angle_to_be) < 0:
-        sub_angle = subfilter[-1]
-        sub_extent = stellarium_angles(sub_angle, orbs=orb)
-        subfilter = sorted(
-            v
-            for v in angles
-            for start, end in sub_extent
-            if closed_between(start, end, v) and v != sub_angle
-        )
-        try:
-            sub_angle_to_be = subfilter[-1]
-        except IndexError:
-            sub_angle_to_be = float('-inf')
-        ends.extend(subfilter)
-
-    result = set(starts + filtered_angles + ends)
-    if len(result) > 2:
-        return sorted(result),
-    else:
-        return []
 
 def search_special_aspects(zodiac, orbs=None):
     if orbs is None:
@@ -165,82 +236,35 @@ def search_special_aspects(zodiac, orbs=None):
         filter(_eligible_planet, zodiac),
         lambda x: x.m.longitude
     )
-    special_aspect_bound_funcs = [
-        (
-            grand_trine_angles,
-            None,
-            'grand trine',
-            None,
-        ),
-        (
-            grand_cross_angles,
-            None,
-            'grand cross',
-            't-square',
-        ),
-        (
-            yod_angles,
-            None,
-            'yod',
-            None,
-        ),
-        (
-            stellarium_angles,
-            expand_stellarium,
-            'stellium',
-            None,
-        ),
+
+    aspect_patterns = [
+        GrandTrine,
+        GrandCross,
+        TSquare,
+        Yod,
+        Stellium,
     ]
+
     sorted_angles = sorted(measurements_by_angle)
 
     for angle in sorted_angles:
-        root_planets = measurements_by_angle[angle]
-        for func, sanitize, label, alt_label in special_aspect_bound_funcs:
-            angle_bounds = func(angle, orbs=orbs)
-            if sanitize is not None:
-                parts = [
-                    filter(
-                        lambda x: x != angle,
-                        p
-                    )
-                    for p in sanitize(angle_bounds, sorted_angles, orbs=orbs)
-                ]
-            else:
-                parts = [
-                    [
-                        v
-                        for v in sorted_angles
-                        if closed_between(start, end, v) and v != angle
-                    ]
-                    for start, end in angle_bounds
-                ]
-            descriptors = [
-                *chain(
-                    #*(
-                        (p, measurements_by_angle[p])
-                        for p in chain(*parts)
-                    #)
-                )
-            ]
-            all_check = [bool(p) for p in parts]
-            desc_with_root = chain(
-                ( (angle, root_planets), ),
-                descriptors
-            )
+        for pattern_cls in aspect_patterns:
+            pattern = pattern_cls(angle, orbs=orbs)
+            parts, all_check = pattern.verify(sorted_angles)
+
             all_reqs_met = all(all_check) and bool(all_check)
-            if alt_label:
-                tsq_check = (not all_check[0] and all_check[0] and all_check[2])
-                if label == 'grand cross' and all_reqs_met:
-                    gc.add(SpecialAspect(od(desc_with_root), label))
-                elif alt_label == 't-square' and tsq_check:
-                    tsq.add(SpecialAspect(od(desc_with_root), alt_label))
-            elif all_reqs_met:
-                if label == 'grand trine':
-                    gt.add(SpecialAspect(od(desc_with_root), label))
-                elif label == 'yod':
-                    yods.add(SpecialAspect(od(desc_with_root), label))
-                elif label == 'stellium':
-                    stel.add(SpecialAspect(od(desc_with_root), label))
+            if all_reqs_met:
+                value = pattern.create_data(angle, parts, measurements_by_angle)
+                if pattern.label == 't-square':
+                    tsq.add(value)
+                elif pattern.label == 'grand cross':
+                    gc.add(value)
+                elif pattern.label == 'grand trine':
+                    gt.add(value)
+                elif pattern.label == 'yod':
+                    yods.add(value)
+                elif pattern.label == 'stellium':
+                    stel.add(value)
 
     return yods, gt, gc, stel, tsq
 
