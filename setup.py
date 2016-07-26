@@ -21,6 +21,7 @@ def globby_themes():
                 glob.glob(os.path.join(f,'*'))))
             else:
                 file_pairs.append((put_here, [os.path.join(d,'ui.css')]))
+                file_pairs.append((put_here, [os.path.join(d,'clock.css')]))
 
     return file_pairs
 
