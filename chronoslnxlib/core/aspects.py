@@ -222,7 +222,10 @@ def _eligible_planet(planet):
         PlanetMovement.Fake
     }
 
-def search_special_aspects(zodiac, orbs=None):
+def search_special_aspects(zodiac, orbs=None,
+        planet_filter=_eligible_planet
+        ):
+
     if orbs is None:
         orbs = DEFAULT_ORBS
 
@@ -233,7 +236,7 @@ def search_special_aspects(zodiac, orbs=None):
     tsq = set()
 
     measurements_by_angle = filtered_groups(
-        filter(_eligible_planet, zodiac),
+        filter(planet_filter, zodiac),
         lambda x: x.m.longitude
     )
 
