@@ -9,7 +9,11 @@ from .core.charts import get_signs, update_planets_and_cusps
 from .core.aspects import create_aspect_table, search_special_aspects
 from .core.hours import AstrologicalDay
 from .core.moon_phases import get_moon_cycle
+
 from .core.aspects import DEFAULT_ORBS
+
+# aspect pattern class types
+from .core.aspects import GrandCross, GrandTrine, TSquare, Stellium, Yod
 
 #http://doc.qt.nokia.com/latest/qt.html#ItemDataRole-enum
 ##http://doc.qt.nokia.com/latest/widgets-analogclock.html
@@ -265,7 +269,7 @@ class AspectTableDisplay(QtWidgets.QWidget):
     def buildTable(self, at, sad, comparative=False):
         self.comparative = comparative
         self.updateHeaders()
-        max_length, longest_element = max([(len(x), x) for x in sad])
+        max_length, longest_element = max([(len(x), x) for x in sad.values()])
         self.tableSpecial.setRowCount(max_length)
         self.tableSpecial.removeRows(0, self.tableSpecial.rowCount())
         for i in at:
@@ -278,27 +282,27 @@ class AspectTableDisplay(QtWidgets.QWidget):
             self.tableAspects.setItem(self.headers.index(i.planet2.name), 
                                       self.headers.index(i.planet1.name), c)
         i = 0
-        for yod in sad[0]:
+        for yod in sad.get(Yod, []):
             c = QtGui.QStandardItem(str(yod))
             self.tableSpecial.setItem(i, 0, c)
             i += 1
         i = 0
-        for gt in sad[1]:
+        for gt in sad.get(GrandTrine, []):
             d = QtGui.QStandardItem(str(gt))
             self.tableSpecial.setItem(i, 1, d)
             i += 1
         i = 0
-        for gc in sad[2]:
+        for gc in sad.get(GrandCross, []):
             e = QtGui.QStandardItem(str(gc))
             self.tableSpecial.setItem(i, 2, e)
             i += 1
         i = 0
-        for tsq in sad[3]:
+        for tsq in sad.get(TSquare, []):
             f = QtGui.QStandardItem(str(tsq))
             self.tableSpecial.setItem(i, 4, f)
             i += 1
         i = 0
-        for stellium in sad[4]:
+        for stellium in sad.get(Stellium, []):
             g = QtGui.QStandardItem(str(stellium))
             self.tableSpecial.setItem(i, 3, g)
             i += 1

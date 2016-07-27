@@ -223,30 +223,22 @@ def _eligible_planet(planet):
     }
 
 def search_special_aspects(zodiac, orbs=None,
-        planet_filter=_eligible_planet
+        planet_filter=_eligible_planet,
+        aspect_patterns=None,
         ):
 
     if orbs is None:
         orbs = DEFAULT_ORBS
 
-    yods = set()
-    gt = set()
-    gc = set()
-    stel = set()
-    tsq = set()
+    if aspect_patterns is None:
+        aspect_patterns = AspectPattern.__subclasses__()
+
+    output = {}
 
     measurements_by_angle = filtered_groups(
         filter(planet_filter, zodiac),
         lambda x: x.m.longitude
     )
-
-    aspect_patterns = [
-        GrandTrine,
-        GrandCross,
-        TSquare,
-        Yod,
-        Stellium,
-    ]
 
     sorted_angles = sorted(measurements_by_angle)
 
@@ -258,18 +250,9 @@ def search_special_aspects(zodiac, orbs=None,
             all_reqs_met = all(all_check) and bool(all_check)
             if all_reqs_met:
                 value = pattern.create_data(angle, parts, measurements_by_angle)
-                if pattern.label == 't-square':
-                    tsq.add(value)
-                elif pattern.label == 'grand cross':
-                    gc.add(value)
-                elif pattern.label == 'grand trine':
-                    gt.add(value)
-                elif pattern.label == 'yod':
-                    yods.add(value)
-                elif pattern.label == 'stellium':
-                    stel.add(value)
+                output.setdefault(type(pattern), set()).add(value)
 
-    return yods, gt, gc, stel, tsq
+    return output
 
 def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
     aspect_table = []
