@@ -1,9 +1,6 @@
 #http://www.kimgentes.com/worshiptech-web-tools-page/2008/10/14/regex-pattern-for-parsing-csv-files-with-embedded-commas-dou.html
 #http://doc.qt.nokia.com/qq/qq26-pyqtdesigner.html#creatingacustomwidget
 from PyQt5 import QtGui, QtWidgets, QtCore
-#import re
-from dateutil import tz
-from datetime import datetime
 
 from .core.charts import get_signs, update_planets_and_cusps
 from .core.aspects import create_aspect_table, search_special_aspects
@@ -264,14 +261,39 @@ class AspectTableDisplay(QtWidgets.QWidget):
     def refresh(self, zodiac, orbs):
         at = create_aspect_table(zodiac, orbs=orbs)
         sad = search_special_aspects(zodiac, orbs=orbs)
-        self.buildTable(at, sad)
+        self.refreshAspects(at)
+        self.refreshSpecialAspects(sad)
 
-    def buildTable(self, at, sad, comparative=False):
-        self.comparative = comparative
-        self.updateHeaders()
+    def refreshSpecialAspects(self, sad):
         max_length, longest_element = max([(len(x), x) for x in sad.values()])
         self.tableSpecial.setRowCount(max_length)
         self.tableSpecial.removeRows(0, self.tableSpecial.rowCount())
+        self.guiSpecial.resizeRowsToContents()
+        self.guiSpecial.resizeColumnsToContents()
+
+        for idx, yod in enumerate(sad.get(Yod, [])):
+            item = QtGui.QStandardItem(str(yod))
+            self.tableSpecial.setItem(idx, 0, item)
+
+        for idx, gt in enumerate(sad.get(GrandTrine, [])):
+            item = QtGui.QStandardItem(str(gt))
+            self.tableSpecial.setItem(idx, 1, item)
+
+        for idx, gc in enumerate(sad.get(GrandCross, [])):
+            item = QtGui.QStandardItem(str(gc))
+            self.tableSpecial.setItem(idx, 2, item)
+
+        for idx, tsq in enumerate(sad.get(TSquare, [])):
+            item = QtGui.QStandardItem(str(tsq))
+            self.tableSpecial.setItem(idx, 3, item)
+
+        for idx, stellium in enumerate(sad.get(Stellium, [])):
+            item = QtGui.QStandardItem(str(stellium))
+            self.tableSpecial.setItem(idx, 4, item)
+
+    def refreshAspects(self, at, comparative=False):
+        self.comparative = comparative
+        self.updateHeaders()
         for i in at:
             if i.aspect == None:
                 c = QtGui.QStandardItem("No aspect")
@@ -281,35 +303,8 @@ class AspectTableDisplay(QtWidgets.QWidget):
             c.setData(i, 32)
             self.tableAspects.setItem(self.headers.index(i.planet2.name), 
                                       self.headers.index(i.planet1.name), c)
-        i = 0
-        for yod in sad.get(Yod, []):
-            c = QtGui.QStandardItem(str(yod))
-            self.tableSpecial.setItem(i, 0, c)
-            i += 1
-        i = 0
-        for gt in sad.get(GrandTrine, []):
-            d = QtGui.QStandardItem(str(gt))
-            self.tableSpecial.setItem(i, 1, d)
-            i += 1
-        i = 0
-        for gc in sad.get(GrandCross, []):
-            e = QtGui.QStandardItem(str(gc))
-            self.tableSpecial.setItem(i, 2, e)
-            i += 1
-        i = 0
-        for tsq in sad.get(TSquare, []):
-            f = QtGui.QStandardItem(str(tsq))
-            self.tableSpecial.setItem(i, 4, f)
-            i += 1
-        i = 0
-        for stellium in sad.get(Stellium, []):
-            g = QtGui.QStandardItem(str(stellium))
-            self.tableSpecial.setItem(i, 3, g)
-            i += 1
         self.guiAspects.resizeRowsToContents()
         self.guiAspects.resizeColumnsToContents()
-        self.guiSpecial.resizeRowsToContents()
-        self.guiSpecial.resizeColumnsToContents()
 
     def updateHeaders(self):
         self.headers = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter",
@@ -363,9 +358,11 @@ def aspectsDialog(widget, zodiac, other_table,
         caspects.nodes = nodes
         at, compare = create_aspect_table(zodiac, compare=other_table, orbs=orbs)
         sado = search_special_aspects(zodiac)
-        sad = search_special_aspects(zodiac+other_table)
-        caspects.buildTable(compare, sad, comparative=True)
-        aspects.buildTable(at, sado)
+        sad = search_special_aspects(zodiac + other_table)
+        caspects.refreshAspects(compare, comparative=True)
+        caspects.refreshSpecialAspects(sad)
+        aspects.refreshAspects(at)
+        aspects.refreshSpecialAspects(sado)
         tabs.addTab(caspects, "Aspects to Natal Chart")
     else:
         aspects.refresh(zodiac, orbs)
