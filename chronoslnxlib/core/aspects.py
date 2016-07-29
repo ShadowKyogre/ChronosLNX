@@ -252,6 +252,23 @@ def search_special_aspects(zodiac, orbs=None,
                 value = pattern.create_data(angle, parts, measurements_by_angle)
                 output.setdefault(type(pattern), set()).add(value)
 
+    tmp_copy = output.copy()
+
+    for k, v in tmp_copy.items():
+        listified_items = sorted(v, key=lambda x: len(x.uniquePoses))
+        for idx, item in enumerate(listified_items):
+            item_poses = item.uniquePoses
+            redundant = False
+            for other_item in listified_items[idx:]:
+                dont_remove_self = other_item is not item
+                contains_current = other_item.uniquePoses.issuperset(item_poses)
+                if dont_remove_self and contains_current:
+                    v.remove(item)
+                    redundant = True
+                    break
+            if redundant:
+                continue
+
     return output
 
 def create_aspect_table(zodiac, orbs=DEFAULT_ORBS, compare=None):
