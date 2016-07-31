@@ -1,20 +1,22 @@
 #!/usr/bin/python
-from PyQt5 import QtGui, QtCore
-import os, csv
 from ast import literal_eval
-from .eventplanner import DayEventsModel
-from datetime import datetime
 from collections import OrderedDict as od
+import csv
+from datetime import datetime
+import os
+from shutil import copyfile
+
+from dateutil import tz
+#from dateutil.parser import *
+from PyQt5 import QtGui, QtCore
 
 from .core import Observer
 from .core.charts import get_signs
 from .core.aspects import DEFAULT_ORBS
+from .eventplanner import DayEventsModel
 
-from dateutil import tz
 from . import zonetab
-#from dateutil.parser import *
 from . import DATA_DIR, THEMES, AUTHOR, APPNAME
-
 
 def grab_icon_path(icon_type, looking):
     #icon type must be of following: planets, moonphase, signs, misc
@@ -195,22 +197,59 @@ class ChronosLNXConfig:
         self.settings.beginGroup("Appearance")
         self.current_theme = self.settings.value("iconTheme", "DarkGlyphs")
         self.current_icon_override = self.settings.value("stIconTheme", "")
-        self.pluto_alt = literal_eval(self.settings.value("alternatePluto", "False"))
-        self.use_css = literal_eval(self.settings.value("useCSS", "False"))
-        self.capricorn_alt = self.settings.value("alternateCapricorn", "Capricorn")
+        self.pluto_alt = self.settings.value(
+            "alternatePluto",
+            defaultValue=False,
+            type=bool
+        )
+        self.use_css = self.settings.value(
+            "useCSS",
+            defaultValue=False, type=bool
+        )
+        self.capricorn_alt = self.settings.value(
+            "alternateCapricorn",
+            "Capricorn"
+        )
         self.load_theme()
         self.settings.endGroup()
 
         self.settings.beginGroup("Tweaks")
-        self.show_aclk = self.settings.value("showAstroClock", defaultValue=True, type=bool)
-        self.show_sign = literal_eval(self.settings.value("showSign", "True"))
-        self.show_moon = literal_eval(self.settings.value("showMoonPhase", "True"))
-        self.show_house_of_moment = literal_eval(self.settings.value("showHouseOfMoment", "True"))
-        self.show_nodes = literal_eval(self.settings.value("showNodes", "True"))
-        self.show_admi = literal_eval(self.settings.value("showADMI", "False"))
-        self.show_mcal = literal_eval(self.settings.value("showMoonOnCal", "False"))
-        self.show_sr = literal_eval(self.settings.value("showSolarReturnOnCal", "False"))
-        self.show_lr = literal_eval(self.settings.value("showLunarReturnOnCal", "False"))
+        self.show_aclk = self.settings.value(
+            "showAstroClock",
+            defaultValue=True, type=bool
+        )
+        self.show_sign = self.settings.value(
+            "showSign",
+            defaultValue=True, type=bool
+        )
+        self.show_moon = self.settings.value(
+            "showMoonPhase",
+            defaultValue=True, type=bool
+        )
+        self.show_house_of_moment = self.settings.value(
+            "showHouseOfMoment",
+            defaultValue=True, type=bool
+        )
+        self.show_nodes = self.settings.value(
+            "showNodes",
+            defaultValue=True, type=bool
+        )
+        self.show_admi = self.settings.value(
+            "showADMI",
+            defaultValue=False, type=bool
+        )
+        self.show_mcal = self.settings.value(
+            "showMoonOnCal",
+            defaultValue=False, type=bool
+        )
+        self.show_sr = self.settings.value(
+            "showSolarReturnOnCal",
+            defaultValue=False, type=bool
+        )
+        self.show_lr = self.settings.value(
+            "showLunarReturnOnCal",
+            defaultValue=False, type=bool
+        )
         self.settings.endGroup()
 
         self.settings.beginGroup("Calculations")
@@ -251,7 +290,6 @@ class ChronosLNXConfig:
             if not os.path.exists(path.replace("schedule.csv", "")):
                 print("Making directory to store schedule")
                 os.makedirs(self.userconfdir)
-            from shutil import copyfile
             sch = os.path.join(DATA_DIR, "schedule.csv")
             copyfile(sch, path)
 
