@@ -20,8 +20,12 @@ class TodayDelegate(QtWidgets.QStyledItemDelegate):
             painter.save()
             painter.setPen(self.coltoday)
             optrect=option.rect
-            rect = QtCore.QRectF(optrect.x(), optrect.y(), 
-                                 optrect.width()-2, optrect.height()-2)
+            rect = QtCore.QRectF(
+                optrect.x(),
+                optrect.y(),
+                optrect.width()-2,
+                optrect.height()-2
+            )
             painter.drawRect(rect)
             painter.restore()
 
@@ -43,11 +47,19 @@ class CSSCalendar(QtWidgets.QWidget):
         self._table = QtWidgets.QTableWidget(6, 7)
 
         self._table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self._table.setHorizontalHeaderLabels(calendar.day_abbr[6:]+calendar.day_abbr[:6])
+        self._table.setHorizontalHeaderLabels(
+            calendar.day_abbr[6:] + calendar.day_abbr[:6]
+        )
         self._table.verticalHeader().hide()
-        self._table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self._table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self._table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self._table.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.Stretch
+        )
+        self._table.verticalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.Stretch
+        )
+        self._table.setSelectionMode(
+            QtWidgets.QAbstractItemView.SingleSelection
+        )
         self._table.setShowGrid(False)
         self._delegate = TodayDelegate()
         self._table.setItemDelegate(self._delegate)
@@ -109,7 +121,11 @@ class CSSCalendar(QtWidgets.QWidget):
             idate = self.date.replace(year=year, month=month)
         except ValueError as e:
             _, monthdays = calendar.monthrange(year, month)
-            idate = self.date.replace(year = year, month = month, day = monthdays)
+            idate = self.date.replace(
+                year=year,
+                month=month,
+                day=monthdays
+            )
         self.currentPageChanged.emit(idate.year, idate.month)
         self.date = idate
 
@@ -149,7 +165,12 @@ class CSSCalendar(QtWidgets.QWidget):
         item.setData(QtCore.Qt.UserRole+1, isToday)
 
     def _refillCells(self):
-        monthdates = list(self._calendar.itermonthdates(self._date.year, self._date.month))
+        monthdates = list(
+        self._calendar.itermonthdates(
+                self._date.year,
+                self._date.month
+            )
+        )
         thisday = pydate.today()
         weeks = len(monthdates)
         self._table.setRowCount(int(weeks/7))

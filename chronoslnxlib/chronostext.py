@@ -69,14 +69,16 @@ def prepare_events(date, source):
             first_column = "True"
         else:
             first_column = "False"
-        second_column = source.item(i, 1).data(QtCore.Qt.UserRole) #need format like this: %m/%d/%Y
+        second_column = source.item(i, 1).data(QtCore.Qt.UserRole)
+        #need format like this: %m/%d/%Y
 
         if isinstance(second_column, QtCore.QDate):
             #print second_column
             second_column = second_column.toString("MM/dd/yyyy")
         else:
             second_column = source.item(i, 1).data(QtCore.Qt.EditRole)
-        third_column = source.item(i, 2).data(QtCore.Qt.UserRole) #need format like this: %H:%M
+        third_column = source.item(i, 2).data(QtCore.Qt.UserRole)
+        #need format like this: %H:%M
 
         if isinstance(third_column, QtCore.QTime):
             third_column = third_column.toString("HH:mm")
@@ -87,7 +89,10 @@ def prepare_events(date, source):
         sevents.append(','.join([first_column, second_column, third_column, 
                                  fourth_column, fifth_column])
                       )
-    return "Events for {0}\n{1}".format(date.strftime("%m/%d/%Y"), "\n".join(sevents))
+    return "Events for {0}\n{1}".format(
+        date.strftime("%m/%d/%Y"),
+        "\n".join(sevents)
+    )
 
 #http://love-python.blogspot.com/2008/02/read-csv-file-in-python.html
 
@@ -97,7 +102,10 @@ def prepare_moon_cycle(date):
     for phase in mooncycle:
         data = phase[0].strftime("%m/%d/%Y - %H:%M:%S")
         smooncycle.append(' - '.join([data, phase[1], phase[2]]))
-    return "Moon phases for {0}\n{1}".format(date.strftime("%m/%d/%Y"), "\n".join(smooncycle))
+    return "Moon phases for {0}\n{1}".format(
+        date.strftime("%m/%d/%Y"),
+        "\n".join(smooncycle)
+    )
 
 
 def prepare_all(date, observer, source, nodes, admi):

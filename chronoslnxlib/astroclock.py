@@ -349,18 +349,20 @@ class AstroClock(QtWidgets.QWidget):
             palette.color(QtGui.QPalette.WindowText)
         )
 
+        bright_text = palette.color(QtGui.QPalette.BrightText)
+
         self._aspectBrushes = {
-            'conjunction': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'semi-sextile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'semi-square': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'sextile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'quintile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'square': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'trine': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'sesiquadrate': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'biquintile': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'inconjunct': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
-            'opposition': QtGui.QColor(palette.color(QtGui.QPalette.BrightText)),
+            'conjunction': QtGui.QColor(bright_text),
+            'semi-sextile': QtGui.QColor(bright_text),
+            'semi-square': QtGui.QColor(bright_text),
+            'sextile': QtGui.QColor(bright_text),
+            'quintile': QtGui.QColor(bright_text),
+            'square': QtGui.QColor(bright_text),
+            'trine': QtGui.QColor(bright_text),
+            'sesiquadrate': QtGui.QColor(bright_text),
+            'biquintile': QtGui.QColor(bright_text),
+            'inconjunct': QtGui.QColor(bright_text),
+            'opposition': QtGui.QColor(bright_text),
         }
 
     def outerFill(self):

@@ -27,6 +27,7 @@ class AstroCalendarDelegate(TodayDelegate):
         super().__init__(*args, **kwargs)
         self.observer = None
         self.icons = None
+        self.icon_size = 14
     def paint(self, painter, option, index):
         super().paint(painter, option, index)
         if self.icons is None:
@@ -39,14 +40,38 @@ class AstroCalendarDelegate(TodayDelegate):
         if islunarreturn:
             icon = self.icons['Lunar Return']
             point = rect.bottomRight()
-            icon.paint(painter, QtCore.QRect(point.x()-14, point.y()-14, 14, 14))
+            icon.paint(
+                painter,
+                QtCore.QRect(
+                    point.x()-self.icon_size,
+                    point.y()-self.icon_size,
+                    self.icon_size,
+                    self.icon_size
+                )
+            )
         if issolarreturn:
             icon = self.icons['Solar Return']
             point = rect.bottomRight()
-            icon.paint(painter, QtCore.QRect(rect.x(), point.y()-14, 14, 14))
+            icon.paint(
+                painter,
+                    QtCore.QRect(
+                    rect.x(),
+                    point.y()-self.icon_size,
+                    self.icon_size,
+                    self.icon_size
+                )
+            )
         if phase is not None:
             icon = self.icons[phase]
-            icon.paint(painter, QtCore.QRect(rect.x() ,rect.y(), 14, 14))
+            icon.paint(
+                painter,
+                QtCore.QRect(
+                    rect.x(),
+                    rect.y(),
+                    self.icon_size,
+                    self.icon_size
+                )
+            )
 
 class AstroCalendar(CSSCalendar):
     def __init__(self, *args):

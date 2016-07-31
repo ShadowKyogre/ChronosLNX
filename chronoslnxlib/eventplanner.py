@@ -165,7 +165,11 @@ class TriggerEditorDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         if not editor.dateplanned.isHidden():
             model.setData(index, editor.curDate(), QtCore.Qt.UserRole)
-            model.setData(index, editor.curDate().toString("MM/dd/yyyy"), QtCore.Qt.EditRole)
+            model.setData(
+                index,
+                editor.curDate().toString("MM/dd/yyyy"),
+                QtCore.Qt.EditRole
+            )
         else:
             model.setData(index, editor.text(), QtCore.Qt.UserRole)
             model.setData(index, editor.text(), QtCore.Qt.EditRole)
@@ -191,7 +195,11 @@ class DateEditorDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         if not editor.dateplanned.isHidden():
             model.setData(index, editor.curDate(), QtCore.Qt.UserRole)
-            model.setData(index, editor.curDate().toString("MM/dd/yyyy"), QtCore.Qt.EditRole)
+            model.setData(
+                index,
+                editor.curDate().toString("MM/dd/yyyy"),
+                QtCore.Qt.EditRole
+            )
         else:
             model.setData(index, editor.text(), QtCore.Qt.UserRole)
             model.setData(index, editor.text(), QtCore.Qt.EditRole)
@@ -215,7 +223,11 @@ class TimeEditorDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         if not editor.timeplanned.isHidden():
             model.setData(index, editor.curTime(), QtCore.Qt.UserRole)
-            model.setData(index, editor.curTime().toString("HH:mm"), QtCore.Qt.EditRole)
+            model.setData(
+                index,
+                editor.curTime().toString("HH:mm"),
+                QtCore.Qt.EditRole
+            )
         else:
             model.setData(index, editor.text(), QtCore.Qt.UserRole)
             model.setData(index, editor.text(), QtCore.Qt.EditRole)
@@ -299,17 +311,30 @@ class EventsList(QtWidgets.QWidget):
         a_vbox.addWidget(self.tree)
 
     def toggleAll(self, value=None):
-        for i in range(self.tree.model().rowCount()):
-            idx = self.tree.model().index(i, 0)
+        model = self.tree.model()
+        for i in range(model.rowCount()):
+            idx = model.index(i, 0)
             if value:
-                self.tree.model().setData(idx, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
+                model.setData(idx, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
             elif value is not None:
-                self.tree.model().setData(idx, QtCore.Qt.Unchecked, QtCore.Qt.CheckStateRole)
+                model.setData(
+                    idx,
+                    QtCore.Qt.Unchecked,
+                    QtCore.Qt.CheckStateRole
+                )
             else:
                 if item.checkState() == QtCore.Checked:
-                    self.tree.model().setData(idx, QtCore.Qt.Unchecked, QtCore.Qt.CheckStateRole)
+                    model.setData(
+                        idx,
+                        QtCore.Qt.Unchecked,
+                        QtCore.Qt.CheckStateRole
+                    )
                 else:
-                    self.tree.model().setData(idx, QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
+                    model.setData(
+                        idx,
+                        QtCore.Qt.Checked,
+                        QtCore.Qt.CheckStateRole
+                    )
 
     def add(self):
         item = QtGui.QStandardItem()
@@ -319,12 +344,13 @@ class EventsList(QtWidgets.QWidget):
         item3 = QtGui.QStandardItem("Sun")
         item4 = QtGui.QStandardItem("Textual reminder")
         item5 = QtGui.QStandardItem("This is filler text")
+        model = self.tree.model()
 
-        if isinstance(self.tree.model(), DayEventsModel):
-            self.tree.model().sourceModel().appendRow([item, item2, item3, item4, item5])
-            self.tree.model().invalidateFilter()
+        if isinstance(model, DayEventsModel):
+            model.sourceModel().appendRow([item, item2, item3, item4, item5])
+            model.invalidateFilter()
         else:
-            self.tree.model().appendRow([item, item2, item3, item4, item5])
+            model.appendRow([item, item2, item3, item4, item5])
 
     def delete(self):
         item = self.tree.currentIndex()
