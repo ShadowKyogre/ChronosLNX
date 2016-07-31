@@ -1,5 +1,5 @@
 import calendar
-from datetime import date as pydate
+from datetime import date as pydate, MINYEAR, MAXYEAR
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -37,7 +37,9 @@ class CSSCalendar(QtWidgets.QWidget):
         self._monthBox.addItems(calendar.month_name[1:])
         self._goForward = QtWidgets.QToolButton()
         self._goBackward = QtWidgets.QToolButton()
-        self._yearBox = QtWidgets.QLineEdit(self)
+        self._yearBox = QtWidgets.QSpinBox(self)
+        self._yearBox.setRange(MINYEAR, MAXYEAR)
+        self._yearBox.setKeyboardTracking(False)
         self._table = QtWidgets.QTableWidget(6, 7)
 
         self._table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -67,21 +69,16 @@ class CSSCalendar(QtWidgets.QWidget):
         self._calendar = calendar.Calendar(6)
         self._date = None
         self.date = pydate.today()
-        self._yearBox.editingFinished.connect(self.setYear)
-        self._yearBox.setInputMask("000D")
-        self._yearBox.setMaxLength(4)
+        self._yearBox.valueChanged.connect(self.setYear)
 
     def yearShown(self):
-        return int(self._yearBox.text())
+        return self._yearBox.value()
 
     def monthShown(self):
         return self._monthBox.currentIndex() + 1
 
-    def setYear(self):
-        year = self._yearBox.text()
-        if year:
-            iyear = int(year)
-            self.setCurrentPage(iyear, self.date.month)
+    def setYear(self, year):
+        self.setCurrentPage(year, self.date.month)
 
     def prevPage(self):
         if self._date.month == 1:
@@ -104,7 +101,7 @@ class CSSCalendar(QtWidgets.QWidget):
         try:
             self.date = self.date.replace(month=monthidx+1)
         except ValueError as e:
-            _, monthdays = calendar.monthrange(year, month)
+            _, monthdays = calendar.monthrange(self._date.year, month)
             self.date = self.date.replace(month=monthidx+1, day=monthdays)
 
     def setCurrentPage(self, year, month):
@@ -120,9 +117,13 @@ class CSSCalendar(QtWidgets.QWidget):
         return self._date
     
     def setDate(self, newdate):
-        refill = self._date is None or newdate.month != self._date.month or newdate.year!=self._date.year
+        refill = (
+            self._date is None
+            or newdate.month != self._date.month
+            or newdate.year != self._date.year
+        )
         self._date = newdate
-        self._yearBox.setText(str(self._date.year))
+        self._yearBox.setValue(self._date.year)
         self._monthBox.setCurrentIndex(self._date.month-1)
         if refill:
             self._refillCells()
