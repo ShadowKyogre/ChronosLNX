@@ -27,7 +27,12 @@ from .core.moon_phases import predict_phase, grab_phase, state_to_string
 
 from .astroclock import AstroClock
 from .astrocalendar import AstroCalendar
-from .astrowidgets import PlanetaryHoursList, MoonCycleList, SignsForDayList, housesDialog
+from .astrowidgets import (
+    PlanetaryHoursList,
+    MoonCycleList,
+    SignsForDayList,
+    housesDialog
+)
 from .eventplanner import EventsList, DayEventsModel
 from .chronostext import (
     prepare_planetary_info,
@@ -45,13 +50,200 @@ pynf = True
 class ReusableDialog(QtWidgets.QDialog):
     # because some dialogs are better if they're made and
     # just re-used instead of completely reconstructed
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def closeEvent(self, event):
-        if hasattr(self.parent(), "trayIcon") and self.parent().trayIcon.isVisible():
+        has_tray_icon = (
+            hasattr(self.parent(), "trayIcon")
+            and self.parent().trayIcon.isVisible()
+        )
+        if has_tray_icon:
             self.hide()
             event.ignore()
+
+class SaveForDateRangeDialog(ReusableDialog):
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setWindowTitle("Save Data for Dates")
+        grid = QtWidgets.QGridLayout(self)
+
+        self.date_start = QtWidgets.QDateTimeEdit(self)
+        self.date_start.setDisplayFormat("MM/dd/yyyy")
+        self.date_end = QtWidgets.QDateTimeEdit(self)
+        self.date_end.setDisplayFormat("MM/dd/yyyy")
+
+        grid.addWidget(QtWidgets.QLabel("Save from"), 0, 0)
+        grid.addWidget(self.date_start, 0, 1)
+        grid.addWidget(QtWidgets.QLabel("To"), 1, 0)
+        grid.addWidget(self.date_end, 1, 1)
+        grid.addWidget(QtWidgets.QLabel("Data to Save"), 2, 0)
+
+        self.checkboxes = QtWidgets.QButtonGroup()
+        self.checkboxes.setExclusive(False)
+        checkboxes_frame = QtWidgets.QFrame(self)
+
+        vbox = QtWidgets.QVBoxLayout(checkboxes_frame)
+
+        all_check = QtWidgets.QCheckBox("All", checkboxes_frame)
+        ph_check = QtWidgets.QCheckBox("Planetary Hours", checkboxes_frame)
+        s_check = QtWidgets.QCheckBox("Planetary Signs", checkboxes_frame)
+        m_check = QtWidgets.QCheckBox("Moon Phase", checkboxes_frame)
+        e_check = QtWidgets.QCheckBox("Events", checkboxes_frame)
+
+        self.checkboxes.addButton(all_check)
+        self.checkboxes.addButton(ph_check)
+        self.checkboxes.addButton(s_check)
+        self.checkboxes.addButton(m_check)
+        self.checkboxes.addButton(e_check)
+
+        vbox.addWidget(all_check)
+        vbox.addWidget(ph_check)
+        vbox.addWidget(s_check)
+        vbox.addWidget(m_check)
+        vbox.addWidget(e_check)
+
+        grid.addWidget(checkboxes_frame, 2, 1)
+
+        grid.addWidget(QtWidgets.QLabel("Folder to save in"), 3, 0)
+        hbox = QtWidgets.QHBoxLayout()
+        self.filename = QtWidgets.QLineEdit(self)
+        button = QtWidgets.QPushButton(self)
+        button.setIcon(QtGui.QIcon.fromTheme("document-open"))
+        button.clicked.connect(self.get_folder_name)
+        hbox.addWidget(self.filename)
+        hbox.addWidget(button)
+        grid.addLayout(hbox, 3, 1)
+
+        buttonbox = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal)
+        okbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Ok)
+        okbutton.clicked.connect(self.mass_print)
+        cancelbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Cancel)
+        cancelbutton.clicked.connect(self.hide)
+        grid.addWidget(buttonbox, 4, 0, 1, 2)
+
+    def get_folder_name(self):
+        text = QtWidgets.QFileDialog.getExistingDirectory(
+            caption="Save in folder...",
+            options=QtWidgets.QFileDialog.ShowDirsOnly
+        )
+        self.filename.setText(text)
+
+    def mass_print(self):
+        start_pydate = self.date_end.date().toPyDate()
+        end_pydate = self.date_start.date().toPyDate()
+        day_numbers = (start_pydate - end_pydate).days
+        if self.filename.text() > "":
+            for j in self.checkboxes.buttons():
+                if j.isChecked():
+                    store_here = os.path.join(
+                        self.filename.text(),
+                        j.text().replace(" ", "_")
+                    )
+                    if not os.path.exists(store_here):
+                        os.mkdir(store_here)
+            for i in range(day_numbers+1):
+                py_dt = self.date_start.dateTime().toPyDateTime()
+                date = py_dt.replace(tzinfo=clnxcfg.observer.timezone) + timedelta(days=i)
+                for j in self.checkboxes.buttons():
+                    if j.isChecked():
+                        filename = os.path.join(
+                            self.filename.text(),
+                            j.text().replace(" ", "_"),
+                            date.strftime("%m-%d-%Y.txt")
+                        )
+                        self.print_to_file(
+                            j.text(),
+                            date,
+                            filename=filename,
+                            notify=False,
+                            parent=self
+                        )
+
+# KGlobal::locale::Warning your global KLocale is being recreated
+# with a valid main component instead of a fake component,
+# this usually means you tried to call i18n related functions before
+# your main component was created.
+# You should not do that since it most likely will not work
+
+# X Error: RenderBadPicture (invalid Picture parameter) 174
+# Extension:    153 (RENDER)
+# Minor opcode: 8 (RenderComposite)
+# Resource id:  0x3800836
+
+ #weird bug related to opening file dialog on linux through this, but it's harmless
+
+def print_to_file(
+        option,
+        date,
+        filename=None,
+        notify=True,
+        parent=None
+        ):
+    if option == "All":
+        text = prepare_all(
+            date,
+            clnxcfg.observer,
+            clnxcfg.schedule,
+            clnxcfg.show_nodes,
+            clnxcfg.show_admi
+        )
+    elif option == "Moon Phase":
+        text = prepare_moon_cycle(date)
+    elif option == "Planetary Signs":
+        text = prepare_sign_info(
+            date,
+            clnxcfg.observer,
+            clnxcfg.show_nodes,
+            clnxcfg.show_admi
+        )
+    elif option == "Planetary Hours":
+        text = prepare_planetary_info(date, clnxcfg.observer)
+    else:
+        #option == "Events"
+        text = prepare_events(date, clnxcfg.schedule)
+    if filename is None:
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(
+            parent,
+            caption="Saving {0} for {1}".format(
+                option,
+                date.strftime("%m/%d/%Y")
+            ),
+            filter="*.txt"
+        )
+    if filename is not None and filename != "":
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(text)
+        if notify:
+            show_notification(
+                "Saved",
+                "{0} has the {1} you saved.".format(
+                    filename,
+                    option
+                ),
+            )
+
+def show_notification(title, text, icon_path, pixmap, duration=10000, fallback=None):
+    if pynf:
+        call([
+            'notify-send',
+            '-t', str(duration),
+            '-a', APPNAME,
+            '-i', icon_path,
+            title, text
+        ])
+    else:
+        if callable(fallback):
+            success = fallback(title, text, pixmap, duration=duration)
+
+        if not success:
+            #last resort, as popup dialogs are annoying
+            dialog = QtWidgets.QMessageBox(self)
+            dialog.setTitle(title)
+            dialog.setTitle(text)
+            dialog.setIconPixmap(pixmap)
+            dialog.open()
 
 class ChronosLNX(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -61,12 +253,16 @@ class ChronosLNX(QtWidgets.QMainWindow):
         self.draw_timer = QtCore.QTimer(self)
         self.now = clnxcfg.observer.obvdate
         self.make_settings_dialog()
-        self.make_save_for_date_range()
+        self.save_for_range_dialog = SaveForDateRangeDialog(parent=self)
         self.make_tray_icon()
         self.setWindowTitle(APPNAME)
 
-        self.houses, self.zodiac = get_signs(clnxcfg.baby.obvdate, clnxcfg.baby,
-                                            clnxcfg.show_nodes, clnxcfg.show_admi)
+        self.houses, self.zodiac = get_signs(
+            clnxcfg.baby.obvdate,
+            clnxcfg.baby,
+            clnxcfg.show_nodes,
+            clnxcfg.show_admi
+        )
         #self.setDocumentMode (True)
         self.add_widgets()
         self.timer.timeout.connect(self.update)
@@ -266,11 +462,11 @@ class ChronosLNX(QtWidgets.QMainWindow):
                 self.astroClock.init_colors()
             self.draw_timer.start(60000)
 
-        self.calendar.setIcons(clnxcfg.moon_icons)
-        self.calendar.setShowPhase(clnxcfg.show_mcal)
-        self.calendar.setSolarReturn(clnxcfg.show_sr)
-        self.calendar.setLunarReturn(clnxcfg.show_lr)
-        self.calendar.setBirthTime(clnxcfg.baby.obvdate)
+        self.calendar.icons = clnxcfg.moon_icons
+        self.calendar.showPhase = clnxcfg.show_mcal
+        self.calendar.solarReturn = clnxcfg.show_sr
+        self.calendar.lunarReturn = clnxcfg.show_lr
+        self.calendar.birthtime = clnxcfg.baby.obvdate
         self.calendar.setNatalMoon(clnxcfg.natal_moon)
         self.calendar.setNatalSun(clnxcfg.natal_sun)
         self.calendar.useCSS = clnxcfg.use_css
@@ -298,7 +494,8 @@ class ChronosLNX(QtWidgets.QMainWindow):
         self.signsToday.get_constellations(self.now, clnxcfg.observer)
 
     def update_moon_cycle(self):
-        if predict_phase(self.now).timetuple().tm_yday == self.now.timetuple().tm_yday:
+        new_moon_day = predict_phase(self.now).timetuple().tm_yday
+        if new_moon_day == self.now.timetuple().tm_yday:
             self.moonToday.clear()
             self.moonToday.get_moon_cycle(self.now, clnxcfg.observer)
         self.moonToday.highlight_cycle_phase(self.now)
@@ -330,8 +527,13 @@ class ChronosLNX(QtWidgets.QMainWindow):
             else:
                 path = grab_icon_path("misc", "chronoslnx")
             path = fldr.absoluteFilePath(path.replace("skin:", ""))
-            call(['notify-send', '-t', '10000', '-a', APPNAME,
-                  '-i', path, title, text])
+            call([
+                'notify-send',
+                '-t', '10000',
+                '-a', APPNAME,
+                '-i', path,
+                title, text
+            ])
         else:
             if self.trayIcon.supportsMessages():
                 if ptrigger:
@@ -343,9 +545,9 @@ class ChronosLNX(QtWidgets.QMainWindow):
             else:
                 #last resort, as popup dialogs are annoying
                 if ptrigger:
-                    pixmap = self.main_pixmaps[self.phour]
+                    pixmap = clnxcfg.main_pixmaps[self.phour]
                 else:
-                    pixmap = self.main_pixmaps['logo']
+                    pixmap = clnxcfg.main_pixmaps['logo']
                 dialog = QtWidgets.QMessageBox(self)
                 dialog.setTitle(title)
                 dialog.setTitle(text)
@@ -404,7 +606,10 @@ class ChronosLNX(QtWidgets.QMainWindow):
         moonToday.get_moon_cycle(date, clnxcfg.observer)
         moonToday.highlight_cycle_phase(date)
         if birth:
-            print("Using already available birth data instead of recalculating it")
+            print(
+                "Using already available birth data"
+                " instead of recalculating it"
+            )
             signsToday.time.timeChanged.disconnect()
             signsToday.time.setReadOnly(True)
             signsToday.time.setTime(clnxcfg.baby.obvdate.time())
@@ -420,103 +625,6 @@ class ChronosLNX(QtWidgets.QMainWindow):
         vbox.addWidget(dayData)
         info_dialog.show()
 
-    def make_save_for_date_range(self):
-        #self.save_for_range_dialog = QtGui.QDialog(self)
-        self.save_for_range_dialog = ReusableDialog(self)
-        self.save_for_range_dialog.setFixedSize(380, 280)
-        self.save_for_range_dialog.setWindowTitle("Save Data for Dates")
-        grid = QtWidgets.QGridLayout(self.save_for_range_dialog)
-
-        self.save_for_range_dialog.date_start = QtWidgets.QDateTimeEdit(self.save_for_range_dialog)
-        self.save_for_range_dialog.date_start.setDisplayFormat("MM/dd/yyyy")
-        self.save_for_range_dialog.date_end = QtWidgets.QDateTimeEdit(self.save_for_range_dialog)
-        self.save_for_range_dialog.date_end.setDisplayFormat("MM/dd/yyyy")
-
-        grid.addWidget(QtWidgets.QLabel("Save from"), 0, 0)
-        grid.addWidget(self.save_for_range_dialog.date_start, 0, 1)
-        grid.addWidget(QtWidgets.QLabel("To"), 1, 0)
-        grid.addWidget(self.save_for_range_dialog.date_end, 1, 1)
-        grid.addWidget(QtWidgets.QLabel("Data to Save"), 2, 0)
-
-        self.save_for_range_dialog.checkboxes = QtWidgets.QButtonGroup()
-        self.save_for_range_dialog.checkboxes.setExclusive(False)
-        checkboxes_frame = QtWidgets.QFrame(self.save_for_range_dialog)
-
-        vbox = QtWidgets.QVBoxLayout(checkboxes_frame)
-
-        all_check = QtWidgets.QCheckBox("All", checkboxes_frame)
-        ph_check = QtWidgets.QCheckBox("Planetary Hours", checkboxes_frame)
-        s_check = QtWidgets.QCheckBox("Planetary Signs", checkboxes_frame)
-        m_check = QtWidgets.QCheckBox("Moon Phase", checkboxes_frame)
-        e_check = QtWidgets.QCheckBox("Events", checkboxes_frame)
-
-        self.save_for_range_dialog.checkboxes.addButton(all_check)
-        self.save_for_range_dialog.checkboxes.addButton(ph_check)
-        self.save_for_range_dialog.checkboxes.addButton(s_check)
-        self.save_for_range_dialog.checkboxes.addButton(m_check)
-        self.save_for_range_dialog.checkboxes.addButton(e_check)
-
-        vbox.addWidget(all_check)
-        vbox.addWidget(ph_check)
-        vbox.addWidget(s_check)
-        vbox.addWidget(m_check)
-        vbox.addWidget(e_check)
-
-        grid.addWidget(checkboxes_frame, 2, 1)
-
-        grid.addWidget(QtWidgets.QLabel("Folder to save in"), 3, 0)
-        hbox = QtWidgets.QHBoxLayout()
-        self.save_for_range_dialog.filename = QtWidgets.QLineEdit(self.save_for_range_dialog)
-        button = QtWidgets.QPushButton(self.save_for_range_dialog)
-        button.setIcon(QtGui.QIcon.fromTheme("document-open"))
-        button.clicked.connect(self.get_folder_name)
-        hbox.addWidget(self.save_for_range_dialog.filename)
-        hbox.addWidget(button)
-        grid.addLayout(hbox, 3, 1)
-
-        buttonbox = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal)
-        okbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Ok)
-        okbutton.clicked.connect(self.mass_print)
-        cancelbutton = buttonbox.addButton(QtWidgets.QDialogButtonBox.Cancel)
-        cancelbutton.clicked.connect(self.save_for_range_dialog.hide)
-        grid.addWidget(buttonbox, 4, 0, 1, 2)
-
-    def get_folder_name(self):
-        text = QtWidgets.QFileDialog.getExistingDirectory(
-            caption="Save in folder...",
-            options=QtWidgets.QFileDialog.ShowDirsOnly
-        )
-        self.save_for_range_dialog.filename.setText(text)
-
-    def mass_print(self):
-        start_pydate = self.save_for_range_dialog.date_end.date().toPyDate()
-        end_pydate = self.save_for_range_dialog.date_start.date().toPyDate()
-        day_numbers = (start_pydate - end_pydate).days
-        if self.save_for_range_dialog.filename.text() > "":
-            for j in self.save_for_range_dialog.checkboxes.buttons():
-                if j.isChecked():
-                    store_here = os.path.join(
-                        self.save_for_range_dialog.filename.text(),
-                        j.text().replace(" ", "_")
-                    )
-                    if not os.path.exists(store_here):
-                        os.mkdir(store_here)
-            for i in range(day_numbers+1):
-                py_dt = self.save_for_range_dialog.date_start.dateTime().toPyDateTime()
-                date = py_dt.replace(tzinfo=clnxcfg.observer.timezone) + timedelta(days=i)
-                for j in self.save_for_range_dialog.checkboxes.buttons():
-                    if j.isChecked():
-                        filename = os.path.join(
-                            self.save_for_range_dialog.filename.text(),
-                            j.text().replace(" ", "_"),
-                            date.strftime("%m-%d-%Y.txt")
-                        )
-                        self.print_to_file(
-                            j.text(),
-                            date,
-                            filename=filename,
-                            suppress_notification=True
-                        )
     #'''
     def make_calendar_menu(self):
         self.calendar._table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -546,61 +654,6 @@ class ChronosLNX(QtWidgets.QMainWindow):
         else: #option == "Events"
             text = prepare_events(date, clnxcfg.schedule)
         app.clipboard().setText(text)
-
-# KGlobal::locale::Warning your global KLocale is being recreated
-# with a valid main component instead of a fake component,
-# this usually means you tried to call i18n related functions before
-# your main component was created.
-# You should not do that since it most likely will not work
-
-# X Error: RenderBadPicture (invalid Picture parameter) 174
-# Extension:    153 (RENDER)
-# Minor opcode: 8 (RenderComposite)
-# Resource id:  0x3800836
-
- #weird bug related to opening file dialog on linux through this, but it's harmless
-
-    def print_to_file(self, option, date, filename=None,
-        suppress_notification=False):
-        if option == "All":
-            text = prepare_all(
-                date,
-                clnxcfg.observer,
-                clnxcfg.schedule,
-                clnxcfg.show_nodes,
-                clnxcfg.show_admi
-            )
-        elif option == "Moon Phase":
-            text = prepare_moon_cycle(date)
-        elif option == "Planetary Signs":
-            text = prepare_sign_info(
-                date,
-                clnxcfg.observer,
-                clnxcfg.show_nodes,
-                clnxcfg.show_admi
-            )
-        elif option == "Planetary Hours":
-            text = prepare_planetary_info(date, clnxcfg.observer)
-        else:  #option == "Events"
-            text = prepare_events(date, clnxcfg.schedule)
-        if filename is None:
-            filename = QtWidgets.QFileDialog.getSaveFileName(
-                self,
-                caption="Saving {0} for {1}".format(option, date.strftime("%m/%d/%Y")),
-                filter="*.txt"
-            )
-        if filename is not None and filename != "":
-            with open(filename, 'w', encoding='utf-8') as f:
-                f.write(text)
-                if not suppress_notification:
-                    self.show_notification(
-                        "Saved",
-                        "{0} has the {1} you saved.".format(
-                            filename,
-                            option
-                        ),
-                        False
-                    )
 
     def get_cal_menu(self, qpoint):
         table = self.calendar._table
@@ -668,11 +721,11 @@ class ChronosLNX(QtWidgets.QMainWindow):
         savesignsdata = savemenu.addAction("Signs for this date")
         saveeventdata = savemenu.addAction("Events")
 
-        saveall_cb = lambda: self.print_to_file("All", date)
-        saveplanetdata_cb = lambda: self.print_to_file("Planetary Hours", date)
-        savemoonphasedata_cb = lambda: self.print_to_file("Moon Phase", date)
-        savesignsdata_cb = lambda: self.print_to_file("Planetary Signs", date)
-        saveeventdata_cb = lambda: self.print_to_file("Events", date)
+        saveall_cb = lambda: print_to_file("All", date, parent=self)
+        saveplanetdata_cb = lambda: print_to_file("Planetary Hours", date, parent=self)
+        savemoonphasedata_cb = lambda: print_to_file("Moon Phase", date, parent=self)
+        savesignsdata_cb = lambda: print_to_file("Planetary Signs", date, parent=self)
+        saveeventdata_cb = lambda: print_to_file("Events", date, parent=self)
 
         saveall.triggered.connect(saveall_cb)
         saveplanetdata.triggered.connect(saveplanetdata_cb)
@@ -979,7 +1032,7 @@ class ChronosLNX(QtWidgets.QMainWindow):
 #http://www.itfingers.com/Question/758256/pyqt4-minimize-to-tray
 
     def make_tray_icon(self):
-        self.trayIcon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(clnxcfg.main_icons['logo']), app)
+        self.trayIcon = QtWidgets.QSystemTrayIcon(clnxcfg.main_icons['logo'], app)
         menu = QtWidgets.QMenu()
         quitAction = QtWidgets.QAction(self.tr("&Quit"), self)
         quitAction.triggered.connect(QtWidgets.qApp.quit)
@@ -1100,13 +1153,32 @@ class ChronosLNX(QtWidgets.QMainWindow):
         self.todayOther.setText("{0}<br />{1}".format(self.now.strftime("%H:%M:%S"), total_string))
         self.prevtime = now_hms
 
+    def tray_notify(self, title, text, pixmap, duration=10000):
+        if self.trayIcon.supportsMessages():
+            self.trayIcon.showMessage(title, text, msecs=duration)
+            return True
+        return False
+
     def event_trigger(self, event_type, text, planet_trigger):
         if event_type == "Save to file":
-            print_to_file(self, text, self.now)
+            print_to_file(text, self.now, parent=self)
         elif event_type == "Command":
-            call([split(text)])
-        else: #event_type == "Textual reminder"
-            self.show_notification("Reminder", text, planet_trigger)
+            call(split(text))
+        else:
+            #event_type == "Textual reminder"
+            fldr = QtCore.QDir("skin:/")
+            if planet_trigger:
+                icon_path = grab_icon_path("planets", self.phour.lower())
+                pixmap = clnxcfg.main_pixmaps[self.phour]
+            else:
+                icon_path = grab_icon_path("misc", "chronoslnx")
+                pixmap = clnxcfg.main_pixmaps['logo']
+            icon_path = fldr.absoluteFilePath(path.replace("skin:", ""))
+
+            self.show_notification(
+                "Reminder", text, icon_path, pixmap,
+                fallback=self.tray_notify
+            )
 
     def parse_phour_args(self, string):
         alist = None

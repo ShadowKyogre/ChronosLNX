@@ -9,18 +9,6 @@ from .csscalendar import CSSCalendar, TodayDelegate
 
 
 ### CSS Themable Custom Widgets
-'''
-self.calendar.setRefinements(clnxcfg.refinements)
-self.calendar.setIcons(clnxcfg.moon_icons)
-self.calendar.setShowPhase(clnxcfg.show_mcal)
-self.calendar.setSolarReturn(clnxcfg.show_sr)
-self.calendar.setLunarReturn(clnxcfg.show_lr)
-self.calendar.setBirthTime(clnxcfg.baby.obvdate)
-self.calendar.setNatalMoon(clnxcfg.natal_moon)
-self.calendar.setNatalSun(clnxcfg.natal_sun)
-self.calendar.useCSS=clnxcfg.use_css
-self.calendar.observer=clnxcfg.observer
-'''
 
 class AstroCalendarDelegate(TodayDelegate):
     def __init__(self, *args, **kwargs):
@@ -107,20 +95,6 @@ class AstroCalendar(CSSCalendar):
 
     observer = property(observer, setObserver)
 
-    def setIcons(self, icon_list):
-        self.icons = icon_list
-
-    def setShowPhase(self, value):
-        self.showPhase = value
-
-    def setSolarReturn(self, value):
-        self.solarReturn = value
-
-    def setLunarReturn(self, value):
-        self.lunarReturn = value
-
-    def setBirthTime(self, time):
-        self.birthtime = time
         #self.updateSun()
         #self.updateMoon()
 
