@@ -68,7 +68,7 @@ class AstrologicalDay:
     @classmethod
     def day_for_ref_point(cls, obv, dt=None):
         if dt is None:
-            date = observer.obvdate
+            dt = obv.obvdate
 
         day = datetime_to_julian(dt.replace(hour=12, minute=0, second=0))
 
