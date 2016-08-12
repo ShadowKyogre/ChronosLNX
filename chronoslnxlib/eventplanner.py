@@ -2,7 +2,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from .core.hours import get_planet_day
+from .core.hours import DAY_SEQUENCE
 
 ##Custom Widgets for both normal and planetary sensitive data
 
@@ -264,8 +264,8 @@ class DayEventsModel(QtCore.QSortFilterProxyModel):
 
     def setDate(self, date):
         self.date = date
-        self.wday = int(date.strftime('%w'))
-        self.exact_day_type = get_planet_day(self.wday)
+        self.wday = (date.weekday() + 1) % 7
+        self.exact_day_type = DAY_SEQUENCE[self.wday]
         self.invalidateFilter()
 
 class EventsList(QtWidgets.QWidget):

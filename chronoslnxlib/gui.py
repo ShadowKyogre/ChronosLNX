@@ -21,7 +21,7 @@ import swisseph
 from . import geolocationwidget ## from example, but modified a little
 from .core import compare_to_the_second
 from .core.charts import update_planets_and_cusps, get_signs
-from .core.hours import AstrologicalDay, get_planet_day
+from .core.hours import AstrologicalDay, DAY_SEQUENCE
 #previous_new_moon -> predict_phase
 from .core.moon_phases import predict_phase, grab_phase, state_to_string
 
@@ -505,7 +505,7 @@ class ChronosLNX(QtWidgets.QMainWindow):
             clnxcfg.observer, dt=self.now
         )
         dayn = self.astro_day.sunrise.isoweekday() % 7
-        self.pday = get_planet_day(dayn)
+        self.pday = DAY_SEQUENCE[dayn]
         print(
             self.astro_day.sunrise,
             self.astro_day.sunset,

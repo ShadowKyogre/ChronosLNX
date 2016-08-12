@@ -1,0 +1,4 @@
+pyswisseph
+dateutil
+PyQt5
+cached-property

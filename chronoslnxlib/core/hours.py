@@ -1,8 +1,10 @@
 #!/usr/bin/python
+from datetime import timedelta
+
+from cached_property import cached_property
 import swisseph
 
 from . import datetime_to_julian, revjul_to_datetime
-from datetime import timedelta
 
 #http://www.astro.com/swisseph/swephprg.htm#_Toc283735418
 #http://packages.python.org/pyswisseph/
@@ -140,23 +142,37 @@ class AstrologicalDay:
 
         return cls(sunrise, sunset, next_sunrise)
 
+    @cached_property
+    def day_length(self):
+        return self.sunset - self.sunrise
+
+    @cached_property
+    def night_length(self):
+        return self.next_sunrise - self.sunset
+
+    @cached_property
+    def dayhour_length(self):
+        return self.day_length / 12
+
+    @cached_property
+    def nighthour_length(self):
+        return self.night_length / 12
+
+    @cached_property
     def planetary_hours(self):
-        day_type = int(self.sunrise.strftime('%w'))
-        needed_planet = get_planet_day(day_type)
-        day_length = self.sunset - self.sunrise
-        night_length = self.next_sunrise - self.sunset
-        dayhour_length = day_length/12
-        nighthour_length = night_length/12
+        day_type = (self.sunrise.weekday() + 1) % 7
+        needed_planet = DAY_SEQUENCE[day_type]
+
         hours = [
             [
-                self.sunrise + i * dayhour_length,
+                self.sunrise + i * self.dayhour_length,
                 progression_check(needed_planet, i),
                 True
             ] for i in range(12)
         ]
         hours.extend(
             [
-                self.sunset + i * nighthour_length,
+                self.sunset + i * self.nighthour_length,
                 progression_check(needed_planet, i+12),
                 False
             ] for i in range(12)
@@ -179,9 +195,6 @@ def check_rise_trans_call(day, obv, rsmi, planet=swisseph.SUN):
         raise RuntimeError("There's a problem with the ephmeris!")
 
     return ret[0]
-
-def get_planet_day(day_type):
-    return DAY_SEQUENCE[day_type]
 
 def progression_check(needed_planet, hour):
     offset = HOUR_SEQUENCE.index(needed_planet)

@@ -82,7 +82,7 @@ class PHModel(BookMarkedModel):
             if observer is None:
                 raise ValueError("If no astro day specified, observer must not be None!")
             astro_day = AstrologicalDay.day_for_ref_point(observer, dt=date)
-        planetary_hours = astro_day.planetary_hours()
+        planetary_hours = astro_day.planetary_hours
         model = cls()
         for ph in planetary_hours:
             icon = icon_source[ph[1]]
@@ -208,7 +208,7 @@ class PlanetaryHoursList(QtWidgets.QWidget):
                 raise ValueError("If no astro day specified, observer must not be None!")
             astro_day = AstrologicalDay.day_for_ref_point(observer, dt=date)
 
-        planetary_hours = astro_day.planetary_hours()
+        planetary_hours = astro_day.planetary_hours
         ph_model = PHModel.prepareHours(self.icons, astro_day=astro_day)
         self.tree.model().setSourceModel(ph_model)
 
