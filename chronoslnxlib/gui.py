@@ -1173,7 +1173,7 @@ class ChronosLNX(QtWidgets.QMainWindow):
             else:
                 icon_path = grab_icon_path("misc", "chronoslnx")
                 pixmap = clnxcfg.main_pixmaps['logo']
-            icon_path = fldr.absoluteFilePath(path.replace("skin:", ""))
+            icon_path = fldr.absoluteFilePath(icon_path.replace("skin:", ""))
 
             self.show_notification(
                 "Reminder", text, icon_path, pixmap,
